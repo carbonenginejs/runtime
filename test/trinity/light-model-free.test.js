@@ -17,7 +17,7 @@ test("real chain point light reads into its embedded LightData and carries no va
   assert.equal(flat.GetLightData().radius, flat.radius);
   assert.equal(Object.hasOwn(CjsSchema.getValues(flat), "lightData"), false);
   assert.equal("GetValues" in flat, false);
-  assert.equal("SetValues" in flat, false, "Carbon classes carry no values methods of ours (operator, 2026-10-17)");
+  assert.equal("SetValues" in flat, false, "Carbon classes carry no values methods of ours");
   // lightData is not a Blue member, so the pre-flatten nested shape is skipped
   // with a warning on every values route now that no class-owned normalizer folds it.
   const defaultRadius = new Tr2PointLight().radius;

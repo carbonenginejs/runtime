@@ -1,5 +1,5 @@
 // The SOF library builder drops nothing, over a real build (format-ownership.md § Readers and factories drop
-// nothing; operator, 2026-11-12).
+// nothing).
 //
 // The builder fetches one .black record per hull, faction, race, material, pattern and layout, publishes it to
 // the data manager and keeps it in its catalog. The catalog's values are the library a tool saves and a client

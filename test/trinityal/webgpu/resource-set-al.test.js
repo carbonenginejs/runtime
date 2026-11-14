@@ -205,7 +205,7 @@ test("a writable storage view bound twice takes a dummy the second time, and eve
 {
   // WebGPU refuses two writable bindings of one subresource in a dispatch;
   // D3D allows them. Carbon binds CORTAO's pack slots past the last mip to
-  // the last mip (Tr2SSAO.cpp:659-665): the operator's "Writable storage
+  // the last mip (Tr2SSAO.cpp:659-665): the reported "Writable storage
   // texture binding aliasing ... base mipmap level: 6".
   const { al, created } = composed();
   const storage = registerIndex => ({

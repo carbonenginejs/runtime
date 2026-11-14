@@ -1,7 +1,7 @@
 // The readiness watch: resolve once every resource an object reaches has
 // finished, so the object can be shown whole instead of built in pieces.
 //
-// Ours (BlueResMan.Watch JSDoc): the operator's ccpwgl Tw2MotherLode.Watch,
+// Ours (BlueResMan.Watch JSDoc): ccpwgl's Tw2MotherLode.Watch,
 // not Carbon's Tr2LoadPrepareFence. Also pins the two error paths agreed with
 // it: a resource left EMPTY is failed rather than waited on forever, and a
 // failed load is prepared but bad; late cancelled attempts are covered separately.

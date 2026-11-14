@@ -252,7 +252,7 @@ test("a float stand-in for a UNORM target sets the shader's UNORM override for i
 {
   // D3D stores a float written to R16G16B16A16_UNORM clamped to [0, 1], NaN as
   // 0; WebGPU renders it into rgba16float. TAA's history kept a NaN forever
-  // (the operator's AA-then-post black screen) until the pipeline told the
+  // (the reported AA-then-post black screen) until the pipeline told the
   // shader to store as UNORM does.
   const program = Program({
     id: "program",

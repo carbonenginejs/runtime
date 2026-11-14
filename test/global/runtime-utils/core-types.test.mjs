@@ -749,7 +749,7 @@ test("hydrates canonical model fields and lists without constructing raw objects
         children: [{ label: "two" }],
         payload: { native: 7 }
     });
-    // A typed member does not keep a plain object (operator, 2026-09-26): it builds its class, and a
+    // A typed member does not keep a plain object: it builds its class, and a
     // key that class does not expose is skipped with a warning.
     const unknownReference = CjsSchema.from(CjsSchema.getClassName(CanonicalParent), { reference: { name: "root" } }).reference;
     assert.notEqual(Object.getPrototypeOf(unknownReference), Object.prototype, "the reference is built, not kept plain");
@@ -942,7 +942,7 @@ test("GetValues export options control persistence, type tags and refs", () => {
     assert.equal(copied.child, copied.children[0], "copy keeps the sharing too");
 
     // forceIDs and keyedLists are dropped: Blue's writers have neither, and
-    // nothing in production asked for them (operator, 2026-09-27).
+    // nothing in production asked for them.
 
     const cyclic = new ExportRoot();
     cyclic.name = "cycle";
@@ -1123,7 +1123,7 @@ test("reference import errors are loud and specific", () => {
     assert.equal(crossTyped.node, crossTyped.others[0]);
 });
 
-// Removed: "keyed list maps accept _ref entries..." - keyed lists: the feature has no Blue counterpart and no production caller, and was dropped with the move to Blue's values engine (operator, 2026-09-27; docs research/blue-values-engine.md).
+// Removed: "keyed list maps accept _ref entries..." - keyed lists: the feature has no Blue counterpart and no production caller, and was dropped with the move to Blue's values engine (docs research/blue-values-engine.md).
 
 test("list items honor an explicit _type on input", () => {
     class MapChild
@@ -1164,7 +1164,7 @@ test("list items honor an explicit _type on input", () => {
 
     const host = new MapHost();
     // A list is read from a list (DictReader ReadList: "Expected a list"); the
-    // name-keyed map form was dropped with keyed lists (operator, 2026-09-27).
+    // name-keyed map form was dropped with keyed lists.
     assert.throws(() => CjsSchema.setValues(host, { children: { a: { value: 1 } } }), TypeError);
 
     CjsSchema.setValues(host, { children: [{ _type: "MapChildAlt", name: "c", value: 3 }] });
@@ -1174,7 +1174,7 @@ test("list items honor an explicit _type on input", () => {
     assert.equal(Array.isArray(host.children), true);
 });
 
-// Removed: "enum-backed fields validate on set and translate on export..." - enum member names on import, enumFormat on export and membership validation: Carbon's readers read enum members as integers (DictReader ReadValue). the feature has no Blue counterpart and no production caller, and was dropped with the move to Blue's values engine (operator, 2026-09-27; docs research/blue-values-engine.md).
+// Removed: "enum-backed fields validate on set and translate on export..." - enum member names on import, enumFormat on export and membership validation: Carbon's readers read enum members as integers (DictReader ReadValue). the feature has no Blue counterpart and no production caller, and was dropped with the move to Blue's values engine (docs research/blue-values-engine.md).
 
 test("records carbon.contextual tier provenance", () => {
     class ContextualNode

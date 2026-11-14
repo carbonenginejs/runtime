@@ -1,7 +1,7 @@
 // TEST HELPER, not a runtime API.
 //
 // The host's frame loop. Prepares run only in resMan's per-frame Update, as
-// Carbon's BlueResMan::Update (operator, 2026-11-01); an application ticks it
+// Carbon's BlueResMan::Update; an application ticks it
 // through blue.os (Graphene's demoFramePump). A test that awaits a load without
 // ticking itself imports this module, which calls the installed manager's
 // Update every millisecond until the file's tests finish. A test that drives

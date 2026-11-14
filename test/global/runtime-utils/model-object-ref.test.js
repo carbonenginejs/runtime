@@ -125,7 +125,7 @@ test("a rootRef to an interface throws on a plain bag with no class", () =>
 {
     // A plain object is data, not a reference - but a member typed as an
     // interface nothing registers has no class to build from it, and a typed
-    // member does not keep a plain object (operator, 2026-09-26).
+    // member does not keep a plain object.
     const observer = new Observer();
     assert.throws(() => CjsSchema.setValues(observer, { observer: { name: "from-values" } }), /_type/u);
     assert.equal(observer.observer, null);

@@ -545,7 +545,7 @@ test("interior constant-buffer records preserve native fixed-array cardinalities
     "root");
   assert.equal(CjsSchema.getField(Tr2InteriorPerObjectPSData, "pointLights")?.type?.itemType?.className,
     "Tr2InteriorPerObjectLightData");
-  // Carbon classes carry no values methods of ours (operator, 2026-10-17):
+  // Carbon classes carry no values methods of ours:
   // the fixed-cardinality import normalization went with SetValues.
   assert.equal("SetValues" in perObject, false);
   assert.equal("SetValues" in perLight, false);

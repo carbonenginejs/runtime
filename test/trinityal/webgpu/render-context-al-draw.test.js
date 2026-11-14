@@ -338,7 +338,7 @@ test("a hit restores the dummy vertex stream slot its pipeline was built with", 
 
 test("a hit binds the streams of the pipeline it found, not of the last miss", () =>
 {
-  // The operator's patterned hull (54daec1f): one program drawn from a mesh
+  // The reported patterned hull (54daec1f): one program drawn from a mesh
   // with its UVs interleaved on stream 0 and one with them on stream 1. A hit
   // kept the last miss's buffer layouts, so the stream-1 pipeline drew with
   // slot 1 unset and WebGPU invalidated the command buffer.

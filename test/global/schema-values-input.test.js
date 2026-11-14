@@ -5,7 +5,7 @@ import { runInNewContext } from "node:vm";
 
 import { CjsSchema, type } from "../../src/blue/schema/index.js";
 
-// The top-level values rule (operator ruling, 2026-09-14): from/set exist for
+// The top-level values rule: from/set exist for
 // hydration and dehydration, so what arrives at the top is a plain values
 // object. A live object there used to be read as a bag, building a new object
 // that aliased the original's children. null still means "no values".

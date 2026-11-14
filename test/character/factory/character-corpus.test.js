@@ -1,5 +1,5 @@
 // The character readers and the character factory drop nothing, over a real build (format-ownership.md § Readers and
-// factories drop nothing; operator, 2026-11-12). Every key of every shipped `metadata.yaml`, `.type`, `.proj` and
+// factories drop nothing). Every key of every shipped `metadata.yaml`, `.type`, `.proj` and
 // `.prs` under `res:/graphics/character/` is compared, read independently of our reader, with the record our reader
 // gives and, for a recipe, with the DNA the factory reads from it. A key that reaches no field, a value that does not
 // arrive, and a recipe entry the DNA does not keep each fail, unless `DROPS` lists it with its proof.

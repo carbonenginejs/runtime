@@ -28,7 +28,7 @@ test("a part another's occludesModifiers names is suppressed and leaves every ta
   assert.deepEqual(body.order, body.lists.order, "the capture's order is the ready list");
   assert.ok("topMiddle" in body, "a suppressed part's settings stay in the capture");
   assert.ok(!CjsPaperDollInstance.ready(definition, PaperDollTarget.SURFACE).lists.order.includes("topMiddle"));
-  // Occlusion drops everywhere (operator, 2026-11-09): the hood's hair leaves the head and the surface too.
+  // Occlusion drops everywhere: the hood's hair leaves the head and the surface too.
   assert.ok(!CjsPaperDollInstance.ready(definition, PaperDollTarget.HEAD).lists.order.includes("hair"));
   assert.ok(!CjsPaperDollInstance.ready(definition, PaperDollTarget.SURFACE).lists.order.includes("hair"));
 });

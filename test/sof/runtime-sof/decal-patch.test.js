@@ -7,7 +7,7 @@ import { EveShip2, EveChildContainer } from "../../../npm/dist/trinity/index.js"
 import { composeStubResMan } from "../../support/stubResMan.js";
 
 const manager = composeStubResMan();
-// EveShip2 carries no values methods of ours (operator, 2026-10-17): the editor
+// EveShip2 carries no values methods of ours: the editor
 // patch goes through the values service, with the decal scope supplied here.
 const patch = { lists: "patch", listPatchKeys: { decals: "sof_source_id" } };
 const SetShipValues = (ship, values, options = {}) => CjsSchema.setValues(ship, values, { ...options, returnBoolean: true });

@@ -140,8 +140,8 @@ test("the orbit alone puts the projector where its longitude and latitude say", 
     // horizontal - and nowhere else.
     //
     // Longitude is measured from the PANEL's front, which is a quarter turn on
-    // from hull +X: longitude 0 is front, 90 right, 180 back, 270 left
-    // (operator, 2026-09-08). So the direction below carries the same origin
+    // from hull +X: longitude 0 is front, 90 right, 180 back, 270 left.
+    // So the direction below carries the same origin
     // the library applies, and a test written without it is testing the old
     // convention rather than the geometry.
     const depth = 100;

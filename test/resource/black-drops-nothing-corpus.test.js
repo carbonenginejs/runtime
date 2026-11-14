@@ -1,5 +1,4 @@
-// The Black reader drops nothing, over a real build (format-ownership.md § Readers and factories drop nothing;
-// operator, 2026-11-12).
+// The Black reader drops nothing, over a real build (format-ownership.md § Readers and factories drop nothing).
 //
 // A .black file names every attribute it stores. The reader finds the class's persisted member for each one or
 // throws "Invalid attribute", as Carbon's does (blue/src/IRootReader.cpp), so a file that reads has had every

@@ -110,7 +110,7 @@ test("Blue and schema share registration and resolve qualified fields after regi
     const host = new Host();
     // Enum members read and write as integers, as Carbon's readers read them
     // (DictReader.cpp ReadValue); member-name import and enumFormat export are
-    // dropped (operator, 2026-09-27).
+    // dropped.
     CjsSchema.setValues(host, { mode: 2 });
     assert.equal(host.mode, 2);
     class Derived extends Host {}

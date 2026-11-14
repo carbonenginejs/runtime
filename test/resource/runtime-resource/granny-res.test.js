@@ -14,7 +14,7 @@ import "../../support/frameLoop.js";
 import { MarkerTag } from "../../support/markerTags.js";
 
 // Our own generated GR2, made for the racing demo: not a client asset, and the
-// only GR2 we have generated that loads correctly (operator, 2026-10-25).
+// only GR2 we have generated that loads correctly.
 const TRACK = new URL("./fixtures/track.gr2", import.meta.url);
 // Client files through the local tools-core service; the test that reads them skips without it.
 const client = await clientResources();

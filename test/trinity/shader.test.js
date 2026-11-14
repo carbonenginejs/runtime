@@ -821,8 +821,8 @@ test("promoted shader graph files do not import backend APIs", async () =>
     // A SECOND ASSERTION USED TO SIT HERE AND IT WAS WRONG. It forbade any
     // call to SetSrv, SetUav, SetConstants, ApplyShaderProgram or
     // SetResourceSet anywhere under src/trinity/shader, on the reading that
-    // binding is "engine" work. "Engine" meant the ABSTRACTION LAYER
-    // (operator, 2026-09-05), and Carbon's Trinity does exactly these calls:
+    // binding is "engine" work. "Engine" meant the ABSTRACTION LAYER,
+    // and Carbon's Trinity does exactly these calls:
     // Tr2Material::ApplyMaterialDataForPass fills a resource-set description
     // and calls SetResourceSet; Tr2Shader::ApplyAllStateForPass calls
     // ApplyShaderProgram. Filling a DESCRIPTION with integers and handles is
@@ -869,7 +869,7 @@ function assertCarbonMethod(ctor, methodName, status)
 
 test("effect named-map setters accept unique-name maps with class-claimed inference", () =>
 {
-  // Tr2Effect carries no values methods of ours (operator, 2026-10-17); the
+  // Tr2Effect carries no values methods of ours; the
   // name maps go to the effect's own setters directly.
   const effect = new Tr2Effect();
   assertEquals("SetValues" in effect, false);
@@ -963,7 +963,7 @@ test("effect named-map setters accept unique-name maps with class-claimed infere
   assert(effect.parameters[0] === kept[0]);
 });
 
-// Removed: "GetValues keyed lists round-trip..." - keyed lists have no Blue counterpart and no production caller, and were dropped with the move to Blue's values engine (operator, 2026-09-27).
+// Removed: "GetValues keyed lists round-trip..." - keyed lists have no Blue counterpart and no production caller, and were dropped with the move to Blue's values engine.
 
 test("vector parameters never hand out their own value array", () =>
 {
