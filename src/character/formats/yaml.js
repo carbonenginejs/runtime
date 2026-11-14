@@ -1,4 +1,5 @@
 import { CjsSchema } from "../../blue/schema/CjsSchema.js";
+import { DictReader } from "../../blue/formats/graph/DictReader.js";
 import { getClassRegistrations } from "../../blue/exposure/classes/registry.js";
 
 const PYTHON_OBJECT = "tag:yaml.org,2002:python/object:";
@@ -52,7 +53,7 @@ export function readCharacterYamlObject(values, context, sourceLists)
         throw new TypeError(`Python object ${name} requires a mapping.`);
     }
     const object = new Constructor();
-    CjsSchema.setValues(object, normalizeCharacterYamlValues(Constructor, values, sourceLists), { initialize: false });
+    new DictReader({ liveLists: true }).ReadInto(object, normalizeCharacterYamlValues(Constructor, values, sourceLists), null);
     return object;
 }
 

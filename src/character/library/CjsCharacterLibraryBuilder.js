@@ -2,6 +2,7 @@ import { normalizeResourcePath } from "#utils/path";
 import { CjsCharacterLibraryConfiguration } from "./CjsCharacterLibraryConfiguration.js";
 import { CjsCharacterObjectBuilder } from "../formats/CjsCharacterObjectBuilder.js";
 import { CjsSchema } from "#schema";
+import { DictReader } from "../../blue/formats/graph/DictReader.js";
 import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 
 /**
@@ -230,7 +231,7 @@ export class CjsCharacterLibraryBuilder
             record = new Constructor();
             const value = declaration.className === "CjsCharacterNamedValue" ? { name: path, value: path } : { name: path, resFilePath: path };
             value._pdpType = declaration.pdpType;
-            CjsSchema.setValues(record, value, { initialize: false });
+            new DictReader({ liveLists: true }).ReadInto(record, value, null);
         }
         else
         {

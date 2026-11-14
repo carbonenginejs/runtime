@@ -1,5 +1,6 @@
 import { blue } from "#blue";
-import { CjsSchema } from "#schema";
+import { DictReader } from "../../blue/formats/graph/DictReader.js";
+import { DictWriter } from "../../blue/formats/graph/DictWriter.js";
 import { CjsPaperDollDefinition } from "../application/CjsPaperDollDefinition.js";
 import { CjsCharacterLibraryManager } from "../library/CjsCharacterLibraryManager.js";
 import { CjsCharacterObjectBuilder } from "../formats/CjsCharacterObjectBuilder.js";
@@ -211,14 +212,14 @@ export class CjsCharacterFactory
         if (archetype)
         {
             if (option) await component.ResolveOption(option);
-            CjsSchema.setValues(component, { ...(option ? { option } : {}), ...rest });
+            new DictReader({ liveLists: true }).ReadInto(component, { ...(option ? { option } : {}), ...rest }, component);
             return;
         }
         const values = { enabled: false, overridable: true, ...rest, option };
         // Derived: a weighted part the DNA turns on without a weight draws at full weight (the shipped recipes set 1.0).
         if (component.constructor.weighted === true) values.weight = rest.weight ?? (values.enabled ? 1 : 0);
         else delete values.weight;
-        CjsSchema.setValues(component, values);
+        new DictReader({ liveLists: true }).ReadInto(component, values, component);
         // A recipe option names its part folder in the part's own fields: read again for each one applied.
         if (option === "recipe") component.ForgetResolution(option);
         if (option && component.enabled) await component.ResolveOption(option);
@@ -237,7 +238,7 @@ export class CjsCharacterFactory
     {
         if (colors !== null)
         {
-            CjsSchema.setValues(component, { customColors: true, color1: Float32Array.from(colors[0]), color2: Float32Array.from(colors[1]), color3: Float32Array.from(colors[2]) });
+            new DictReader({ liveLists: true }).ReadInto(component, { customColors: true, color1: Float32Array.from(colors[0]), color2: Float32Array.from(colors[1]), color3: Float32Array.from(colors[2]) }, component);
             if (component.constructor.paletteSpecular && specularColors !== null) component.SetSpecularColors(specularColors.map(color => Float32Array.from(color)));
             return;
         }
@@ -253,7 +254,7 @@ export class CjsCharacterFactory
             values.color2 = Float32Array.from(second.colors[1]);
             values.color3 = Float32Array.from(second.colors[2]);
         }
-        CjsSchema.setValues(component, values);
+        new DictReader({ liveLists: true }).ReadInto(component, values, component);
         if (specular) component.SetSpecularColors(first.specularColors);
     }
 
@@ -423,19 +424,19 @@ export class CjsCharacterFactory
     {
         const record = await blue.resMan.LoadObject(path);
         if (!record) throw new Error("Character recipe did not load: " + path);
-        CjsSchema.setValues(record, { _pdpID: path }, { initialize: false });
+        record._pdpID = path;
         return record;
     }
 
     /**
      * A recipe entry's values as a DNA keeps them: every field whose value is not the empty record's, as plain JSON
-     * values (`CjsSchema.getValues`).
+     * values (Blue's dict writer).
      * @param {CjsCharacterRecipeModifier} entry The recipe entry.
      * @returns {object} Its values.
      */
     static modifierValues(entry)
     {
-        const values = CjsSchema.getValues(entry), empty = CjsCharacterFactory._emptyModifier();
+        const values = new DictWriter().WriteObject(entry, {}, {}), empty = CjsCharacterFactory._emptyModifier();
         for (const key of Object.keys(values)) if (JSON.stringify(values[key]) === JSON.stringify(empty[key])) delete values[key];
         return values;
     }
@@ -446,7 +447,7 @@ export class CjsCharacterFactory
      */
     static _emptyModifier()
     {
-        if (CjsCharacterFactory._emptyModifierCache === null) CjsCharacterFactory._emptyModifierCache = CjsSchema.getValues(new CjsCharacterRecipeModifier());
+        if (CjsCharacterFactory._emptyModifierCache === null) CjsCharacterFactory._emptyModifierCache = new DictWriter().WriteObject(new CjsCharacterRecipeModifier(), {}, {});
         return CjsCharacterFactory._emptyModifierCache;
     }
 

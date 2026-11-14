@@ -348,7 +348,7 @@ export class CjsCharacterLibraryManager
         const generation = this._installGeneration;
         const part = new CjsCharacterPart();
         part.name = name;
-        CjsSchema.setValues(part, { _pdpType: CjsCharacterPdpType.PART }, { initialize: false });
+        part._pdpType = CjsCharacterPdpType.PART;
         const metadataNames = this._sourceBuilder ? this._sourceBuilder.ListSourceNames("avatarPartMetaData") : this._library.ListKindNames("avatarPartMetaData");
         if (metadataNames.includes(name + "/metadata.yaml"))
         {

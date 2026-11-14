@@ -1,4 +1,4 @@
-import { CjsSchema, meta } from "#schema";
+import { meta } from "#schema";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { CjsPaperDollDefinition } from "./CjsPaperDollDefinition.js";
 import { CjsCharacterLibraryManager } from "../library/CjsCharacterLibraryManager.js";
@@ -214,7 +214,7 @@ export class CjsPaperDollInstance
         {
             const worn = group.filter(name => definition[name].enabled && definition[name].option !== "");
             const keep = worn.length > 1 ? worn.findLast(name => name !== last.get(index)) : worn[0] ?? null;
-            for (const name of worn) if (name !== keep) { CjsSchema.setValues(definition[name], { enabled: false }); off.push(name); }
+            for (const name of worn) if (name !== keep) { definition[name].enabled = false; definition[name].OnModified("enabled"); off.push(name); }
             last.set(index, keep);
         }
         return off;
@@ -245,7 +245,8 @@ export class CjsPaperDollInstance
             if (option === undefined) continue;
             const target = { name, category: part.constructor.category, path: option.path ?? part.constructor.category };
             if (worn.some(by => CjsPaperDollInstance._Occludes(by, target))) continue;
-            CjsSchema.setValues(part, { enabled: true });
+            part.enabled = true;
+            part.OnModified("enabled");
             if (!part.IsResolved(part.option)) resolving.push([ name, part.ResolveOption(part.option) ]);
         }
         return resolving;

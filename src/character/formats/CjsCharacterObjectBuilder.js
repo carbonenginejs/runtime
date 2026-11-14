@@ -1,4 +1,5 @@
 import { CjsSchema } from "../../blue/schema/CjsSchema.js";
+import { DictReader } from "../../blue/formats/graph/DictReader.js";
 import { getResourceExtension, normalizeResourcePath } from "#utils/path";
 import { CjsLoadingObject } from "../../blue/resman/CjsLoadingObject.js";
 import { CjsYamlFormat } from "../../resource/formats/yaml/CjsYamlFormat.js";
@@ -80,7 +81,7 @@ export class CjsCharacterObjectBuilder
             {
                 if (entry === null || typeof entry !== "object" || Array.isArray(entry)) return entry;
                 const item = new Item();
-                CjsSchema.setValues(item, normalizeCharacterYamlValues(Item, entry, sourceLists), { initialize: false });
+                new DictReader({ liveLists: true }).ReadInto(item, normalizeCharacterYamlValues(Item, entry, sourceLists), null);
                 return item;
             });
         }
@@ -90,10 +91,10 @@ export class CjsCharacterObjectBuilder
         {
             const values = identified.envelope ? ReadEnvelope(raw, this._path, identified) : raw;
             CjsSchema.assertValues(values, identified.className);
-            CjsSchema.setValues(object, normalizeCharacterYamlValues(Constructor, values, sourceLists), { initialize: false });
+            new DictReader({ liveLists: true }).ReadInto(object, normalizeCharacterYamlValues(Constructor, values, sourceLists), null);
         }
         // The file shape it was read from travels with the record (CjsCharacterRecord._pdpType).
-        if (identified.pdpType) CjsSchema.setValues(object, { _pdpType: identified.pdpType }, { initialize: false });
+        if (identified.pdpType) object._pdpType = identified.pdpType;
         return object;
     }
 
@@ -329,7 +330,7 @@ function ReadTypeRecords(value, sourceLists, memo = new Map())
     const values = Object.fromEntries(Object.entries(value)
         .filter(([ key ]) => key !== "type")
         .map(([ key, child ]) => [ key, ReadTypeRecords(child, sourceLists, memo) ]));
-    if (Constructor) CjsSchema.setValues(result, normalizeCharacterYamlValues(Constructor, values, sourceLists), { initialize: false });
+    if (Constructor) new DictReader({ liveLists: true }).ReadInto(result, normalizeCharacterYamlValues(Constructor, values, sourceLists), null);
     else Object.assign(result, values);
     return result;
 }
