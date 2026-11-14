@@ -1925,13 +1925,13 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * Installs a library: a hydrated one, or its values (a prebuilt or cached library), hydrated once.
+     * Installs a library: a hydrated one, or its data (a prebuilt or cached library, `CjsCharacterLibrary.GetData`), read once.
      * @param {object|CjsCharacterLibrary} value The library.
      * @returns {CjsCharacterLibrary} The installed library.
      */
     InstallLibrary(value)
     {
-        const installed = value instanceof CjsCharacterLibrary ? value : CjsCharacterLibrary.from(value);
+        const installed = value instanceof CjsCharacterLibrary ? value : new CjsCharacterLibrary().SetData(value);
         this._installGeneration += 1;
         this._library = installed;
         this._partJoins.clear();

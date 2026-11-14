@@ -2,15 +2,15 @@ import { CjsCharacterLibraryConfiguration } from "./CjsCharacterLibraryConfigura
 import { CjsCharacterGeneric } from "../model/source/CjsCharacterGeneric.js";
 import { CjsSchema, meta, type } from "#schema";
 import { DictWriter } from "../../blue/formats/graph/DictWriter.js";
-import { ReadValues } from "../../blue/values.js";
+import { DictReader } from "../../blue/formats/graph/DictReader.js";
 // The record classes the kinds name (by class name) register themselves on import.
 import "../model/index.js";
 
 /**
  * The character library's items, by kind: each kind a list of its records (`CjsCharacterLibraryConfiguration.kinds`)
- * beside the names they were stored under (`sourceNames`). Its values are the items' values collected by kind, and
- * that is the library's whole format (operator, 2026-11-10): a prebuilt or cached library hydrates into the same
- * record classes the readers make, and building one writes the items' values out.
+ * beside the names they were stored under (`sourceNames`). Its data (`GetData`, `SetData`) is the items collected by
+ * kind, and that is the library's whole format (operator, 2026-11-10): a prebuilt or cached library reads into the
+ * same record classes the readers make, through Blue's dict reader and writer.
  */
 @meta.define("CjsCharacterLibrary")
 export class CjsCharacterLibrary
@@ -163,53 +163,49 @@ export class CjsCharacterLibrary
     @type.string
     schema = "carbonenginejs.characterLibrary";
 
-    /** The values format's version: 1 since 2026-11-10 (the earlier document schemas are gone, not migrated). */
+    /** The data format's version: 1 since 2026-11-10 (the earlier document schemas are gone, not migrated). */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.uint32
     schemaVersion = 1;
 
-    /** The library's values: every item's, by kind. */
-    GetValues(options = {})
+    /**
+     * The library's data: every item's, by kind, written by Blue's dict writer (persisted members, with type tags).
+     * The document a cache stores and `SetData` reads.
+     * @returns {object} The data.
+     */
+    GetData()
     {
-        return new DictWriter().WriteObject(this, {}, { persistOnly: true, typeTags: true, ...options });
-    }
-
-    /** Hydrates a library from its values (`validateValues`). */
-    static from(values = {}, options = {})
-    {
-        const instance = new this();
-        instance.SetValues(this.validateValues(values), options);
-        return instance;
+        return new DictWriter().WriteObject(this, {}, { persistOnly: true, typeTags: true });
     }
 
     /**
-     * Applies library values. An item written without a library ID gets its name, as `AddKind` gives one.
-     * @param {object} [values={}] The values.
-     * @param {object} [options={}] Values options.
-     * @returns {Set<string>|boolean} The changed fields, or false.
+     * Reads the library's data (`GetData`'s document, checked by `validateData`) into this library through Blue's
+     * dict reader. An item written without a library ID gets its name, as `AddKind` gives one.
+     * @param {object} data The library's data.
+     * @returns {CjsCharacterLibrary} This library.
+     * @throws {TypeError} For data `validateData` refuses.
      */
-    SetValues(values = {}, options = {})
+    SetData(data)
     {
-        if (!CjsSchema.assertValues(values, "CjsCharacterLibrary.SetValues")) return false;
-        const changed = ReadValues(this, values, options);
+        new DictReader({ liveLists: true }).ReadInto(this, CjsCharacterLibrary.validateData(data), null);
         this._kindIndexes.clear();
-        for (const [ kind, declaration ] of Object.entries(CjsCharacterLibraryConfiguration.kinds))
+        for (const kind of Object.keys(CjsCharacterLibraryConfiguration.kinds))
         {
             const records = this.GetKind(kind), names = this.sourceNames.get(kind) ?? [];
             for (let i = 0; i < records.length; i++)
-                if (records[i]._pdpID === "" && names[i]) CjsSchema.setValues(records[i], { _pdpID: names[i] }, { initialize: false });
+                if (records[i]._pdpID === "" && names[i]) records[i]._pdpID = names[i];
         }
-        return changed instanceof Set && !changed.size ? false : changed;
+        return this;
     }
 
     /**
-     * Checks complete library values: this format and version, known kinds, each kind's records paired with unique
+     * Checks complete library data: this format and version, known kinds, each kind's records paired with unique
      * names, and every record's fields against its class.
-     * @param {object} value The values.
-     * @returns {object} The values.
+     * @param {object} value The data.
+     * @returns {object} The data.
      * @throws {TypeError} For anything else; earlier formats are not read.
      */
-    static validateValues(value)
+    static validateData(value)
     {
         RequirePlainObject(value, "Character library");
         if (value.schema !== "carbonenginejs.characterLibrary" || value.schemaVersion !== 1)
@@ -255,7 +251,7 @@ export class CjsCharacterLibrary
         if (!CjsSchema.cast(record, Constructor)) throw new TypeError(`Invalid record for ${kind}`);
         if (typeof name !== "string" || !name.trim()) throw new TypeError("Character source name must be nonempty.");
         if (this.GetKindRecord(kind, name)) throw new TypeError(`Duplicate ${kind} name ${name}`);
-        if (record._pdpID === "") CjsSchema.setValues(record, { _pdpID: name }, { initialize: false });
+        if (record._pdpID === "") record._pdpID = name;
         const names = this.sourceNames.get(kind) ?? [];
         records.push(record);
         names.push(name);

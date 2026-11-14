@@ -53,21 +53,21 @@ function fixture(t)
 test("library values are its items by kind, version 1, and keep their source identities", () =>
 {
     const library = new CjsCharacterLibrary();
-    assert.equal(library.GetValues().schemaVersion, 1);
-    assert.throws(() => CjsCharacterLibrary.from({ ...library.GetValues(), schemaVersion: 13 }), /schema version 1/u, "earlier formats are not read");
+    assert.equal(library.GetData().schemaVersion, 1);
+    assert.throws(() => new CjsCharacterLibrary().SetData({ ...library.GetData(), schemaVersion: 13 }), /schema version 1/u, "earlier formats are not read");
     const camera = new CjsCharacterCamera();
     camera.field_of_view = 0.123456789;
     library.AddKind("cameras", CAMERA, camera);
-    const values = library.GetValues();
+    const values = library.GetData();
     assert.deepEqual(values.sourceNames.cameras, [CAMERA]);
-    const copy = CjsCharacterLibrary.from(JSON.parse(JSON.stringify(values)));
+    const copy = new CjsCharacterLibrary().SetData(JSON.parse(JSON.stringify(values)));
     assert.equal(copy.GetKindRecord("cameras", CAMERA).field_of_view, camera.field_of_view);
     assert.notEqual(copy.GetKindRecord("cameras", CAMERA), camera);
     assert.deepEqual(copy.ListKindNames("cameras"), [CAMERA]);
     assert.throws(() => library.AddKind("cameras", CAMERA, camera), /Duplicate/);
     assert.throws(() => library.AddKind("cameras", "wrong", new CjsCharacterColorVariation()), /Invalid record/);
     values.sourceNames.cameras = [];
-    assert.throws(() => CjsCharacterLibrary.from(values), /equal lengths/);
+    assert.throws(() => new CjsCharacterLibrary().SetData(values), /equal lengths/);
     assert.equal(copy.RemoveKind("cameras", CAMERA), true);
     assert.deepEqual(copy.ListKindNames("cameras"), []);
 });
