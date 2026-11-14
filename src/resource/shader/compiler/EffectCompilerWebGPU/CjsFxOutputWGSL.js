@@ -13,7 +13,7 @@
 // - `out`/`inout` parameters are `ptr<function, T>`;
 // - intrinsics map to WGSL builtins, or to generated helper functions.
 //
-// Resources are module-scope bindings (operator decision): the
+// Resources are module-scope bindings: the
 // constant-buffer, storage-buffer and workgroup parameters Carbon threads
 // through functions for Metal are left out of signatures and calls, and
 // textures and samplers stay parameters, which WGSL allows. A constant
@@ -438,7 +438,7 @@ export class CjsFxOutputWGSL
             {
                 if (reg.registerNumber === BASE_VERTEX || reg.registerNumber === BASE_INSTANCE)
                 {
-                    // Divergence (operator decision): WebGPU has no
+                    // Divergence: WebGPU has no
                     // base vertex or instance builtin, so Carbon's subtraction
                     // (EffectCompilerMetal.cpp PatchShader) subtracts zero and
                     // SV_VertexID/SV_InstanceID include the draw's base.
@@ -1767,7 +1767,7 @@ const BASE_INSTANCE = MetalSystemSemanticsType.Enum.base_instance;
  * The WGSL attribute of a Metal system register (MetalSystemSemanticsType):
  * a builtin, or for a render target `@location(N)`.
  *
- * Divergence (operator decision): `vertex_index` and
+ * Divergence: `vertex_index` and
  * `instance_index` include the draw's base vertex and instance, where HLSL's
  * SV_VertexID and SV_InstanceID start at 0; WebGPU has no builtin to
  * subtract.
