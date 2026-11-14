@@ -346,7 +346,11 @@ export class TnyShip extends TnyMobile
         {
             this._supported.add("speed");
             this.speed = Math.hypot(ball.vx, ball.vy, ball.vz);
-            if (!(ship.maxSpeed > 0)) this.SetValues({ maxSpeed: ball.maxVelocity > 0 ? ball.maxVelocity : 250 });
+            if (!(ship.maxSpeed > 0))
+            {
+                this.maxSpeed = ball.maxVelocity > 0 ? ball.maxVelocity : 250;
+                this.OnModified("maxSpeed");
+            }
             else ball.mPark.SetMaxSpeed(ball.mId, ship.maxSpeed);
         }
         else

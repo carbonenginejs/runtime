@@ -593,7 +593,11 @@ export class TnySpaceObject extends ICjsGraphRoot
         wrapper.wrapped = object;
         object.StartControllers();
         wrapper._Discover(dna);
-        if (name !== null) wrapper.SetValues({ name });
+        if (name !== null)
+        {
+            wrapper.name = name;
+            wrapper.OnModified("name");
+        }
         return wrapper;
     }
 
