@@ -87,7 +87,8 @@ export class ClassInfo
 
   /**
    * `ClassRegistration::mCreateFn`: makes an instance, or answers null to refuse (ClassRegistrarNullFactory).
-   * Null until the class registers; a class registered again holds the factory of its last registration.
+   * It is the factory of the class's first live registration, as the registry keeps the first of a name; null
+   * while the class has none.
    *
    * @cjs Carbon keeps it on the ClassRegistration that points at this record (BlueTypes.h:409-413); ours has one record per class.
    * @type {(() => (object|null))|null}

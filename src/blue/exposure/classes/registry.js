@@ -58,16 +58,33 @@ export function registerClass(registration)
 }
 
 /**
- * Removes exactly one registered name, without deleting aliases or metadata.
+ * Removes exactly one registered name, without deleting aliases or metadata. The class's record
+ * then holds the factory and flags of its first registration still live, or none.
  * @param {string} name Explicit class name.
  * @returns {boolean} Whether an entry was removed.
  */
 export function unregisterClass(name)
 {
     if (typeof name !== "string" || !name.trim()) return false;
-    const removed = registrations.delete(name.trim());
-    if (removed) revision += 1;
-    return removed;
+    const entry = registrations.get(name.trim());
+    if (entry === undefined) return false;
+    registrations.delete(entry.name);
+    revision += 1;
+
+    const classInfo = entry.classInfo;
+    if (classInfo !== null)
+    {
+        let first = null;
+        for (const other of registrations.values())
+        {
+            if (other.classInfo !== classInfo) continue;
+            first = other;
+            break;
+        }
+        classInfo.createFn = first === null ? null : first.createFn;
+        classInfo.flags = first === null ? 0 : first.flags;
+    }
+    return true;
 }
 
 /**

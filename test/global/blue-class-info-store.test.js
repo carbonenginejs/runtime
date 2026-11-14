@@ -8,10 +8,10 @@ import { ImportAllDistModules, ImportDist } from "../support/allDistClasses.js";
 
 await ImportAllDistModules();
 const { CjsSchema } = await ImportDist("blue/schema/CjsSchema.js");
-const { getClassRegistrations } = await ImportDist("blue/exposure/classes/registry.js");
+const { getClassRegistrations, unregisterClass } = await ImportDist("blue/exposure/classes/registry.js");
 const { ClassInfo, BlueClasses, BlueRttiValue } = await ImportDist("blue/index.js");
 const { getCarbonTypeDefinition } = await ImportDist("blue/schema/types/carbonTypes.js");
-const { declaredMemberType, getEditFlags } = await ImportDist("blue/schema/compileClassInfo.js");
+const { declaredMemberType, getEditFlags, registerClassInfo } = await ImportDist("blue/schema/compileClassInfo.js");
 
 const classes = new BlueClasses();
 const registrations = getClassRegistrations();
@@ -19,18 +19,40 @@ const registrations = getClassRegistrations();
 /** Be::HIDDEN (BlueTypes.h:292). */
 const HIDDEN = 0x008;
 
-test("a class's record holds the factory and flags of one of its registrations", () =>
+test("a class's record holds the factory and flags of its first registration", () =>
 {
-  const byType = new Map();
-  for (const registration of registrations) byType.set(registration.type, [ ...(byType.get(registration.type) ?? []), registration ]);
+  const first = new Map();
+  for (const registration of registrations) if (!first.has(registration.type)) first.set(registration.type, registration);
 
   const problems = [];
-  for (const [ type, entries ] of byType)
+  for (const [ type, entry ] of first)
   {
     const ci = ClassInfo.exposeToBlue(type);
-    if (!entries.some(entry => entry.createFn === ci.createFn && entry.flags === ci.flags)) problems.push(entries[0].name);
+    if (entry.createFn !== ci.createFn || entry.flags !== ci.flags) problems.push(entry.name);
   }
-  assert.deepEqual(problems.slice(0, 20), [], `${problems.length} records hold no registration's factory`);
+  assert.deepEqual(problems.slice(0, 20), [], `${problems.length} records disagree with their first registration`);
+});
+
+test("the record's factory follows the class's first live registration as names come and go", () =>
+{
+  class FactoryProbe {}
+  const refuse = () => null, make = () => new FactoryProbe();
+  const ci = ClassInfo.of(FactoryProbe);
+  ci.exposed = true;
+  assert.equal(ci.createFn, null);
+
+  assert.equal(registerClassInfo({ name: "FactoryProbeFirst", type: FactoryProbe, createFn: refuse, flags: 1, classInfo: ci }), true);
+  assert.equal(registerClassInfo({ name: "FactoryProbeAlias", type: FactoryProbe, createFn: make, classInfo: ci }), true);
+  assert.equal(ci.createFn, refuse);
+  assert.equal(ci.flags, 1);
+
+  assert.equal(unregisterClass("FactoryProbeFirst"), true);
+  assert.equal(ci.createFn, make);
+  assert.equal(ci.flags, 0);
+
+  assert.equal(unregisterClass("FactoryProbeAlias"), true);
+  assert.equal(ci.createFn, null);
+  assert.equal(ci.flags, 0);
 });
 
 test("the store is built once per class and its RTTI once per class info", () =>

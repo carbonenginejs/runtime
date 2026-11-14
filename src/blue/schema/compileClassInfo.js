@@ -539,8 +539,12 @@ export function registerClassInfo(registration)
   // The registry's own default, made here so the record and the registration hold one function.
   const createFn = registration.createFn ?? (isConstructor ? () => new registration.type() : undefined);
   if (!registerClass({ ...registration, createFn, classInfo })) return false;
-  classInfo.createFn = createFn;
-  classInfo.flags = registration.flags ?? 0;
+  // The first registration's, as the registry keeps the first of a name; unregisterClass moves it on.
+  if (classInfo.createFn === null)
+  {
+    classInfo.createFn = createFn;
+    classInfo.flags = registration.flags ?? 0;
+  }
   return true;
 }
 
