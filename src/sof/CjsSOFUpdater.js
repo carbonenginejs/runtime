@@ -1,3 +1,5 @@
+import { DictReader } from "../blue/formats/graph/DictReader.js";
+import { NotifyModified } from "../blue/compose/modified.js";
 import { CjsSchema, meta } from "#schema";
 import { getRegisteredClassName } from "../blue/compose/className.js";
 import { normalizeCarbonValue } from "../blue/schema/types/index.js";
@@ -1323,11 +1325,32 @@ export class CjsSOFUpdater
   }
 
   /**
+   * Reads changed leaf fields onto their owner through Blue's dict reader, then tells the owner once of the NOTIFY
+   * members that changed (`NotifyModified`: dirty, then its OnModified where it has one). 44 classes with NOTIFY
+   * members implement no OnModified (Tr2MeshArea, EveSpriteSet, the parameter classes), so the owner is not passed to
+   * the reader as its notify target.
+   *
+   * @cjs Ours: the values write this replaces did the same through the values module.
+   * @param {object} object The owner.
+   * @param {object} values Its changed fields by exposed name.
+   * @returns {void}
+   */
+  static readLeaves(object, values)
+  {
+    const notified = [];
+    new DictReader({ liveLists: true }).ReadInto(object, values, null, (field, didChange) =>
+    {
+      if (didChange && field.edit && field.edit.notify) notified.push(field.name);
+    });
+    if (notified.length) NotifyModified(object, notified);
+  }
+
+  /**
    * Applies preflighted leaves and pattern-list edits through owner mutation routes.
    * Effect options use SetOption; the texture, sampler-override and constant
    * name maps go to the effect's own named setters (SetTextures,
    * SetSamplerOverrides, SetConstParameters), and every other field through
-   * the values service. Multiple owner changes share one existing update batch,
+   * `readLeaves`. Multiple owner changes share one existing update batch,
    * without closing a caller-owned batch. This class never replaces the
    * effect's packed lists.
    * @param {object} change Collected target, type and changed fields.
@@ -1350,7 +1373,7 @@ export class CjsSOFUpdater
     }
     if (type !== "Tr2Effect")
     {
-      CjsSchema.setValues(object, values);
+      CjsSOFUpdater.readLeaves(object, values);
       return;
     }
     const { options, textures, samplerOverrides, constParameters, ...rest } = values;
@@ -1367,7 +1390,7 @@ export class CjsSOFUpdater
       if (samplerOverrides !== undefined) object.SetSamplerOverrides(samplerOverrides);
       if (constParameters !== undefined) object.SetConstParameters(constParameters);
 
-      if (Object.keys(rest).length) CjsSchema.setValues(object, rest);
+      if (Object.keys(rest).length) CjsSOFUpdater.readLeaves(object, rest);
     }
     finally
     {

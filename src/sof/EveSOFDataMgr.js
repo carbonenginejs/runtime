@@ -6,6 +6,7 @@ import { ccpHashFnv1 } from "#utils";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr_Blue.cpp
+import { DictWriter } from "../blue/formats/graph/DictWriter.js";
 import { CjsSchema } from "#schema";
 import { BeObjectMetadata } from "#blue";
 import { mat4 } from "#math/mat4";
@@ -720,7 +721,7 @@ function projectJsonValue(value, stack = new Set())
     if (CjsSchema.getClassName(value.constructor))
     {
       return projectJsonValue(
-        CjsSchema.getValues(value, {}, { refs: true, typeTags: true }),
+        new DictWriter().WriteObject(value, {}, { refs: true, typeTags: true }),
         stack
       );
     }
