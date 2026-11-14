@@ -1,13 +1,13 @@
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsYamlFormat } from "../yaml/CjsYamlFormat.js";
-import { writePyYaml } from "./core/PyYamlWriter.js";
+import { createPyYamlDocument, stringifyPyYaml } from "./core/pyYamlDocument.js";
 
 /**
  * The game's character files with an extension of their own (`.prs`, `.type`, `.color`, `.proj`, `.pose`, `.base`,
  * `.info`, `.face`, `.trif`). Every one is a PyYAML dump, so one format reads them all, through the YAML reader. By
  * default it reads losslessly: `!!python/` tags stay as tag envelopes (`preservePythonTags`), ints stay bigints
  * (`intAsBigInt`), and a node the file shares stays shared. It writes the same values back as PyYAML dumped them
- * (`writePyYaml`), so read, write and read again give equal values. A caller that wants plain values reads with
+ * through the yaml library (`createPyYamlDocument`), so read, write and read again give equal values. A caller that wants plain values reads with
  * `{ preservePythonTags: false, intAsBigInt: false }`.
  *
  * Ours (no Carbon counterpart): the client's paper doll is Python.
@@ -25,7 +25,7 @@ export class CjsCharacterYamlFormat extends CjsYamlFormat
     static readOptions = { preservePythonTags: true, intAsBigInt: true, uniqueKeys: false, maxAliasCount: 100000 };
 
     /**
-     * How PyYAML dumped each file type, as `writePyYaml` options, read off the shipped files (the round-trip test
+     * How PyYAML dumped each file type, read off the shipped files (the round-trip test
      * checks them on the corpus): `defaultFlowStyle` (null: a collection of scalars in flow style; false: block
      * style), `sortKeys`, `emptyNull` (a recipe writes most nulls as nothing), `floatDigits` (17 where Python 2.6
      * wrote the floats) and `lineBreak`. A file that differs from its type's usual dump is a known exception the
@@ -90,7 +90,7 @@ export class CjsCharacterYamlFormat extends CjsYamlFormat
      * Writes raw values as PyYAML dumped the file type (`dumpStyles`); the caller's options win.
      * @param {*} value Raw values, as the lossless read gives them.
      * @param {{ extension?: string, defaultFlowStyle?: ?boolean, sortKeys?: boolean, emptyNull?: boolean, floatDigits?: ?number, lineBreak?: string }} [options={}]
-     *   The file type (`.prs`), and any `writePyYaml` option to use in place of its type's.
+     *   The file type (`.prs`), and any dump option to use in place of its type's (`dumpStyles`).
      * @returns {string} YAML text.
      * @throws {TypeError} For an extension this format does not read.
      */
@@ -104,7 +104,8 @@ export class CjsCharacterYamlFormat extends CjsYamlFormat
             if (!Object.hasOwn(CjsCharacterYamlFormat.dumpStyles, key)) throw new TypeError("CjsCharacterYamlFormat writes no " + (key || "file without an extension"));
             style = CjsCharacterYamlFormat.dumpStyles[key];
         }
-        return writePyYaml(value, { ...style, ...overrides });
+        const dump = { defaultFlowStyle: null, sortKeys: true, emptyNull: false, floatDigits: null, lineBreak: "\n", ...style, ...overrides };
+        return stringifyPyYaml(createPyYamlDocument(value, dump), dump, CjsYamlFormat.write);
     }
 
     static inputs = CjsFormat.defineInputs({
