@@ -1059,7 +1059,9 @@ export class CjsGraph
    * Modelled on: BlueMemberIterator::SkipEquals (blueexposure/BlueMemberIterator.cpp:121-148).
    * @adapted AreEqual<IROOT> gives up on an embedded object that is not an empty collection
    * (BlueVariable.cpp:274-314). This recurses into it, so an embedded object left at its
-   * defaults is left out: a reader starts from the same defaults.
+   * defaults is left out: a reader starts from the same defaults. A member that holds null is
+   * compared by null alone, before its type's AreEqual. Carbon has no such test, so it always writes
+   * a type that has no AreEqual (BlueVariable.cpp:111-114); here a null one is left out.
    */
   static _isDefault(object, member, defaults, options)
   {
