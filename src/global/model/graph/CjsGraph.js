@@ -316,7 +316,7 @@ export class CjsGraph
   static getClassInfo(type)
   {
     const info = typeof type === "string" ? this._names.get(type) : this._classes.get(type);
-    if (!info?.declared) throw new TypeError("Unknown graph class.");
+    if (!info?.declared) throw new TypeError(typeof type === "string" ? `Unknown graph class: ${type}` : "Unknown graph class.");
     if (!info.compiled || info.compiled.revision !== this._revision) info.compiled = this._compile(info);
     return info;
   }

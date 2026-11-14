@@ -62,6 +62,39 @@ test("_type names resolve through Blue's class library, and an unknown name is a
   assert.throws(() => CjsGraph.from(null, { _type: "NoSuchGraphClass" }), /Unknown graph class/);
 });
 
+test("a member keeps the class it declares, though that class is defined after its holder", () =>
+{
+  const { exposure: be, type } = CjsSchema;
+
+  class GraphPolicyHolder
+  {
+    held = null;
+  }
+  CjsSchema.decorateField(GraphPolicyHolder, "held", be.mapAttribute(be.READWRITE | be.PERSIST), type.object.ref("GraphPolicyLate"));
+  be.define("GraphPolicyHolder")(GraphPolicyHolder);
+  CjsBlueGraph.define(GraphPolicyHolder, "GraphPolicyHolder");
+
+  assert.deepEqual(CjsGraph.getClassInfo(GraphPolicyHolder).compiled.byName.held[0].edgeType, [ "GraphPolicyLate" ]);
+
+  // A class nothing defines is not answered by "any object": the member refuses what it is given.
+  const holder = new GraphPolicyHolder();
+  holder.held = create("Tr2MeshArea");
+  assert.throws(() => CjsGraph.get(holder, { full: true }), /Unknown graph class: GraphPolicyLate/);
+
+  class GraphPolicyLate
+  {
+    name = "";
+  }
+  CjsSchema.decorateField(GraphPolicyLate, "name", be.mapAttribute(be.READWRITE | be.PERSIST), type.string);
+  be.define("GraphPolicyLate")(GraphPolicyLate);
+  CjsBlueGraph.define(GraphPolicyLate, "GraphPolicyLate");
+
+  assert.throws(() => CjsGraph.get(holder, { full: true }), /not assignable to GraphPolicyLate/);
+  holder.held = new GraphPolicyLate();
+  holder.held.name = "late";
+  assert.equal(CjsGraph.get(holder, { full: true }).held.name, "late");
+});
+
 test("a mapped interface counts as assignable, and a legacy material sits in an effect member", () =>
 {
   const area = create("Tr2MeshArea");

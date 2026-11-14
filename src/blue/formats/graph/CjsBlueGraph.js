@@ -11,7 +11,7 @@ import { IInitialize } from "../../exposure/IInitialize.js";
 import { IList } from "../../exposure/IList.js";
 import { IListNotify } from "../../exposure/IListNotify.js";
 import { INotify } from "../../exposure/INotify.js";
-import { getClassRegistrations, getRegisteredConstructor } from "../../exposure/classes/registry.js";
+import { getClassRegistrations } from "../../exposure/classes/registry.js";
 import { IBlueObjectProxy } from "../../interfaces/IBlueObjectProxy.js";
 import { BeObjectMetadata } from "../../services/BlueObjectMetadata.js";
 import { IRootReaderBase } from "../../format/IRootReaderBase.js";
@@ -152,7 +152,6 @@ export class CjsBlueGraph
 
   /**
    * One graph member. A kind the type table does not name stays Invalid, which throws when used.
-   * A declared type nothing registers (an interface) stays dynamic.
    * @param {object} field Schema declaration.
    * @returns {object} Graph member.
    */
@@ -205,8 +204,9 @@ export class CjsBlueGraph
   }
 
   /**
-   * The classes a member may hold, the declared one first. One nothing registers (an interface)
-   * makes the member dynamic.
+   * The classes a member may hold, the declared one first, as declared: whether each is defined is
+   * the graph's question when the member is used, so a class may be defined before the ones it names.
+   * A member that declares no class is dynamic.
    * @param {object} type Schema type.
    * @returns {string[]} Class names.
    */
@@ -214,7 +214,7 @@ export class CjsBlueGraph
   {
     const names = (type.accepts ?? [ DeclaredClassName(type) ]).map(name => typeof name === "function" ? CjsSchema.getClassName(name) : name);
 
-    return names.every(name => name && getRegisteredConstructor(name)) ? names : [];
+    return names.every(name => name && name !== "unknown") ? names : [];
   }
 
   /**
@@ -234,10 +234,10 @@ export class CjsBlueGraph
   }
 
   /**
-   * The declared class of a Map of objects, null for a dynamic one, or undefined when the
-   * member is not one. A Map of anything else stays Invalid.
+   * The declared class of a Map of objects, or undefined when the member is not one. A Map of
+   * anything else stays Invalid.
    * @param {object|undefined} type Schema type.
-   * @returns {string|null|undefined} Class name.
+   * @returns {string|undefined} Class name.
    */
   static _getMapType(type)
   {
@@ -247,13 +247,13 @@ export class CjsBlueGraph
     const name = typeof value === "string" ? value : value?.kind === "rootRef" ? value.className : undefined;
     if (name === undefined || Object.hasOwn(GRAPH_TYPES, name)) return undefined;
 
-    return getRegisteredConstructor(name) ? name : null;
+    return name;
   }
 
   /**
    * One Map member.
    * @param {object} field Schema declaration.
-   * @param {string|null} type Declared class of its values.
+   * @param {string} type Declared class of its values.
    * @returns {object} Graph member.
    */
   static _getMapMember(field, type)
