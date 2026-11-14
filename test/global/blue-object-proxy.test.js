@@ -237,7 +237,7 @@ test("CcpTime.timeFromDouble scales whole and fractional seconds separately (Ccp
 test("BlackReader maps IBlueObjectBuilder, as Carbon's BlackReader does (BlackReader.h:16-19)", async () =>
 {
   const { BlackReader } = await import("../../src/blue/formats/black/BlackReader.js");
-  const { ClassInfo } = await import("../../src/blue/base/ClassInfo.js");
+  const { ClassInfo } = await import("../../src/global/model/graph/ClassInfo.js");
   // Its MAP_INTERFACE table; BlackReader does not inherit the interface's bodies yet (type-system.md, Black and Red port).
   assert.ok(ClassInfo.exposeToBlue(BlackReader).interfaceTable.includes("IBlueObjectBuilder"));
   assert.equal(typeof new BlackReader().GetErrorMessage(), "string");

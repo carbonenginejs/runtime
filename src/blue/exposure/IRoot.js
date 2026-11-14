@@ -2,7 +2,7 @@
 // Source: blueexposure/include/BlueClass.h:31-161 (RootQIImpl, RootRefLock: the bodies Carbon wraps around a class).
 import { CjsSchema } from "#schema/CjsSchema";
 import { BeClasses } from "./classes/registry.js";
-import { ClassInfo } from "../base/ClassInfo.js";
+import { ClassInfo } from "../../global/model/graph/ClassInfo.js";
 import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 
 /**

@@ -5,7 +5,7 @@ import { blue, BlueClasses } from "../../src/blue/index.js";
 import { CjsSchema, type } from "../../src/blue/schema/index.js";
 import * as CcpLog from "../../src/global/logging/ccpLog.js";
 import * as classRegistry from "../../src/blue/exposure/classes/registry.js";
-import { ClassInfo } from "../../src/blue/base/ClassInfo.js";
+import { ClassInfo } from "../../src/global/model/graph/ClassInfo.js";
 
 const { ClassRegistrarNullFactory, getClassRegistrationRevision } = classRegistry;
 

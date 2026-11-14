@@ -1,5 +1,5 @@
 /**
- * What an editor needs about a class, beside CjsGraphClassInfo and built only when asked for.
+ * What an editor needs about a class, beside its ClassInfo and built only when asked for.
  * Blue, readers and writers never read it: presentation changes nothing a value does.
  * @cjs Carbon keeps these as `:jessica-*:` tags in its exposure docstrings (BlueExposureMacros.h).
  */

@@ -1,5 +1,5 @@
 // Source: blueexposure/include/BlueTypes.h:321-375 (Be::VarEntry)
-import { EDITFLAGS, VARTYPE } from "../../global/consts/blue.js";
+import { EDITFLAGS, VARTYPE } from "../../consts/blue.js";
 
 /**
  * What an IROOT member is. Carbon casts the destination to find out; a plain

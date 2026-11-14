@@ -3,7 +3,7 @@ import test from "node:test";
 import { CjsSchema } from "../../src/blue/schema/CjsSchema.js";
 import { type } from "../../src/blue/schema/index.js";
 import { Copier } from "../../src/blue/exposure/Copier.js";
-import { ClassInfo } from "../../src/blue/base/ClassInfo.js";
+import { ClassInfo } from "../../src/global/model/graph/ClassInfo.js";
 import { exposure as be } from "../../src/blue/exposure/be.js";
 
 

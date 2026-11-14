@@ -11,7 +11,7 @@ const FSD_ROOT = path.join(PACKAGE_ROOT, "npm", "dist", "resource", "formats", "
 // reads, not Blue services or bootstrap.
 const SHARED_FORMAT_MODULES = new Set([
     "blue/exposure/IRoot.js",
-    "blue/base/ClassInfo.js",
+    "global/model/graph/ClassInfo.js",
     "blue/exposure/classes/registry.js",
     "blue/compose/interface.js",
     "global/consts/blue.js",

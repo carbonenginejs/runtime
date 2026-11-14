@@ -8,7 +8,7 @@ import { IInitialize } from "../../npm/dist/blue/exposure/IInitialize.js";
 import { INotify } from "../../npm/dist/blue/exposure/INotify.js";
 import { IListNotify } from "../../npm/dist/blue/exposure/IListNotify.js";
 import { BlueList } from "../../npm/dist/blue/exposure/BlueList.js";
-import { ClassInfo } from "../../npm/dist/blue/base/ClassInfo.js";
+import { ClassInfo } from "../../npm/dist/global/model/graph/ClassInfo.js";
 import { BlackReader } from "../../npm/dist/blue/formats/black/BlackReader.js";
 import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { Fixture, concat, floats, i32, u16, u32 } from "../support/blackFixture.js";

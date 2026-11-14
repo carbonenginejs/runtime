@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { CjsBlackFormat } from "../../npm/dist/blue/formats/black/index.js";
-import { ClassInfo } from "../../npm/dist/blue/base/ClassInfo.js";
+import { ClassInfo } from "../../npm/dist/global/model/graph/ClassInfo.js";
 import { declaredMemberType } from "../../npm/dist/blue/schema/compileClassInfo.js";
 import { VARTYPE } from "../../npm/dist/global/consts/blue.js";
 import { EveSOFDataHullLightSetTexturedPointLight } from "../../npm/dist/sof/index.js";

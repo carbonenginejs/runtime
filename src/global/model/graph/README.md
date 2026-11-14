@@ -6,7 +6,7 @@ CjsSchema, formats, Trinity or the legacy model barrel.
 CjsGraph.define(Constructor, definition) registers a stable name and the class's own
 member declarations. Each member compiles once to one flat object: a `GRAPH_TYPES` entry's data,
 then name, flags, edge and a slot for anything rare. Every walk, reader and writer reads that one
-shape. CjsGraphClassInfo retains the compiled members in `declared` and the last derived record in
+shape. The class's `ClassInfo` retains the compiled members in `declared` and the last derived record in
 `compiled`: the members, `byName`, `persistByName` (derived first, PERSIST only), `memberNames` and
 `notifyNames` (each name once, member order, for notification) and the class's
 facts, among them `bases`, its C++ base list, and `chainTo`, the class its exposure table continues

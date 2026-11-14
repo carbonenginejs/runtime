@@ -1,8 +1,8 @@
 import { EDITFLAGS } from "../../src/global/consts/blue.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsGraph, CjsGraphClassInfo, CjsGraphTypeFloat, VARTYPE } from "../../src/global/model/graph/index.js";
-import { VarEntry } from "../../src/blue/base/VarEntry.js";
+import { CjsGraph, ClassInfo, CjsGraphTypeFloat, VARTYPE } from "../../src/global/model/graph/index.js";
+import { VarEntry } from "../../src/global/model/graph/VarEntry.js";
 
 
 test("source declarations and compiled members share one stable class record", () =>
@@ -17,7 +17,7 @@ test("source declarations and compiled members share one stable class record", (
     { name: "value", key: "storedValue", type: "float32", options: { flags: 7 } }
   ] };
   const info = CjsGraph.define(Example, declaration);
-  assert.equal(info.constructor, CjsGraphClassInfo);
+  assert.equal(info.constructor, ClassInfo);
   assert.equal(info.compiled, null);
   assert.equal(info.declared.members[0].key, "storedValue");
 

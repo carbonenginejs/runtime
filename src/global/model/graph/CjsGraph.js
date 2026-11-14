@@ -1,5 +1,5 @@
 import { BLUELISTEVENT, EDITFLAGS } from "../../consts/blue.js";
-import { CjsGraphClassInfo } from "./CjsGraphClassInfo.js";
+import { ClassInfo } from "./ClassInfo.js";
 import { CjsGraphClassUIInfo } from "./CjsGraphClassUIInfo.js";
 import { CjsGraphState } from "./CjsGraphState.js";
 import { GRAPH_METADATA_KEY, GRAPH_TYPES, GRAPH_WRAPPERS, GraphMemberFlags, GraphOperation, VARTYPE } from "./graphTypes.js";
@@ -12,8 +12,8 @@ import { getGraphHandler } from "./types/index.js";
 export class CjsGraph
 {
 
-  /** One record per registered constructor. */
-  static _classes = new Map();
+  /** One record per class: the bridge's one store, which Blue's compile fills too. */
+  static _classes = ClassInfo._byType;
 
   /** The edgeType of a member that declares no class. */
   static _noTypes = [];
@@ -124,7 +124,7 @@ export class CjsGraph
     }
     const declared = { ...definition, members, interfaces: definition.interfaces ?? [] };
 
-    const info = existing ?? new CjsGraphClassInfo(ctor, declared);
+    const info = existing ?? ClassInfo.of(ctor);
     if (existing?.declared) this._names.delete(existing.declared.name);
     info.declared = declared;
     if (!info.lifetimeExplicit)
@@ -291,7 +291,7 @@ export class CjsGraph
    * @param {Function} ctor The constructor.
    * @param {{name?: string|null, bases?: Function[], destructor?: Function|null, capabilities?: string[]}} definition
    *   The class's stable name for messages, its own ancestry, _Destructor and declared capabilities.
-   * @returns {CjsGraphClassInfo} The shared record, retained by subsequent full definitions.
+   * @returns {ClassInfo} The shared record, retained by subsequent full definitions.
    */
   static defineLifetime(ctor, { name = null, bases = [], destructor = null, capabilities = [], onDestruct })
   {
@@ -301,7 +301,7 @@ export class CjsGraph
     if (!Array.isArray(bases) || bases.some(base => typeof base !== "function"))
       throw new TypeError("Graph lifetime bases must be constructors.");
     this.checkCapabilities(capabilities, name ?? "Graph lifetime");
-    const info = this._classes.get(ctor) ?? new CjsGraphClassInfo(ctor, null);
+    const info = ClassInfo.of(ctor);
     const previous = info.lifetime;
     info.lifetimeExplicit = true;
     if (previous && previous.destructor === destructor && previous.name === name
@@ -458,7 +458,7 @@ export class CjsGraph
    * @cjs One JS object represents a shared ancestor once; exposure chains are not ancestry. A base
    * given as a constructor with no record has nothing to end and is passed over; a base given by a
    * name nothing registered is a mistake.
-   * @param {CjsGraphClassInfo} info The most-derived class.
+   * @param {ClassInfo} info The most-derived class.
    * @returns {{revision: number, destruct: boolean, onDestruct: boolean, destructors: Function[]}}
    *   Whether any level declares destruct, whether the class has an OnDestruct, and each level's own
    *   _Destructor in destruction order.
@@ -1928,8 +1928,8 @@ export class CjsGraph
    * A class and the classes its exposure chains to, by their declared chainTo names, derived first.
    * A chain naming a class with no definition ends there.
    * @cjs Carbon's ClassInfo holds the parent pointer itself.
-   * @param {CjsGraphClassInfo} info The class.
-   * @returns {CjsGraphClassInfo[]} The chain, the class first.
+   * @param {ClassInfo} info The class.
+   * @returns {ClassInfo[]} The chain, the class first.
    */
   static _GetExposureChain(info)
   {

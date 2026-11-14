@@ -1,9 +1,10 @@
 // Source: blueexposure/include/BlueTypes.h:378-400 (Be::ClassInfo)
 // Source: blueexposure/include/BlueExposureMacrosPython.h:20-67 (ExposeToBlue, EXPOSURE_BEGIN_IMP, EXPOSURE_END_IMPL)
 //
-// A passive record: it imports nothing but global/consts. The schema compiles
-// each class into one at registration (blue/schema/compileClassInfo.js) and
-// stores it here; the registration carries the same object.
+// The bridge's one record per class. It imports nothing: the schema compiles a
+// class's Carbon tables into it at registration (blue/schema/compileClassInfo.js),
+// the graph keeps its own parts on the same object, and the registration
+// carries that object too.
 
 /**
  * A class's Blue type information: Carbon's `Be::ClassInfo`, which a class's
@@ -99,7 +100,56 @@ export class ClassInfo
    * @cjs
    * @type {Function|null}
    */
-  _type = null;
+  ctor = null;
+
+  /**
+   * Ours: whether Blue has taken this record, when the schema registers or compiles the class.
+   * A record the graph made first, for a lifetime, is not yet Blue's.
+   *
+   * @cjs
+   */
+  exposed = false;
+
+  /**
+   * Ours: the graph's own declaration of the class, or null. Replaced through `CjsGraph.define`, never in place.
+   *
+   * @cjs
+   * @type {object|null}
+   */
+  declared = null;
+
+  /**
+   * Ours: the graph's last compiled view of `declared`, or null. `CjsGraph.getClassInfo` refreshes it after a
+   * registration change.
+   *
+   * @cjs
+   * @type {object|null}
+   */
+  compiled = null;
+
+  /**
+   * Ours: what ends an instance: the class's base list, its own `_Destructor` and its declared capabilities.
+   * Null for a class with nothing to end.
+   *
+   * @cjs
+   * @type {{name: (string|null), bases: Array, destructor: (Function|null), capabilities: string[]}|null}
+   */
+  lifetime = null;
+
+  /**
+   * Ours: true when a host supplies `lifetime` separately from the graph's definition.
+   *
+   * @cjs
+   */
+  lifetimeExplicit = false;
+
+  /**
+   * Ours: the compiled teardown and the registration revision that produced it, or null.
+   *
+   * @cjs
+   * @type {object|null}
+   */
+  teardown = null;
 
   /**
    * Ours: each own row's declaration, for the record `meta` builds.
@@ -204,12 +254,12 @@ export class ClassInfo
   }
 
   /**
-   * Ours: compiled records by class. The registration carries the same object.
+   * Ours: the one store, a record per class. The graph's class map and the registration hold the same objects.
    *
-   * @cjs
-   * @type {WeakMap<Function, ClassInfo>}
+   * @cjs A Map, because the graph walks every record when it compiles a selection.
+   * @type {Map<Function, ClassInfo>}
    */
-  static _byType = new WeakMap();
+  static _byType = new Map();
 
   /**
    * Ours: the schema's compile, for a class asked about before or without
@@ -239,19 +289,27 @@ export class ClassInfo
    */
   static exposeToBlue(Constructor)
   {
-    return ClassInfo._byType.get(Constructor) ?? ClassInfo.compiler(Constructor);
+    const ci = ClassInfo._byType.get(Constructor);
+    return ci !== undefined && ci.exposed ? ci : ClassInfo.compiler(Constructor);
   }
 
   /**
-   * Ours: records a class's compiled information. The compile calls this.
+   * Ours: a class's record, made on the first ask.
    *
    * @cjs
    * @param {Function} Constructor The class.
-   * @param {ClassInfo} ci Its information.
+   * @returns {ClassInfo} Its one record.
    */
-  static store(Constructor, ci)
+  static of(Constructor)
   {
-    ClassInfo._byType.set(Constructor, ci);
+    let ci = ClassInfo._byType.get(Constructor);
+    if (ci === undefined)
+    {
+      ci = new ClassInfo();
+      ci.ctor = Constructor;
+      ClassInfo._byType.set(Constructor, ci);
+    }
+    return ci;
   }
 
   /**

@@ -11,8 +11,8 @@ await ImportAllDistModules();
 CjsBlueGraph.register(blue.classes);
 
 // What the readers read: each class's ClassInfo record (its persisted VarEntry rows).
-const { ClassInfo } = await import("../../npm/dist/blue/base/ClassInfo.js");
-const { BLACK_DESTINATION } = await import("../../npm/dist/blue/base/VarEntry.js");
+const { ClassInfo } = await import("../../npm/dist/global/model/graph/ClassInfo.js");
+const { BLACK_DESTINATION } = await import("../../npm/dist/global/model/graph/VarEntry.js");
 
 const DESTINATIONS = BLACK_DESTINATION && {
   [BLACK_DESTINATION.LIST]: "list", [BLACK_DESTINATION.ARRAY]: "array", [BLACK_DESTINATION.SET]: "set",

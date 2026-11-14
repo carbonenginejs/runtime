@@ -15,8 +15,8 @@ import { CJS_CLASS_NAME } from "../compose/className.js";
 import { baseList, exposureChainTo, mappedInterfaces, ownMappedInterfaces, setExposureChangeListener } from "../compose/interface.js";
 import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { registerClass } from "../exposure/classes/registry.js";
-import { ClassInfo } from "../base/ClassInfo.js";
-import { BLACK_DESTINATION, VarEntry } from "../base/VarEntry.js";
+import { ClassInfo } from "../../global/model/graph/ClassInfo.js";
+import { BLACK_DESTINATION, VarEntry } from "../../global/model/graph/VarEntry.js";
 import { blueEnums } from "../enums/CjsBlueEnumRegistry.js";
 
 /** The schema, from `installClassInfoCompile`. @type {typeof import("./CjsSchema.js").CjsSchema} */
@@ -266,9 +266,8 @@ export function compileClassInfo(Constructor)
   const schema = Schema.getDeclaredSchema(Constructor);
   const ci = classInfoOf(Constructor);
   COMPILED.add(Constructor);
-  const previousParent = ci.parentClassInfo?._type ?? null;
+  const previousParent = ci.parentClassInfo?.ctor ?? null;
 
-  ci._type = Constructor;
   ci.classId = schema.className;
   ci.iid = schema.className;
   ci.blue = schema.blue === true;
@@ -343,7 +342,7 @@ export function compileClassInfo(Constructor)
 
   // The classes chaining to this one see its new rows through parentClassInfo; their own derived state
   // (hidden keys, method tables, persisted members) is rebuilt.
-  for (const Child of CHAINED_FROM.get(Constructor) ?? []) if (ClassInfo._byType.has(Child)) compileClassInfo(Child);
+  for (const Child of CHAINED_FROM.get(Constructor) ?? []) if (ClassInfo._byType.get(Child)?.exposed) compileClassInfo(Child);
   return ci;
 }
 
@@ -417,7 +416,7 @@ export function buildReaderEntries(ci)
       entries.set(row.name, row);
     }
   }
-  const Constructor = ci._type, mapped = mappedInterfaces(Constructor);
+  const Constructor = ci.ctor, mapped = mappedInterfaces(Constructor);
   // By registered name: the interface classes extend IRoot, which the base must not import.
   ci._isInitialize = provides(mapped, Constructor, "IInitialize");
   ci._isNotify = provides(mapped, Constructor, "INotify");
@@ -487,12 +486,8 @@ function blueEnumChooser(enumType, required)
  */
 export function classInfoOf(Constructor)
 {
-  let ci = ClassInfo._byType.get(Constructor);
-  if (!ci)
-  {
-    ci = new ClassInfo();
-    ClassInfo.store(Constructor, ci);
-  }
+  const ci = ClassInfo.of(Constructor);
+  ci.exposed = true;
   return ci;
 }
 

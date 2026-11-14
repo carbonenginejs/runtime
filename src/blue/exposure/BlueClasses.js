@@ -42,7 +42,7 @@ import { mappedInterfaces, ownMappedInterfaces, exposureChainTo } from "../compo
 import { IBlueClasses } from "./IBlueClasses.js";
 import { BlueRttiType } from "./BlueRttiType.js";
 import { Copier } from "./Copier.js";
-import { ClassInfo } from "../base/ClassInfo.js";
+import { ClassInfo } from "../../global/model/graph/ClassInfo.js";
 import { registerClassInfo } from "../schema/compileClassInfo.js";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 
@@ -316,7 +316,7 @@ export class BlueClasses extends IBlueClasses
    * and kept on the class info.
    *
    * @implemented
-   * @param {import("../base/ClassInfo.js").ClassInfo} ci The class information, from `ClassInfo.exposeToBlue(Class)`.
+   * @param {import("../../global/model/graph/ClassInfo.js").ClassInfo} ci The class information, from `ClassInfo.exposeToBlue(Class)`.
    * @returns {BlueRttiType} The class's RTTI.
    */
   GetRtti(ci)
