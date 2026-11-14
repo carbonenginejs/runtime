@@ -16,7 +16,7 @@ export class Tr2SharedConstantBuffers
   @type.uint32
   hash = 0;
 
-  /** contents (const void*): unexposed, so it carries no type (operator, 2026-11-10). */
+  /** contents (const void*): unexposed, so it carries no type. */
   contents = null;
 
   /** buffer (Tr2ConstantBufferAL) */
