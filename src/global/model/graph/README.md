@@ -10,7 +10,7 @@ shape. The class's `ClassInfo` retains the compiled members and the class's fact
 `bases`, its C++ base list, and `chainTo`, the class its exposure table continues into; `compiled` holds the
 rows the chain flattens to, and the table each kind of operation reads (its rows and those rows by name), built
 when first asked. A fact is stored once, and a lookup only where a measured benefit shows: those tables make
-get, set and diff about twice as fast, and a map of every row by name made none faster.
+get, set and diff about twice as fast, and a map of every chain row by name, beside those tables, made none faster.
 Member lookup walks `chainTo`, as Carbon's walks `mParentClassInfo`; the prototype chain is the bases. Default values are not cloned or instantiated, and must not later be assigned as shared
 mutable instance storage.
 

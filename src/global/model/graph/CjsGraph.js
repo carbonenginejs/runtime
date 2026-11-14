@@ -1385,8 +1385,9 @@ export class CjsGraph
 
   /**
    * Fires OnModified in member-table order for the NOTIFY members among names (every NOTIFY
-   * member when names is null), or for every named member when all is set. Names that are not
-   * members are skipped; commitValues validates them first.
+   * member when names is null), or for every named member when all is set; all with no names tells every
+   * member, which nothing asks for. Names that are not members are skipped; commitValues validates them first.
+   * One scan of the rows per row told: a class has few NOTIFY rows.
    * @cjs Carbon's per-member INotify. Copier takes no NOTIFY flag (Copier.cpp:190), so a copy
    * passes all.
    */
