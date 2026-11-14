@@ -266,8 +266,10 @@ export class CjsBlueGraph
   }
 
   /**
-   * A class's C++ base list by name: what it extends, then its own `@be.inherit`. A platform class
-   * such as Error has no name of ours and is left out.
+   * A class's C++ base list by name: what it extends, then its own `@be.inherit`. A base the graph
+   * has no definition for is left out: a platform class such as Error, or a plain class of ours
+   * that only carries a `className`. A base exists before the class that names it, so this does not
+   * depend on the order classes are defined in.
    * @param {Function} ctor A class.
    * @returns {string[]} Class names, in base order.
    */
@@ -276,7 +278,7 @@ export class CjsBlueGraph
     const parent = Object.getPrototypeOf(ctor);
     const bases = parent === Function.prototype ? baseList(ctor) : [ parent, ...baseList(ctor) ];
 
-    return bases.map(base => CjsSchema.getClassName(base)).filter(name => name !== undefined);
+    return bases.filter(base => CjsGraph.isDefined(base)).map(base => CjsSchema.getClassName(base));
   }
 
   /**

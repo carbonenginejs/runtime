@@ -30,18 +30,19 @@ and `IsOwnValues`: its bags carry those names beside its members.
 A member with no type uses CjsGraphTypeInvalid. Registration and traversal can describe it;
 any value operation throws. Give it a type by replacing the definition through CjsGraph.define.
 
-CjsGraph.getClassInfo(ConstructorOrName) returns that same class-info record and
-refreshes its compiled snapshot if registration changed. Consumers must use this
-lookup when they need current compiled data; a retained compiled snapshot can be
-out of date. Neither snapshot may be mutated (immutability.md: nothing but enums is frozen). Replacing a definition retains class-info identity.
+`define` builds the whole record: `compiled` and the class's teardown exist when it returns, and
+CjsGraph.getClassInfo(ConstructorOrName) only looks the record up. Defining a class again builds it again, and
+every class whose exposure chains to it or that lists it as a base, so a retained `compiled` can be out of
+date; a new class changes no other class's record. A base given by a name must be defined first. Neither
+snapshot may be mutated (immutability.md: nothing but enums is frozen). Replacing a definition retains class-info identity.
 
 Compiled members preserve derived-first order, including same-name alternatives.
 `byName[name]` contains those alternatives in that order. Filtering by flags must
 precede choosing one: Carbon's HIDDEN derived member can leave a base member visible.
 No Blue flags are interpreted by the compiler itself.
 
-Registration snapshots member containers, validates names before
-publication, and invalidates through one revision. Nested metadata/default values
+Registration snapshots member containers and validates names before
+publication. Nested metadata/default values
 are borrowed declaration data and must not be mutated behind registration; replace
 the definition to change them. Compilation never constructs instances or reads their
 properties. Generic decorators are still pending.

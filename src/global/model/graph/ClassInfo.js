@@ -138,8 +138,8 @@ export class ClassInfo
   declared = null;
 
   /**
-   * Ours: the graph's last compiled view of `declared`, or null. `CjsGraph.getClassInfo` refreshes it after a
-   * registration change.
+   * Ours: the graph's compiled view of `declared`, or null. `CjsGraph.define` builds it, for the class and for
+   * every class derived from it.
    *
    * @cjs
    * @type {object|null}
@@ -164,7 +164,7 @@ export class ClassInfo
   lifetimeExplicit = false;
 
   /**
-   * Ours: the compiled teardown and the registration revision that produced it, or null.
+   * Ours: the compiled teardown, built with `compiled`, or null for a class with no lifetime.
    *
    * @cjs
    * @type {object|null}

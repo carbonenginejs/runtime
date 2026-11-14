@@ -22,8 +22,14 @@ export class CjsGraph
   /** Stable declared names, never inferred from Function.name. */
   static _names = new Map();
 
-  /** Invalidates derived descriptions after registration changes, including late parents. */
+  /** Counts definitions: a selection compiled before the last one is rebuilt on its next use, and a walk under way fails. */
   static _revision = 0;
+
+  /**
+   * The classes derived from each class: those whose exposure chains to it or that list it as a base, under the
+   * name or constructor their declaration gives. A class defined again rebuilds them with it.
+   */
+  static _derived = new Map();
 
   /** Derived selection tables, weakly keyed by immutable selection descriptions. */
   static _selections = new WeakMap();
@@ -75,7 +81,7 @@ export class CjsGraph
   static Capability = { VALUES: "values", DESTRUCT: "destruct", EVENTS: "events" };
 
   /** The teardown of an object whose class has no lifetime record: nothing to run. */
-  static _noTeardown = { revision: 0, destruct: false, onDestruct: false, destructors: [] };
+  static _noTeardown = { destruct: false, onDestruct: false, destructors: [] };
 
   /**
    * Registers or replaces a class's own definition while retaining its class-info identity.
@@ -96,6 +102,8 @@ export class CjsGraph
    * through GetOwnValues, SetOwnValues and IsOwnValues. customPersist, list, proxy and abstract are
    * facts for readers, and layout a structure record's { size, boundaries, fields }. ui is a
    * function returning the class's presentation, called only when something asks for it.
+   * The class's record is whole when this returns: its members by name and its teardown are built here, and
+   * rebuilt for every class derived from it. A base given by a name must already be defined.
    * @cjs Compiles each member to one flat object; authored default values are not cloned.
    */
   static define(ctor, definition)
@@ -125,22 +133,137 @@ export class CjsGraph
     const declared = { ...definition, members, interfaces: definition.interfaces ?? [] };
 
     const info = existing ?? ClassInfo.of(ctor);
-    if (existing?.declared) this._names.delete(existing.declared.name);
-    info.declared = declared;
+    const lifetime = info.lifetimeExplicit ? info.lifetime : {
+      name, bases: declared.bases ?? [], destructor: declared.destructor ?? null,
+      capabilities: this.checkCapabilities(declared.capabilities ?? [], name)
+    };
     // A row the record already held has its owner from the class that made it.
     for (let i = 0; i < members.length; i++) if (members[i].owner === null) members[i].owner = info;
-    if (!info.lifetimeExplicit)
-    {
-      info.lifetime = {
-        name, bases: declared.bases ?? [], destructor: declared.destructor ?? null,
-        capabilities: this.checkCapabilities(declared.capabilities ?? [], name)
-      };
-    }
     this._classes.set(ctor, info);
-    this._names.set(name, info);
-
-    this._revision++;
+    this._replace(info, declared, lifetime);
     return info;
+  }
+
+  /**
+   * Gives a record its declaration and lifetime, and builds it and every class derived from it. One that cannot
+   * be built, for an unknown or cyclic base, throws and leaves every record as it was.
+   * @cjs
+   * @param {ClassInfo} info The record.
+   * @param {object|null} declared Its declaration, or null for a record that holds a lifetime only.
+   * @param {object|null} lifetime Its lifetime.
+   * @returns {void}
+   */
+  static _replace(info, declared, lifetime)
+  {
+    const previous = info.declared, previousLifetime = info.lifetime;
+    // Under its old name too: a class that named it by that name no longer reaches it.
+    const before = this._getDerived(info);
+    this._setDeclared(info, declared, lifetime);
+    try
+    {
+      this._build(new Set([ ...before, ...this._getDerived(info) ]));
+    }
+    catch (error)
+    {
+      this._setDeclared(info, previous, previousLifetime);
+      throw error;
+    }
+    this._revision++;
+  }
+
+  /**
+   * Puts a declaration and lifetime on a record, the record under its name, and the record among the classes
+   * derived from each class it chains to or lists as a base.
+   * @cjs
+   * @param {ClassInfo} info The record.
+   * @param {object|null} declared Its declaration.
+   * @param {object|null} lifetime Its lifetime.
+   * @returns {void}
+   */
+  static _setDeclared(info, declared, lifetime)
+  {
+    this._setDerived(info, false);
+    if (info.declared) this._names.delete(info.declared.name);
+    info.declared = declared;
+    info.lifetime = lifetime;
+    if (declared) this._names.set(declared.name, info);
+    this._setDerived(info, true);
+  }
+
+  /**
+   * Adds a record to, or takes it from, the classes derived from each class it chains to or lists as a base.
+   * @cjs
+   * @param {ClassInfo} info The record.
+   * @param {boolean} add True to add it.
+   * @returns {void}
+   */
+  static _setDerived(info, add)
+  {
+    const from = info.lifetime ? info.lifetime.bases.slice() : [];
+    if (info.declared && info.declared.chainTo) from.push(info.declared.chainTo);
+
+    for (const key of from)
+    {
+      let derived = this._derived.get(key);
+      if (add)
+      {
+        if (!derived) this._derived.set(key, derived = new Set());
+        derived.add(info);
+      }
+      else if (derived) derived.delete(info);
+    }
+  }
+
+  /**
+   * A record and every record derived from it, directly or through another: the ones built from its rows and
+   * its destructor.
+   * @cjs
+   * @param {ClassInfo} info The record.
+   * @returns {ClassInfo[]} The records, the given one first, each once.
+   */
+  static _getDerived(info)
+  {
+    const records = [ info ], seen = new Set(records);
+
+    for (let i = 0; i < records.length; i++)
+    {
+      const { ctor, declared } = records[i];
+      for (const key of declared ? [ ctor, declared.name ] : [ ctor ])
+      {
+        for (const derived of this._derived.get(key) ?? this._noTypes)
+        {
+          if (seen.has(derived)) continue;
+          seen.add(derived);
+          records.push(derived);
+        }
+      }
+    }
+
+    return records;
+  }
+
+  /**
+   * Builds each record's compiled members and teardown. All are compiled before any is replaced, so a failure
+   * replaces none.
+   * @cjs Carbon's tables are static, so it has nothing to rebuild; a JavaScript class can be defined again.
+   * @param {Iterable<ClassInfo>} records A record and the records derived from it.
+   * @returns {void}
+   */
+  static _build(records)
+  {
+    const built = [];
+
+    for (const record of records)
+    {
+      built.push(record.declared ? this._compile(record) : null, record.lifetime ? this._compileTeardown(record) : null);
+    }
+
+    let i = 0;
+    for (const record of records)
+    {
+      record.compiled = built[i++];
+      record.teardown = built[i++];
+    }
   }
 
   /**
@@ -215,7 +338,8 @@ export class CjsGraph
     const info = this.getClassInfo(type);
 
     (info.declared.hostUI ??= []).push(ui);
-    info.compiled.ui = null;
+    // A class's presentation holds its chain's, so the classes derived from this one build theirs again.
+    for (const record of this._getDerived(info)) if (record.compiled) record.compiled.ui = null;
   }
 
   /**
@@ -303,21 +427,19 @@ export class CjsGraph
       && previous.bases.length === bases.length && previous.bases.every((base, i) => base === bases[i])
       && previous.capabilities.length === capabilities.length
       && previous.capabilities.every((capability, i) => capability === capabilities[i])) return info;
-    info.lifetime = { name, bases: bases.slice(), destructor, capabilities: capabilities.slice() };
     this._classes.set(ctor, info);
-    this._revision++;
+    this._replace(info, info.declared, { name, bases: bases.slice(), destructor, capabilities: capabilities.slice() });
     return info;
   }
 
   /**
-   * Returns the registered record with its current compiled description.
+   * Returns a class's record, which define built.
    * @cjs Accepts a registered constructor or stable declared name; unknown classes fail.
    */
   static getClassInfo(type)
   {
     const info = typeof type === "string" ? this._names.get(type) : this._classes.get(type);
     if (!info?.declared) throw new TypeError(typeof type === "string" ? `Unknown graph class: ${type}` : "Unknown graph class.");
-    if (!info.compiled || info.compiled.revision !== this._revision) info.compiled = this._compile(info);
     return info;
   }
 
@@ -434,18 +556,16 @@ export class CjsGraph
   }
 
   /**
-   * An object's compiled teardown, rebuilt after a registration change: whether its class is
+   * An object's teardown, which its class's definition built: whether its class is
    * destruct-capable, whether it has an OnDestruct, and its destructors in destruction order.
    * @cjs An object whose class has no lifetime record gets the empty teardown.
    * @param {object} object The object.
-   * @returns {{revision: number, destruct: boolean, onDestruct: boolean, destructors: Function[]}} The teardown.
+   * @returns {{destruct: boolean, onDestruct: boolean, destructors: Function[]}} The teardown.
    */
   static _getTeardown(object)
   {
     const info = this._classes.get(object.constructor);
-    if (!info?.lifetime) return this._noTeardown;
-    if (!info.teardown || info.teardown.revision !== this._revision) info.teardown = this._compileTeardown(info);
-    return info.teardown;
+    return info?.teardown ?? this._noTeardown;
   }
 
   /**
@@ -454,7 +574,7 @@ export class CjsGraph
    * given as a constructor with no record has nothing to end and is passed over; a base given by a
    * name nothing registered is a mistake.
    * @param {ClassInfo} info The most-derived class.
-   * @returns {{revision: number, destruct: boolean, onDestruct: boolean, destructors: Function[]}}
+   * @returns {{destruct: boolean, onDestruct: boolean, destructors: Function[]}}
    *   Whether any level declares destruct, whether the class has an OnDestruct, and each level's own
    *   _Destructor in destruction order.
    */
@@ -470,7 +590,7 @@ export class CjsGraph
       for (const base of owner.lifetime.bases)
       {
         const parent = typeof base === "string" ? this._names.get(base) : this._classes.get(base);
-        if (typeof base === "string" && !parent) throw new TypeError("Unknown graph base.");
+        if (typeof base === "string" && !parent) throw new TypeError(`Unknown graph base: ${base}`);
         if (parent?.lifetime) visit(parent);
       }
       active.delete(owner);
@@ -479,7 +599,7 @@ export class CjsGraph
       if (owner.lifetime.destructor) destructors.push(owner.lifetime.destructor);
     };
     visit(info);
-    return { revision: this._revision, destruct, onDestruct: "OnDestruct" in info.ctor.prototype, destructors: destructors.reverse() };
+    return { destruct, onDestruct: "OnDestruct" in info.ctor.prototype, destructors: destructors.reverse() };
   }
 
   /**
@@ -1797,7 +1917,6 @@ export class CjsGraph
     for (const info of this._classes.values())
     {
       if (!info.declared) continue;
-      this.getClassInfo(info.ctor);
       const full = this._selectEdges(info, selection);
       const matches = !!selection.matchClass(info);
       if (revision !== this._revision) throw new Error("Graph declarations changed during selection compilation.");
@@ -1981,7 +2100,7 @@ export class CjsGraph
     }
 
     return {
-      revision: this._revision, parent, members, byName, persistByName, memberNames, notifyNames, tables: [], defaults: null, ui: null,
+      parent, members, byName, persistByName, memberNames, notifyNames, tables: [], defaults: null, ui: null,
       name: declared.name,
       interfaces: declared.interfaces,
       bases: declared.bases ?? [],

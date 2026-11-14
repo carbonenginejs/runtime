@@ -245,14 +245,23 @@ test("late base replacement invalidates cached teardown and hooks own idempotenc
   assert.equal(released, 1);
 });
 
-test("malformed ancestry fails before invoking any teardown body", () =>
+test("malformed ancestry fails where it is defined, and the records stay as they were", () =>
 {
   class A {} class B {}
   const onDestruct = () => assert.fail("partial teardown");
-  CjsGraph.define(A, { name: "DestructCycleA", capabilities: [ "destruct" ], bases: [ "DestructCycleB" ], destructor: onDestruct });
-  assert.throws(() => CjsGraph.destruct(new A()), /Unknown graph base/);
-  CjsGraph.define(B, { name: "DestructCycleB", capabilities: [ "destruct" ], bases: [ A ], destructor: onDestruct });
-  assert.throws(() => CjsGraph.destruct(new A()), /Cyclic graph ancestry/);
+  const cyclic = { name: "DestructCycleA", capabilities: [ "destruct" ], bases: [ "DestructCycleB" ], destructor: onDestruct };
+
+  // A base given by name is defined first.
+  assert.throws(() => CjsGraph.define(A, cyclic), /Unknown graph base: DestructCycleB/);
+  assert.equal(CjsGraph.isDefined(A), false);
+
+  CjsGraph.define(A, { name: "DestructCycleA", capabilities: [ "destruct" ] });
+  CjsGraph.define(B, { name: "DestructCycleB", capabilities: [ "destruct" ], bases: [ A ] });
+  assert.throws(() => CjsGraph.define(A, cyclic), /Cyclic graph ancestry/);
+  // The refused definition replaced nothing: neither class runs its destructor.
+  assert.equal(CjsGraph.destruct(new A()), true);
+  assert.equal(CjsGraph.destruct(new B()), true);
+
   assert.throws(() => CjsGraph.define(B, { name: "DestructCycleB", capabilities: [ "destruct" ], destructor: true }), /function or null/);
   assert.throws(() => CjsGraph.define(B, { name: "DestructCycleB", capabilities: [ "destruct" ], onDestruct() {} }), /not a definition key/);
   assert.throws(() => CjsGraph.defineLifetime(B, { onDestruct: null }), /not a definition key/);

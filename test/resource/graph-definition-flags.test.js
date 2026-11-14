@@ -33,6 +33,10 @@ CjsSchema.define(Thing, { name: "GraphFlagsThing", members: [
   { name: "mask", key: "mask", type: { kind: "int32", flags: true }, exposure: { macro: "MAP_ATTRIBUTE", flags: 259 }, edit: { read: true, write: true } },
   { name: "live", key: "live", type: { kind: "rootRef", runtimeOnly: true }, exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } }
 ] });
+// A base is named only when the graph holds its definition, so the bases are defined first.
+CjsBlueGraph.define(Parent, "GraphFlagsParent");
+CjsBlueGraph.define(Face, "GraphFlagsFace");
+CjsBlueGraph.define(Chained, "GraphFlagsChained");
 CjsBlueGraph.define(Thing, "GraphFlagsThing");
 
 const { compiled } = CjsGraph.getClassInfo(Thing);
@@ -64,5 +68,5 @@ test("the base list and the exposure chain are separate facts", () =>
 {
   assert.deepEqual(compiled.bases, [ "GraphFlagsParent", "GraphFlagsFace" ]);
   assert.equal(compiled.chainTo, "GraphFlagsChained");
-  assert.equal(compiled.parent, null, "the walk still follows extends, and Parent has no definition here");
+  assert.equal(compiled.parent, CjsGraph.getClassInfo(Chained), "member lookup follows the chain, never the base list");
 });

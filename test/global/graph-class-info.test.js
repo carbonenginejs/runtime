@@ -18,7 +18,9 @@ test("source declarations and compiled members share one stable class record", (
   ] };
   const info = CjsGraph.define(Example, declaration);
   assert.equal(info.constructor, ClassInfo);
-  assert.equal(info.compiled, null);
+  // The record is whole when define returns: nothing is built on a later ask.
+  const built = info.compiled;
+  assert.deepEqual(built.memberNames, [ "value" ]);
   assert.equal(info.declared.members[0].key, "storedValue");
 
   declaration.members[0].key = "changedExternally";
@@ -27,7 +29,7 @@ test("source declarations and compiled members share one stable class record", (
   assert.equal(resolved.compiled.byName.value[0].key, "storedValue");
   assert.equal(resolved.compiled.byName.value[0].handler.constructor, CjsGraphTypeFloat);
   assert.deepEqual(resolved.compiled.byName.value[0].options, { flags: 7 });
-  assert.equal(CjsGraph.getClassInfo(Example).compiled, resolved.compiled);
+  assert.equal(CjsGraph.getClassInfo(Example).compiled, built);
   assert.equal(constructions, 0);
   assert.equal(reads, 0);
 });
@@ -51,21 +53,35 @@ test("compilation preserves derived precedence and authored member order", () =>
   assert.equal(info.declared.members.length, 2);
 });
 
-test("late parent registration and replacement invalidate derived descriptions", () =>
+test("a class defined again, or a parent that arrives late, rebuilds the classes derived from it and no others", () =>
 {
   class Parent {}
   class Child extends Parent {}
+  class Grandchild extends Child {}
+  class Unrelated {}
   const info = CjsGraph.define(Child, { name: "GraphLateChild", chainTo: "GraphLateParent", members: [{ name: "child", type: "float32" }] });
-  const first = CjsGraph.getClassInfo(Child).compiled;
+  const grand = CjsGraph.define(Grandchild, { name: "GraphLateGrandchild", chainTo: "GraphLateChild", members: [{ name: "grand", type: "float32" }] });
+  const unrelated = CjsGraph.define(Unrelated, { name: "GraphLateUnrelated", members: [{ name: "x", type: "float32" }] });
+  const first = info.compiled, other = unrelated.compiled;
+  assert.deepEqual(first.members.map(member => member.name), ["child"]);
+
+  // The chain named a class with no definition and ended there; the class arrives, and the chain is whole.
   CjsGraph.define(Parent, { name: "GraphLateParent", members: [{ name: "parent", type: "float32" }] });
-  assert.equal(info.compiled, first); // Lazy invalidation retains the old immutable snapshot until lookup.
-  const second = CjsGraph.getClassInfo(Child).compiled;
-  assert.notEqual(first, second);
-  assert.deepEqual(second.members.map(member => member.name), ["child", "parent"]);
+  assert.notEqual(info.compiled, first);
+  assert.deepEqual(info.compiled.members.map(member => member.name), ["child", "parent"]);
+  assert.deepEqual(grand.compiled.memberNames, ["grand", "child", "parent"]);
+  assert.equal(unrelated.compiled, other);
+
+  // Defined again: the classes built from its rows are built again, through every level.
+  CjsGraph.define(Parent, { name: "GraphLateParent", members: [{ name: "replaced", type: "float32" }] });
+  assert.deepEqual(grand.compiled.memberNames, ["grand", "child", "replaced"]);
+  assert.equal(unrelated.compiled, other);
 
   assert.equal(CjsGraph.define(Child, { name: "GraphRenamedChild", chainTo: "GraphLateParent", members: [{ name: "replacement", type: "float32" }] }), info);
   assert.throws(() => CjsGraph.getClassInfo("GraphLateChild"), TypeError);
-  assert.deepEqual(CjsGraph.getClassInfo(Child).compiled.members.map(member => member.name), ["replacement", "parent"]);
+  assert.deepEqual(CjsGraph.getClassInfo(Child).compiled.members.map(member => member.name), ["replacement", "replaced"]);
+  // The grandchild's chain names the old name, which nothing holds now: it ends there.
+  assert.deepEqual(grand.compiled.memberNames, ["grand"]);
 });
 
 test("failed registration does not mutate published definitions", () =>
