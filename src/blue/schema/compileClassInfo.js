@@ -72,7 +72,8 @@ const SCALARS = Object.freeze({
   expression: [ VARTYPE.STDSTRING, false, 0 ],
   wstring: [ VARTYPE.STDWSTRING, false, 0 ],
   wpath: [ VARTYPE.STDWSTRING, false, 0 ],
-  pyObject: [ VARTYPE.PYOBJECT, false, 0 ],
+  // A PyObject* member: BLUE_DEFINE_TYPE_TRAIT( PyObject*, Be::PYOBJECTPTR ) (BlueTypeTraits.h:76). Be::PYOBJECT is an embedded one.
+  pyObject: [ VARTYPE.PYOBJECTPTR, false, 0 ],
   scriptCallback: [ VARTYPE.SCRIPTCALLBACK, false, 0 ],
   enum: [ VARTYPE.LONG, true, 0 ],
   float32: [ VARTYPE.FLOAT, false, 0 ],

@@ -55,6 +55,14 @@ test("the record's factory follows the class's first live registration as names 
   assert.equal(ci.flags, 0);
 });
 
+test("a PyObject* member is Be::PYOBJECTPTR, as Carbon's type trait says", () =>
+{
+  // BLUE_DEFINE_TYPE_TRAIT( PyObject*, Be::PYOBJECTPTR ) (BlueTypeTraits.h:76); PYOBJECTPTR is 11 (BlueTypes.h:230).
+  assert.equal(declaredMemberType({ kind: "pyObject" }).type, 11);
+  const frameClock = ClassInfo.exposeToBlue(CjsSchema.getConstructor("BlueOS")).memberTable.find(row => row.name === "frameClock");
+  assert.equal(frameClock.type, 11);
+});
+
 test("the store is built once per class and its RTTI once per class info", () =>
 {
   assert.ok(registrations.length > 1000, `expected the whole runtime registered, got ${registrations.length} classes`);

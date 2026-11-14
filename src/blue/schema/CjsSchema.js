@@ -861,7 +861,7 @@ export class CjsSchema
          */
         wpath: pathDecorator("wpath"),
         /**
-         * Carbon's PYOBJECT: a script object (`PyObject*`), such as BlueOS's
+         * Carbon's PYOBJECTPTR (`BlueTypeTraits.h:76`): a script object (`PyObject*`), such as BlueOS's
          * frame clock (`BlueOS.h:56`). It describes the member only; no reader,
          * writer or values handler reads one.
          */
