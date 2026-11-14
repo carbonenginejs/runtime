@@ -3,7 +3,7 @@ import path from "node:path";
 import { classDonorComments } from "./carbon-donor-comments.js";
 import { parse } from "@babel/parser";
 import { headerTypes, jsClasses, jsProvenance } from "./carbon-header-shape.js";
-import { UNSHIPPED_SOURCE_DIRS } from "./unshipped-source.js";
+import { DONOR_SOURCE_DIRS } from "./unshipped-source.js";
 
 /** Enumerate source files, keeping generated classes but excluding dropped code. */
 export async function filesUnder(directory, extensions)
@@ -13,7 +13,7 @@ export async function filesUnder(directory, extensions)
     {
         if ([ ".git", "node_modules", "dropped", "npm", "dist" ].includes(entry.name)) continue;
         const target = path.join(directory, entry.name);
-        if (entry.isDirectory() && !UNSHIPPED_SOURCE_DIRS.has(entry.name)) for (const file of await filesUnder(target, extensions)) files.push(file);
+        if (entry.isDirectory() && !DONOR_SOURCE_DIRS.has(entry.name)) for (const file of await filesUnder(target, extensions)) files.push(file);
         else if (entry.isFile() && extensions.includes(path.extname(entry.name))) files.push(target);
     }
     return files.sort();
@@ -86,7 +86,7 @@ async function droppedFiles(root)
         {
             if ([ ".git", "node_modules", "npm", "dist" ].includes(entry.name)) continue;
             const target = path.join(directory, entry.name);
-            if (!entry.isDirectory() || UNSHIPPED_SOURCE_DIRS.has(entry.name)) continue;
+            if (!entry.isDirectory() || DONOR_SOURCE_DIRS.has(entry.name)) continue;
             if (entry.name === "dropped") for (const file of await filesUnder(target, [ ".js" ])) found.push(file);
             else await walk(target);
         }

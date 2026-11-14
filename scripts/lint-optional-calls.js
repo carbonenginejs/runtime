@@ -68,7 +68,7 @@ import path from "node:path";
 import { parse } from "@babel/parser";
 import traverseModule from "@babel/traverse";
 import { fileURLToPath } from "node:url";
-import { QUARANTINE_SOURCE_DIRS } from "./lib/unshipped-source.js";
+import { UNSHIPPED_SOURCE_DIRS } from "./lib/unshipped-source.js";
 
 const traverse = traverseModule.default ?? traverseModule;
 
@@ -92,7 +92,7 @@ async function sourceFiles(directory)
     {
         const target = path.join(directory, entry.name);
 
-        if (entry.isDirectory() && !QUARANTINE_SOURCE_DIRS.has(entry.name)) files.push(...await sourceFiles(target));
+        if (entry.isDirectory() && !UNSHIPPED_SOURCE_DIRS.has(entry.name)) files.push(...await sourceFiles(target));
         else if (entry.isFile() && entry.name.endsWith(".js")) files.push(target);
     }
 

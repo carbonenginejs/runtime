@@ -5,15 +5,15 @@
 // lints and the build skip any directory of that name.
 //
 // A `dropped` directory is quarantine: a class kept with the reason it was dropped, never imported, exported or
-// registered (port-carbon-to-js, Dropped). It is not shipped, so the ratchet lints that count source sites skip it
-// (QUARANTINE_SOURCE_DIRS). The indexes and the generator still read it: a dropped identity is a recorded
-// decision they must see.
+// registered (port-carbon-to-js, Dropped). Every lint, audit, proof and build skips it. The one exception is the
+// generator guard (carbon-source-index.js, trinity/generated-ownership.js), which reads dropped identities so a
+// generator never recreates a class that was dropped on purpose; it walks with DONOR_SOURCE_DIRS.
+
+/** Directory names the generator guard does not enter: it must still see dropped identities. */
+export const DONOR_SOURCE_DIRS = new Set([ "carbon-donor" ]);
 
 /** Directory names the source walkers do not enter. */
-export const UNSHIPPED_SOURCE_DIRS = new Set([ "carbon-donor" ]);
-
-/** Directory names the site-counting ratchet lints also do not enter. */
-export const QUARANTINE_SOURCE_DIRS = new Set([ ...UNSHIPPED_SOURCE_DIRS, "dropped" ]);
+export const UNSHIPPED_SOURCE_DIRS = new Set([ ...DONOR_SOURCE_DIRS, "dropped" ]);
 
 /**
  * Whether a source path lies inside an unshipped directory.

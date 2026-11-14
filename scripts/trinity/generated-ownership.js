@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { parse } from "@babel/parser";
-import { UNSHIPPED_SOURCE_DIRS } from "../lib/unshipped-source.js";
+import { DONOR_SOURCE_DIRS } from "../lib/unshipped-source.js";
 
 /** Enumerates files deterministically without following directory links. */
 async function files(directory, extension)
@@ -10,7 +10,7 @@ async function files(directory, extension)
   for (const entry of await fs.readdir(directory, { withFileTypes: true }))
   {
     const file = path.join(directory, entry.name);
-    if (entry.isDirectory() && !UNSHIPPED_SOURCE_DIRS.has(entry.name))
+    if (entry.isDirectory() && !DONOR_SOURCE_DIRS.has(entry.name))
     {
       for (const nested of await files(file, extension)) result.push(nested);
     }
