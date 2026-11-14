@@ -6,6 +6,7 @@ export * from "../../texturePipeline/CjsTexturePipelineStepConvert.js";
 export * from "../../texturePipeline/CjsTexturePipelineStepPublishSrgb.js";
 export * from "../../texturePipeline/CjsTexturePipelineStepResize.js";
 export * from "../procedural/SolidColorTextureConstructor.js";
+export * from "./ITriTextureRes.js";
 export * from "./Tr2ImageRes.js";
 export * from "./Tr2TextureLodManager.js";
 export * from "./Tr2TextureLodUpdateRequest.js";

@@ -127,19 +127,19 @@ export class Tr2ShLightingManager extends IRoot
 
   /** m_sunDirection - normalized, set through UpdateWithDirectionalLight. */
   @type.vec3
-  #sunDirection = vec3.fromValues(0, 1, 0);
+  _sunDirection = vec3.fromValues(0, 1, 0);
 
   /** m_sunColor. */
   @type.vec3
-  #sunColor = vec3.create();
+  _sunColor = vec3.create();
 
   /** m_sources - the registered secondary light sources, read live. */
   @type.array({ kind: "rawStruct", className: "Tr2ShLightingManager::Source" })
-  #sources = [];
+  _sources = [];
 
   /** m_sourceData - the processed run UpdateSourceData rebuilds. */
   @type.array({ kind: "rawStruct", className: "Tr2ShLightingManager::SourceData" })
-  #sourceData = [];
+  _sourceData = [];
 
   /**
    * Carbon's SH order. The generated shell carried a four-member
@@ -171,7 +171,7 @@ export class Tr2ShLightingManager extends IRoot
    */
   RegisterSecondaryLightSource(position, radius, albedo, emissive)
   {
-    this.#sources.push({ position, radius, albedo, emissive });
+    this._sources.push({ position, radius, albedo, emissive });
 
     return true;
   }
@@ -187,13 +187,13 @@ export class Tr2ShLightingManager extends IRoot
 
   UnregisterSecondaryLightSource(position)
   {
-    const index = this.#sources.findIndex((source) => source.position === position);
+    const index = this._sources.findIndex((source) => source.position === position);
 
     if (index === -1)
     {
       return false;
     }
-    this.#sources.splice(index, 1);
+    this._sources.splice(index, 1);
 
     return true;
   }
@@ -209,8 +209,8 @@ export class Tr2ShLightingManager extends IRoot
 
   UpdateWithDirectionalLight(direction, color)
   {
-    vec3.copy(this.#sunColor, color);
-    vec3.normalize(this.#sunDirection, direction);
+    vec3.copy(this._sunColor, color);
+    vec3.normalize(this._sunDirection, direction);
     this.UpdateSourceData();
 
     return true;
@@ -228,11 +228,11 @@ export class Tr2ShLightingManager extends IRoot
 
   UpdateSourceData()
   {
-    this.#sourceData.length = 0;
+    this._sourceData.length = 0;
 
-    const maxLight = vec3.maxComponentCarbon(this.#sunColor);
+    const maxLight = vec3.maxComponentCarbon(this._sunColor);
 
-    for (const source of this.#sources)
+    for (const source of this._sources)
     {
       const radius = readFloat(source.radius);
 
@@ -244,7 +244,7 @@ export class Tr2ShLightingManager extends IRoot
       const albedo = vec3.scale(vec3.create(), source.albedo, this.secondaryIntensity);
       const emissive = vec3.scale(vec3.create(), source.emissive, this.secondaryIntensity);
 
-      this.#sourceData.push({
+      this._sourceData.push({
         position: source.position,
         radius,
         albedo,
@@ -262,7 +262,7 @@ export class Tr2ShLightingManager extends IRoot
 
       const emissive = vec3.scale(vec3.create(), color, this.primaryIntensity);
 
-      this.#sourceData.push({
+      this._sourceData.push({
         position,
         radius,
         albedo: vec3.create(),
@@ -272,7 +272,7 @@ export class Tr2ShLightingManager extends IRoot
       });
     }
 
-    return this.#sourceData.length;
+    return this._sourceData.length;
   }
 
   /**
@@ -314,7 +314,7 @@ export class Tr2ShLightingManager extends IRoot
     const basis = new Float64Array(count);
     const direction = Tr2ShLightingManager.#directionScratch;
 
-    for (const source of this.#sourceData)
+    for (const source of this._sourceData)
     {
       if (source.radius < cutoffRadius * source.cutoffMultiplier)
       {
@@ -353,11 +353,11 @@ export class Tr2ShLightingManager extends IRoot
       // The albedo term is lit by the primary light through a wrapped dot
       // product, so a sphere facing away still reflects a little; the emissive
       // term is added unlit.
-      const dot = vec3.dot(this.#sunDirection, direction) * 0.5 + 0.5;
+      const dot = vec3.dot(this._sunDirection, direction) * 0.5 + 0.5;
 
       for (let channel = 0; channel < 3; channel++)
       {
-        const color = dot * source.albedo[channel] * this.#sunColor[channel] + source.emissive[channel];
+        const color = dot * source.albedo[channel] * this._sunColor[channel] + source.emissive[channel];
 
         for (let index = 0; index < count; index++)
         {

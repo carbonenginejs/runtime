@@ -42,8 +42,8 @@ export class Tr2TextureArray extends IRoot
     @type.rawStruct("Tr2BitmapDimensions")
     dimensions = null;
 
-    /** m_onTextureChange (OnTextureChangeEvent) */
-    @type.rawStruct("OnTextureChangeEvent")
+    /** m_onTextureChange (OnTextureChangeEvent, an alias of Tr2Event<>: ITr2TextureProvider.h:14) */
+    @type.rawStruct("Tr2Event")
     onTextureChange = new Tr2Event();
 
     /** m_increment (uint32_t) */

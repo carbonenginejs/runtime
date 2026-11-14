@@ -142,6 +142,36 @@ test("a Map and a member of two classes keep what they declare, and set and diff
   assert.equal(CjsGraph.get(bag, { full: true, typeTags: true }).either._type, "GraphPolicyMapped");
 });
 
+test("a member declared by a Carbon alias names the class it stands for, and a private typed member is read by its key", () =>
+{
+  // Carbon's OnTextureChangeEvent is Tr2Event<> (ITr2TextureProvider.h:14): a walk passes through the event.
+  const seen = [];
+  CjsGraph.traverse(create("Tr2TextureReference"), (object, info) => { seen.push(info.declared.name); });
+  assert.deepEqual(seen.filter(name => name === "Tr2Event"), [ "Tr2Event" ]);
+
+  // A Carbon-private member is `_` and its name, a key the graph can read; a #private one is not.
+  const manager = create("Tr2ShLightingManager");
+  assert.deepEqual(Array.from(CjsGraph.get(manager, { full: true })._sunDirection), [ 0, 1, 0 ]);
+});
+
+test("a member that declares a Carbon interface holds a class that maps it", () =>
+{
+  // ITriTextureRes and ITr2WorldTransformUpdater are Carbon interfaces (BLUE_INTERFACE), defined like any class.
+  for (const name of [ "ITriTextureRes", "ITr2WorldTransformUpdater" ]) assert.equal(CjsGraph.isDefined(blue.classes.Get(name)), true, name);
+
+  // TriTextureRes maps ITriTextureRes (TriTextureRes_Blue.cpp:138), so a reflection probe's custom source holds one.
+  const probe = create("Tr2ReflectionProbe");
+  probe.customSourceTexture = create("TriTextureRes");
+  probe.customSourceTexture.SetName("probe source");
+  const seen = [];
+  CjsGraph.traverse(probe, object => { seen.push(object); });
+  assert.equal(seen.includes(probe.customSourceTexture), true);
+  assert.equal(probe.customSourceTexture.GetName(), "probe source");
+
+  probe.customSourceTexture = create("Tr2MeshArea");
+  assert.throws(() => CjsGraph.traverse(probe, () => {}), /not assignable to ITriTextureRes/);
+});
+
 test("a mapped interface counts as assignable, and a legacy material sits in an effect member", () =>
 {
   const area = create("Tr2MeshArea");

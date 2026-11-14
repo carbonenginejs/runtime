@@ -26,6 +26,7 @@ import { TriStorageFlags, Tr2ALMemoryType } from "#consts/graphics";
 import { BlueAsyncRes, ICacheable } from "#blue";
 import { IsSolidColorTexturePath, RasterizeSolidColor } from "../procedural/solidColorTexture.js";
 import { Tr2Event } from "#trinity/core/Tr2Event";
+import { ITriTextureRes } from "./ITriTextureRes.js";
 import {
   resourceBoundaryError,
   resourceFormatRequiredError,
@@ -531,6 +532,29 @@ export class TriTextureRes extends BlueAsyncRes
   GetMipLevelCount()
   {
     return this.loadedBitmap ? this.loadedBitmap.GetMipCount() : this.cpuMip;
+  }
+
+  /**
+   * `ITriTextureRes::SetName` (`TriTextureRes.h:141-144`): a name for debugging and memory overviews.
+   *
+   * @implemented
+   * @param {string} name The name.
+   * @returns {void}
+   */
+  SetName(name)
+  {
+    this.name = name;
+  }
+
+  /**
+   * `ITriTextureRes::GetName` (`TriTextureRes.h:145-148`).
+   *
+   * @implemented
+   * @returns {string} The name.
+   */
+  GetName()
+  {
+    return this.name;
   }
 
   /**
@@ -1120,6 +1144,9 @@ CjsSchema.decorateMethod(TriTextureRes, "GetOriginalMemoryUsage", be.mapMethodAn
 CjsSchema.decorateMethod(TriTextureRes, "PrepareResources", be.mapMethodAndWrap());
 be.define("TriTextureRes")(TriTextureRes);
 be.inherit(ICacheable)(TriTextureRes, { kind: "class" });
+// Carbon's base list names ITriTextureRes after ICacheable (TriTextureRes.h:28-31) and maps it first (TriTextureRes_Blue.cpp:138).
+be.inherit(ITriTextureRes)(TriTextureRes, { kind: "class" });
+CjsSchema.exposure.mapInterface(ITriTextureRes)(TriTextureRes);
 CjsSchema.exposure.mapInterface(ICacheable)(TriTextureRes);
 // Carbon: TriTextureRes::ExposeToBlue (trinity/trinity/Resources/TriTextureRes_Blue.cpp:318).
 CjsSchema.be.chainTo(BlueAsyncRes)(TriTextureRes);
