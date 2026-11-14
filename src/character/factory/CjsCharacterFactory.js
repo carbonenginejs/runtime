@@ -193,6 +193,24 @@ export class CjsCharacterFactory
     }
 
     /**
+     * Reads a DNA part's values onto its component through Blue's dict reader, then tells the component once of the
+     * NOTIFY members that changed (its `OnModified`: `Rebuild`, the paper doll's dirty mark). The component is ours and
+     * maps no INotify, so it is not the reader's notify target; the call is direct.
+     * @param {object} component The definition's component.
+     * @param {object} values Its fields by exposed name.
+     * @returns {void}
+     */
+    static readOnto(component, values)
+    {
+        const notified = [];
+        new DictReader({ liveLists: true }).ReadInto(component, values, null, (field, didChange) =>
+        {
+            if (didChange && field.edit && field.edit.notify) notified.push(field.name);
+        });
+        if (notified.length) component.OnModified(notified.length === 1 ? notified[0] : notified);
+    }
+
+    /**
      * Writes one merged part onto its component. The component first goes to neutral (its `Reset`; then off, no option,
      * overridable, and a weighted part at weight 0, or 1 when the part is on); then the part's values; then its option,
      * resolved when the part is on; then its colours. The archetype has no switch or colours: its option is prepared
@@ -212,14 +230,14 @@ export class CjsCharacterFactory
         if (archetype)
         {
             if (option) await component.ResolveOption(option);
-            new DictReader({ liveLists: true }).ReadInto(component, { ...(option ? { option } : {}), ...rest }, component);
+            CjsCharacterFactory.readOnto(component, { ...(option ? { option } : {}), ...rest });
             return;
         }
         const values = { enabled: false, overridable: true, ...rest, option };
         // Derived: a weighted part the DNA turns on without a weight draws at full weight (the shipped recipes set 1.0).
         if (component.constructor.weighted === true) values.weight = rest.weight ?? (values.enabled ? 1 : 0);
         else delete values.weight;
-        new DictReader({ liveLists: true }).ReadInto(component, values, component);
+        CjsCharacterFactory.readOnto(component, values);
         // A recipe option names its part folder in the part's own fields: read again for each one applied.
         if (option === "recipe") component.ForgetResolution(option);
         if (option && component.enabled) await component.ResolveOption(option);
@@ -238,7 +256,7 @@ export class CjsCharacterFactory
     {
         if (colors !== null)
         {
-            new DictReader({ liveLists: true }).ReadInto(component, { customColors: true, color1: Float32Array.from(colors[0]), color2: Float32Array.from(colors[1]), color3: Float32Array.from(colors[2]) }, component);
+            CjsCharacterFactory.readOnto(component, { customColors: true, color1: Float32Array.from(colors[0]), color2: Float32Array.from(colors[1]), color3: Float32Array.from(colors[2]) });
             if (component.constructor.paletteSpecular && specularColors !== null) component.SetSpecularColors(specularColors.map(color => Float32Array.from(color)));
             return;
         }
@@ -254,7 +272,7 @@ export class CjsCharacterFactory
             values.color2 = Float32Array.from(second.colors[1]);
             values.color3 = Float32Array.from(second.colors[2]);
         }
-        new DictReader({ liveLists: true }).ReadInto(component, values, component);
+        CjsCharacterFactory.readOnto(component, values);
         if (specular) component.SetSpecularColors(first.specularColors);
     }
 
