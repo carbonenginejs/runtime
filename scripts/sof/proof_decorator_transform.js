@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { rollup } from "rollup";
 import { babel } from "@rollup/plugin-babel";
+import json from "@rollup/plugin-json";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const scratch = path.join(root, ".scratch", "decorator-transform-proof");
@@ -113,6 +114,7 @@ async function buildSourceBundle() {
     input: sourceEntry,
     external: (id) => id.startsWith("#"),
     plugins: [
+      json({ compact: true }),
       babel({
         babelHelpers: "bundled",
         extensions: [".js", ".mjs"],
