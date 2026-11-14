@@ -57,12 +57,14 @@ test("PERSISTONLY stays readable, and RPERSIST loads without being written back"
   assert.deepEqual(CjsGraph.set(object, { load: 9, readable: 9 }), { load: 9 });
   assert.equal(object.load, 9);
   assert.equal(object.readable, 1, "READ alone takes no value");
-  assert.equal(compiled.persistByName.load, undefined, "IRootReaderBase::FindEntry tests PERSIST alone");
+  assert.equal(flagsOf("load") & EDITFLAGS.PERSIST, 0, "IRootReaderBase::FindEntry tests PERSIST alone");
 });
 
 test("the base list and the exposure chain are separate facts", () =>
 {
-  assert.deepEqual(compiled.bases, [ "GraphFlagsParent", "GraphFlagsFace" ]);
-  assert.equal(compiled.chainTo, "GraphFlagsChained");
-  assert.equal(compiled.parent, CjsGraph.getClassInfo(Chained), "member lookup follows the chain, never the base list");
+  const { declared } = CjsGraph.getClassInfo(Thing);
+  assert.deepEqual(declared.bases, [ Parent, Face ]);
+  assert.equal(declared.chainTo, "GraphFlagsChained");
+  assert.deepEqual(CjsGraph._GetExposureChain(CjsGraph.getClassInfo(Thing)), [ CjsGraph.getClassInfo(Thing), CjsGraph.getClassInfo(Chained) ],
+    "member lookup follows the chain, never the base list");
 });

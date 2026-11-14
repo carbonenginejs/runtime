@@ -61,9 +61,6 @@ export class CjsGraph
   /** The flags of a member no value operation reads. */
   static _unread = GraphMemberFlags.BINARY | GraphMemberFlags.RUNTIMEONLY;
 
-  /** The flags that claim a persisted name. */
-  static _persistNames = EDITFLAGS.PERSIST | GraphMemberFlags.RUNTIMEONLY;
-
   /** The flags that each let a value in. */
   static _accepting = EDITFLAGS.WRITE | EDITFLAGS.PERSIST | EDITFLAGS.RPERSIST;
 
@@ -103,7 +100,9 @@ export class CjsGraph
    * facts for readers, and layout a structure record's { size, boundaries, fields }. ui is a
    * function returning the class's presentation, called only when something asks for it.
    * The class's record is whole when this returns: its members by name and its teardown are built here, and
-   * rebuilt for every class derived from it. A base given by a name must already be defined.
+   * rebuilt for every class derived from it. A base given by a name must already be defined. A class defined
+   * again under another name is no longer reached by a class that chains to the old name, which loses its rows.
+   * A definition that throws leaves the record, and every row handed in, as it was.
    * @cjs Compiles each member to one flat object; authored default values are not cloned.
    */
   static define(ctor, definition)
@@ -120,27 +119,44 @@ export class CjsGraph
 
     const members = [];
     const names = new Set();
-    for (const member of definition.members ?? [])
-    {
-      if (typeof member.name !== "string" || !member.name) throw new TypeError("Graph member requires a name.");
-      if (names.has(member.name)) throw new TypeError(`Duplicate graph member: ${name}.${member.name}`);
-      if (member.index !== undefined && (!Number.isSafeInteger(member.index) || member.index < 0))
-        throw new TypeError(`Graph member index must be a non-negative integer: ${name}.${member.name}`);
-      names.add(member.name);
-
-      members.push(this.compileMember(member));
-    }
-    const declared = { ...definition, members, interfaces: definition.interfaces ?? [] };
-
+    // Each row handed in, and what it held before this definition filled it.
+    const rows = [], held = [];
     const info = existing ?? ClassInfo.of(ctor);
-    const lifetime = info.lifetimeExplicit ? info.lifetime : {
-      name, bases: declared.bases ?? [], destructor: declared.destructor ?? null,
-      capabilities: this.checkCapabilities(declared.capabilities ?? [], name)
-    };
-    // A row the record already held has its owner from the class that made it.
-    for (let i = 0; i < members.length; i++) if (members[i].owner === null) members[i].owner = info;
-    this._classes.set(ctor, info);
-    this._replace(info, declared, lifetime);
+
+    try
+    {
+      for (const member of definition.members ?? [])
+      {
+        if (typeof member.name !== "string" || !member.name) throw new TypeError("Graph member requires a name.");
+        if (names.has(member.name)) throw new TypeError(`Duplicate graph member: ${name}.${member.name}`);
+        if (member.index !== undefined && (!Number.isSafeInteger(member.index) || member.index < 0))
+          throw new TypeError(`Graph member index must be a non-negative integer: ${name}.${member.name}`);
+        names.add(member.name);
+
+        if (member.row !== undefined)
+        {
+          rows.push(member.row);
+          held.push({ ...member.row });
+        }
+        members.push(this.compileMember(member));
+      }
+      const declared = { ...definition, members, interfaces: definition.interfaces ?? [] };
+
+      const lifetime = info.lifetimeExplicit ? info.lifetime : {
+        name, bases: declared.bases ?? [], destructor: declared.destructor ?? null,
+        capabilities: this.checkCapabilities(declared.capabilities ?? [], name)
+      };
+      // A row the record already held has its owner from the class that made it.
+      for (let i = 0; i < members.length; i++) if (members[i].owner === null) members[i].owner = info;
+      this._classes.set(ctor, info);
+      this._replace(info, declared, lifetime);
+    }
+    catch (error)
+    {
+      for (let i = 0; i < rows.length; i++) Object.assign(rows[i], held[i]);
+      throw error;
+    }
+
     return info;
   }
 
@@ -422,13 +438,17 @@ export class CjsGraph
     this.checkCapabilities(capabilities, name ?? "Graph lifetime");
     const info = ClassInfo.of(ctor);
     const previous = info.lifetime;
-    info.lifetimeExplicit = true;
-    if (previous && previous.destructor === destructor && previous.name === name
+    const same = previous && previous.destructor === destructor && previous.name === name
       && previous.bases.length === bases.length && previous.bases.every((base, i) => base === bases[i])
       && previous.capabilities.length === capabilities.length
-      && previous.capabilities.every((capability, i) => capability === capabilities[i])) return info;
-    this._classes.set(ctor, info);
-    this._replace(info, info.declared, { name, bases: bases.slice(), destructor, capabilities: capabilities.slice() });
+      && previous.capabilities.every((capability, i) => capability === capabilities[i]);
+    if (!same)
+    {
+      this._classes.set(ctor, info);
+      this._replace(info, info.declared, { name, bases: bases.slice(), destructor, capabilities: capabilities.slice() });
+    }
+    // Only once the lifetime is in: a later define keeps an explicit lifetime in place of building its own.
+    info.lifetimeExplicit = true;
     return info;
   }
 
@@ -590,7 +610,7 @@ export class CjsGraph
       for (const base of owner.lifetime.bases)
       {
         const parent = typeof base === "string" ? this._names.get(base) : this._classes.get(base);
-        if (typeof base === "string" && !parent) throw new TypeError(`Unknown graph base: ${base}`);
+        if (typeof base === "string" && !parent) throw new TypeError(`Unknown graph base: ${base}, a base of ${owner.lifetime.name}`);
         if (parent?.lifetime) visit(parent);
       }
       active.delete(owner);
@@ -2066,8 +2086,6 @@ export class CjsGraph
   {
     const members = [];
     const byName = Object.create(null);
-    const persistByName = Object.create(null);
-    let parent = null;
 
     // Preserve candidates in derived-first order. Flags filter BEFORE resolving a name;
     // e.g. a runtime-only derived declaration must not erase a visible base declaration.
@@ -2075,20 +2093,14 @@ export class CjsGraph
     // never the prototype chain, which is the class's bases.
     for (const owner of this._GetExposureChain(info))
     {
-      if (owner !== info && !parent) parent = owner;
-
       for (const member of owner.declared.members)
       {
         // The row itself, never a copy: every table lists the same objects.
         if (!Object.hasOwn(byName, member.name)) byName[member.name] = [];
         byName[member.name].push(member);
         members.push(member);
-
-        if ((member.flags & this._persistNames) !== 0 && !Object.hasOwn(persistByName, member.name)) persistByName[member.name] = member;
       }
     }
-
-    const { declared } = info;
 
     // Each name once, in member-table order; the first candidate decides NOTIFY, as lookups do.
     const memberNames = [], notifyNames = [];
@@ -2099,21 +2111,8 @@ export class CjsGraph
       if ((member.flags & EDITFLAGS.NOTIFY) !== 0) notifyNames.push(member.name);
     }
 
-    return {
-      parent, members, byName, persistByName, memberNames, notifyNames, tables: [], defaults: null, ui: null,
-      name: declared.name,
-      interfaces: declared.interfaces,
-      bases: declared.bases ?? [],
-      chainTo: declared.chainTo ?? null,
-      initialize: declared.initialize === true,
-      notify: declared.notify === true,
-      listNotify: declared.listNotify === true,
-      customPersist: declared.customPersist === true,
-      list: declared.list === true,
-      proxy: declared.proxy === true,
-      abstract: declared.abstract === true,
-      layout: declared.layout ?? null
-    };
+    // The class's own facts (its name, bases, chain, interfaces and what its instances take) are in `declared`, once.
+    return { members, byName, memberNames, notifyNames, tables: [], defaults: null, ui: null };
   }
 
   /** Stable class identity. */

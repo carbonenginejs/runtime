@@ -49,7 +49,7 @@ test("compilation preserves derived precedence and authored member order", () =>
   assert.deepEqual(compiled.members.map(member => member.name), ["own", "shared", "shared", "baseOnly"]);
   assert.equal(compiled.byName.shared[0].key, "derivedValue");
   assert.equal(compiled.byName.shared[0].owner, info);
-  assert.equal(compiled.parent, CjsGraph.getClassInfo(Base));
+  assert.equal(compiled.byName.baseOnly[0].owner, CjsGraph.getClassInfo(Base));
   assert.equal(info.declared.members.length, 2);
 });
 
@@ -143,4 +143,28 @@ test("policy can skip a hidden derived candidate without losing the visible base
   const candidates = CjsGraph.getClassInfo(Hidden).compiled.byName.x;
   assert.deepEqual(candidates.map(member => member.key), ["derived", "base"]);
   assert.equal(candidates.find(member => (member.flags & EDITFLAGS.HIDDEN) === 0).key, "base");
+});
+
+test("a definition that throws leaves the rows handed in as they were", () =>
+{
+  class Rowed {}
+  const info = CjsGraph.define(Rowed, { name: "GraphRowed", members: [ { name: "value", type: "float32" } ] });
+  const row = info.declared.members[0];
+  const held = { ...row };
+  const same = () => { for (const key of Object.keys(held)) assert.equal(row[key], held[key], key); };
+
+  // Refused after every row was filled.
+  assert.throws(() => CjsGraph.define(Rowed, { name: "GraphRowed", bases: [ "GraphRowedMissing" ], members: [
+    { name: "value", type: "string", flags: EDITFLAGS.READ, row }
+  ] }), /Unknown graph base: GraphRowedMissing, a base of GraphRowed/);
+  same();
+
+  // Refused at a later member.
+  assert.throws(() => CjsGraph.define(Rowed, { name: "GraphRowed", members: [
+    { name: "value", type: "string", flags: EDITFLAGS.READ, row }, { name: "other", type: "noSuchType" }
+  ] }), /Unknown graph type: noSuchType/);
+  same();
+
+  assert.equal(info.declared.members[0], row);
+  assert.equal(info.compiled.byName.value[0].kind, "float32");
 });

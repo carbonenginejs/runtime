@@ -252,7 +252,7 @@ test("malformed ancestry fails where it is defined, and the records stay as they
   const cyclic = { name: "DestructCycleA", capabilities: [ "destruct" ], bases: [ "DestructCycleB" ], destructor: onDestruct };
 
   // A base given by name is defined first.
-  assert.throws(() => CjsGraph.define(A, cyclic), /Unknown graph base: DestructCycleB/);
+  assert.throws(() => CjsGraph.define(A, cyclic), /Unknown graph base: DestructCycleB, a base of DestructCycleA/);
   assert.equal(CjsGraph.isDefined(A), false);
 
   CjsGraph.define(A, { name: "DestructCycleA", capabilities: [ "destruct" ] });
@@ -265,6 +265,20 @@ test("malformed ancestry fails where it is defined, and the records stay as they
   assert.throws(() => CjsGraph.define(B, { name: "DestructCycleB", capabilities: [ "destruct" ], destructor: true }), /function or null/);
   assert.throws(() => CjsGraph.define(B, { name: "DestructCycleB", capabilities: [ "destruct" ], onDestruct() {} }), /not a definition key/);
   assert.throws(() => CjsGraph.defineLifetime(B, { onDestruct: null }), /not a definition key/);
+});
+
+test("a lifetime that is refused leaves a later definition to build its own", () =>
+{
+  class A {} class B {}
+  let ended = 0;
+
+  CjsGraph.defineLifetime(B, { name: "RefusedLifetimeB", bases: [ A ] });
+  assert.throws(() => CjsGraph.defineLifetime(A, { name: "RefusedLifetimeA", bases: [ B ] }), /Cyclic graph ancestry/);
+  assert.equal(CjsGraph.hasLifetime(A), false);
+
+  CjsGraph.define(A, { name: "RefusedLifetimeA", capabilities: [ "destruct" ], destructor() { ended++; } });
+  assert.equal(CjsGraph.destruct(new A()), true);
+  assert.equal(ended, 1);
 });
 
 test("destruct is a declared capability: it passes down the base list and nowhere else", () =>

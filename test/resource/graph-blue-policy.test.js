@@ -118,9 +118,11 @@ test("a Map and a member of two classes keep what they declare, and set and diff
   assert.equal(CjsGraph.get(bag, { full: true, typeTags: true }).either.name, "area");
   assert.deepEqual(CjsGraph.diff(bag, { either: { name: "other" } }), { either: { name: "other" } });
 
-  // The Map's class is not defined yet: writing one, or asking what a write would change, names it.
+  // The Map's class is not defined yet: writing one names it. Asking what the write would change creates
+  // nothing, so it answers.
   const mapped = { byName: { a: { name: "a" } } };
   assert.throws(() => CjsGraph.set(bag, mapped, { skipEvents: true }), /Unknown graph class: GraphPolicyMapped/);
+  assert.deepEqual(CjsGraph.diff(bag, mapped), mapped);
 
   class GraphPolicyMapped
   {

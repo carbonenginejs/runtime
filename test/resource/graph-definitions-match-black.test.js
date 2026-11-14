@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { GraphOperation, VARTYPE } from "../../npm/dist/global/model/graph/index.js";
+import { GraphMemberFlags, GraphOperation, VARTYPE } from "../../npm/dist/global/model/graph/index.js";
+import { EDITFLAGS } from "../../npm/dist/global/consts/blue.js";
 import { blue } from "../../npm/dist/blue/index.js";
 import { CjsBlueGraph } from "../../npm/dist/blue/formats/graph/index.js";
 import { CjsGraph } from "../../npm/dist/global/model/graph/index.js";
@@ -43,6 +44,17 @@ function destinationOf(member)
   return null;
 }
 
+/** The row a reader finds under each name: the nearest class's that is persisted or runtime-only. */
+function persisted(type)
+{
+  const byName = Object.create(null);
+  for (const member of CjsGraph.getClassInfo(type).compiled.members)
+  {
+    if ((member.flags & (EDITFLAGS.PERSIST | GraphMemberFlags.RUNTIMEONLY)) !== 0 && !Object.hasOwn(byName, member.name)) byName[member.name] = member;
+  }
+  return byName;
+}
+
 /** What the compiled definition says, for the same comparison. */
 function compiled(member)
 {
@@ -61,7 +73,7 @@ test("a persisted member the graph compiled is the readers' own row, not a copy"
 
   for (const { name, type } of getClassRegistrations())
   {
-    const members = CjsGraph.getClassInfo(type).compiled.persistByName;
+    const members = persisted(type);
 
     for (const [ member, entry ] of ClassInfo.exposeToBlue(type).entries)
     {
@@ -154,7 +166,7 @@ test("a recompile keeps every row, so the graph's definition still lists the rea
 
   for (const { name, type } of getClassRegistrations())
   {
-    const members = CjsGraph.getClassInfo(type).compiled.persistByName;
+    const members = persisted(type);
     for (const [ member, entry ] of ClassInfo.exposeToBlue(type).entries) if (members[member] !== entry) swapped.push(`${name}.${member}: the graph holds another row`);
   }
 
@@ -170,7 +182,7 @@ test("every persisted member compiles to what the readers' ClassInfo record says
   for (const { name, type } of getClassRegistrations())
   {
     const entries = ClassInfo.exposeToBlue(type).entries;
-    const members = CjsGraph.getClassInfo(type).compiled.persistByName;
+    const members = persisted(type);
 
     for (const [ member, entry ] of entries)
     {

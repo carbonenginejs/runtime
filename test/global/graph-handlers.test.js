@@ -124,7 +124,34 @@ test("a member holds what any listed class accepts, and anything else is refused
   assert.throws(() => CjsGraph.get(area, { full: true }), /not assignable to ListedEffect: holds ListedOther/);
 });
 
-test("compiled classes carry one PERSIST lookup, derived first, and their facts", () =>
+test("a member that names a class nothing defines is refused by every read and walk, whatever it holds", () =>
+{
+  class Second { name = ""; }
+  class Stranger { name = ""; }
+  class Holder { either = null; }
+  CjsGraph.define(Second, { name: "UndefinedFirstSecond", members: [ { name: "name", type: "string" } ] });
+  CjsGraph.define(Holder, { name: "UndefinedFirstHolder", members: [
+    { name: "either", type: "rootRef", edge: { kind: "ref", type: [ "UndefinedFirstMissing", "UndefinedFirstSecond" ] } }
+  ] });
+
+  // An object of the second, defined class: the first name is still asked, and it is a mistake.
+  const holder = new Holder();
+  holder.either = new Second();
+  assert.throws(() => CjsGraph.get(holder, { full: true }), /Unknown graph class: UndefinedFirstMissing/);
+  assert.throws(() => CjsGraph.traverse(holder, () => {}), /Unknown graph class: UndefinedFirstMissing/);
+
+  // An object of a class the graph has no definition for stops the whole walk.
+  holder.either = new Stranger();
+  assert.throws(() => CjsGraph.get(holder, { full: true }), /Unknown graph class/);
+  assert.throws(() => CjsGraph.traverse(holder, () => {}), /Unknown graph class/);
+
+  class Missing extends Second {}
+  CjsGraph.define(Missing, { name: "UndefinedFirstMissing", chainTo: "UndefinedFirstSecond", members: [] });
+  holder.either = new Second();
+  assert.deepEqual(CjsGraph.get(holder, { full: true, typeTags: true }).either, { _type: "UndefinedFirstSecond", name: "" });
+});
+
+test("a name's rows are listed derived first, and a class's facts stay in its declaration", () =>
 {
   class Base { shared = 0; quiet = 0; }
   class Derived extends Base { own = 0; }
@@ -139,13 +166,14 @@ test("compiled classes carry one PERSIST lookup, derived first, and their facts"
       { name: "skipped", type: "float32", flags: GraphMemberFlags.RUNTIMEONLY }
     ] });
 
-  const { compiled } = CjsGraph.getClassInfo(Derived);
-  assert.equal(compiled.persistByName.shared.key, "derived");
-  assert.equal(compiled.persistByName.quiet, undefined);
-  assert.equal(compiled.persistByName.skipped.flags, GraphMemberFlags.RUNTIMEONLY, "a runtime-only member claims its name");
-  assert.deepEqual([ compiled.proxy, compiled.customPersist, compiled.list, compiled.abstract ], [ true, true, true, true ]);
-  assert.equal(compiled.layout.size, 4);
-  assert.equal(compiled.name, "PersistDerived");
+  const { compiled, declared } = CjsGraph.getClassInfo(Derived);
+  assert.deepEqual(compiled.byName.shared.map(member => member.key), [ "derived", "base" ]);
+  assert.equal(compiled.byName.quiet[0].flags, EDITFLAGS.READWRITE);
+  assert.equal(compiled.byName.skipped[0].flags, GraphMemberFlags.RUNTIMEONLY);
+  assert.deepEqual([ declared.proxy, declared.customPersist, declared.list, declared.abstract ], [ true, true, true, true ]);
+  assert.equal(declared.layout.size, 4);
+  assert.equal(declared.name, "PersistDerived");
+  assert.deepEqual(Object.keys(compiled).sort(), [ "byName", "defaults", "memberNames", "members", "notifyNames", "tables", "ui" ], "no fact is copied out of the declaration");
 });
 
 test("Set refuses NaN and Infinity in every number and array type, and there is no way past", () =>
