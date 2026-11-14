@@ -1897,7 +1897,7 @@ export class Tr2Effect extends Tr2Material
       CjsSchema.setValues(parameter, fields);
       if (name && !getNamedValue(parameter))
       {
-        CjsSchema.setValues(parameter, { name: String(name) });
+        parameter.name = String(name);
       }
       return parameter;
     }
@@ -1908,10 +1908,10 @@ export class Tr2Effect extends Tr2Material
         continue;
       }
       const parameter = new ParameterClass();
-      CjsSchema.setValues(parameter, { name: String(name ?? "") });
+      parameter.name = String(name ?? "");
       if (ParameterClass === TriTextureParameter)
       {
-        CjsSchema.setValues(parameter, { resourcePath: String(value) });
+        parameter.SetResourcePath(value);
       }
       else
       {
