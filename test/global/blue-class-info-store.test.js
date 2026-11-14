@@ -9,7 +9,7 @@ import { ImportAllDistModules, ImportDist } from "../support/allDistClasses.js";
 await ImportAllDistModules();
 const { CjsSchema } = await ImportDist("blue/schema/CjsSchema.js");
 const { getClassRegistrations } = await ImportDist("blue/exposure/classes/registry.js");
-const { ClassInfo, BlueClasses } = await ImportDist("blue/index.js");
+const { ClassInfo, BlueClasses, BlueRttiValue } = await ImportDist("blue/index.js");
 const { getCarbonTypeDefinition } = await ImportDist("blue/schema/types/carbonTypes.js");
 const { declaredMemberType, getEditFlags } = await ImportDist("blue/schema/compileClassInfo.js");
 
@@ -62,8 +62,9 @@ test("every exposed schema row is found by its exposed name with its flags and k
         continue;
       }
       const flags = getEditFlags(row);
-      if (value.var.editFlags !== flags) problems.push(`${name}.${rowName}: flags ${value.var.editFlags}, schema ${flags}`);
-      if (value.var.meta.key !== (row.key ?? row.name)) problems.push(`${name}.${rowName}: key ${value.var.meta.key}, schema ${row.key}`);
+      const entry = value.type === BlueRttiValue.Type.pyproperty ? value.pyProperty : value.var;
+      if (entry.editFlags !== flags) problems.push(`${name}.${rowName}: flags ${entry.editFlags}, schema ${flags}`);
+      if (entry.meta.key !== (row.key ?? row.name)) problems.push(`${name}.${rowName}: key ${entry.meta.key}, schema ${row.key}`);
     }
     for (const varName of rtti.varMap.keys()) if (!byName.has(varName)) problems.push(`${name}.${varName}: not in the schema`);
   }
@@ -125,7 +126,8 @@ test("our own map rows are in the store and left out of the Blue view", () =>
   meta.define("OwnStoreProbe")(OwnStoreProbe);
   const ci = ClassInfo.exposeToBlue(OwnStoreProbe);
   const value = classes.GetRtti(ci).FindAttribute("speed");
-  assert.equal(value.type, "var");
+  assert.ok(value instanceof BlueRttiValue);
+  assert.equal(value.type, BlueRttiValue.Type.var);
   assert.equal(value.var.editFlags, 0x013);
   assert.equal(value.var.meta.blue, false);
   assert.equal(ci.blue, false);
