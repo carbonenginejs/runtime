@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { VARTYPE } from "../../npm/dist/global/model/graph/index.js";
+import { GraphOperation, VARTYPE } from "../../npm/dist/global/model/graph/index.js";
 import { blue } from "../../npm/dist/blue/index.js";
 import { CjsBlueGraph } from "../../npm/dist/blue/formats/graph/index.js";
 import { CjsGraph } from "../../npm/dist/global/model/graph/index.js";
@@ -98,6 +98,40 @@ test("a class defines its own rows only, and the chain walk gives the readers' f
   assert.ok(own > 4000, `own ${own}`);
   assert.ok(inherited > 1000, `inherited ${inherited}`);
   assert.deepEqual(differences.slice(0, 40), [], `${differences.length} differ`);
+});
+
+test("a name a class declares again is answered by its own row in every table, or by none", () =>
+{
+  // The readers take the nearest class's declaration and never fall back to the one it shadows. The
+  // graph filters by flags before it resolves a name, so a shadowing row a table leaves out would
+  // let the shadowed one through.
+  const served = [];
+  let shadowed = 0;
+  const asks = [
+    [ GraphOperation.GET, {} ], [ GraphOperation.GET, { persistOnly: true } ], [ GraphOperation.GET, { roundTrip: true } ],
+    [ GraphOperation.GET, { persistOnly: true, roundTrip: true } ], [ GraphOperation.SET, {} ]
+  ];
+
+  for (const { name, type } of getClassRegistrations())
+  {
+    const info = CjsGraph.getClassInfo(type);
+
+    for (const member of info.compiled.memberNames)
+    {
+      const candidates = info.compiled.byName[member];
+      if (candidates.length < 2) continue;
+      shadowed++;
+
+      for (const [ operation, options ] of asks)
+      {
+        const row = CjsGraph._getMemberTable(info, operation, options).byName[member];
+        if (row !== undefined && row !== candidates[0]) served.push(`${name}.${member}: ${JSON.stringify(options)} serves ${row.owner.classId}'s row`);
+      }
+    }
+  }
+
+  assert.ok(shadowed > 10, `shadowed ${shadowed}`);
+  assert.deepEqual(served, []);
 });
 
 test("a recompile keeps every row, so the graph's definition still lists the readers' rows", () =>
