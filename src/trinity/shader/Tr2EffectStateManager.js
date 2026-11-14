@@ -377,7 +377,6 @@ export class Tr2EffectStateManager
   renderContext = null;
 
   /** m_perObjectConstantBuffers (Tr2ConstantBufferAL) */
-  @type.array({ kind: "rawStruct", className: "Tr2ConstantBufferAL" })
   perObjectConstantBuffers = null;
 
   // Carbon's CurrentValues and RenderStates are PRIVATE nested structs
@@ -443,7 +442,6 @@ export class Tr2EffectStateManager
   viewport = null;
 
   /** m_viewportOnDevice (Tr2Viewport) */
-  @type.rawStruct("Tr2Viewport")
   viewportOnDevice = null;
 
   /** m_viewportStack (std::list<CTriViewport>) */

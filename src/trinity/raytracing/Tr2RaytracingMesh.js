@@ -9,7 +9,6 @@ export class Tr2RaytracingMesh
 {
 
   /** m_skinnedVertices (const Tr2BufferAL*) */
-  @type.object.weak("Tr2BufferAL")
   skinnedVertices = null;
 
   /** m_geometry (TriGeometryResPtr) */

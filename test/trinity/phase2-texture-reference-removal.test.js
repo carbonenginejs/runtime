@@ -45,7 +45,8 @@ test("provider prerequisite declares only its two native abstract methods", () =
 test("texture reference declarations expose live readonly properties in native order", () =>
 {
   const info = CjsSchema.getSchema(Tr2TextureReference);
-  assert.deepEqual(info.members.map(field => [field.name, field.type.kind]), [["texture", "rawStruct"], ["onTextureChange", "rawStruct"]]);
+  // The Tr2TextureAL it holds is a plain field: nothing of the abstraction layer is declared to the graph.
+  assert.deepEqual(info.members.map(field => [field.name, field.type.kind]), [["onTextureChange", "rawStruct"]]);
   assert.deepEqual(info.properties.map(field => field.name), ["width", "height", "depth", "type", "mipCount", "format", "arraySize", "name"]);
   for (const field of info.properties)
   {

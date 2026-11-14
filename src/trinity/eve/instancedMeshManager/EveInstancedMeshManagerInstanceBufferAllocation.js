@@ -16,7 +16,6 @@ export class EveInstancedMeshManagerInstanceBufferAllocation
 {
 
   /** buffer (Tr2BufferAL*). Carbon initializes it to nullptr. */
-  @type.rawStruct("Tr2BufferAL")
   buffer = null;
 
   /** data (uint8_t*). Carbon initializes it to nullptr. */

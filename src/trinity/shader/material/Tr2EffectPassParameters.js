@@ -32,7 +32,6 @@ export class Tr2EffectPassParameters
   // two are separated rather than one deleted.
 
   /** m_resourceSetDesc (Tr2ResourceSetDescriptionAL) */
-  @type.rawStruct("Tr2ResourceSetDescriptionAL")
   resourceSetDesc = new Tr2ResourceSetDescriptionAL();
 
   /**
@@ -41,7 +40,6 @@ export class Tr2EffectPassParameters
    * Create__Program fills it (trinityal/src/Tr2ResourceSetAL.cpp:552-555);
    * IsValid() says whether a set has been created yet.
    */
-  @type.rawStruct("Tr2ResourceSetAL")
   resourceSet = new Tr2ResourceSetAL();
 
   /** m_usedResources (std::vector<ITr2EffectValuePtr>) */
@@ -49,7 +47,6 @@ export class Tr2EffectPassParameters
   usedResources = [];
 
   /** m_usedTextures (Tr2BindlessResourcesAL) */
-  @type.rawStruct("Tr2BindlessResourcesAL")
   usedTextures = null;
 
   /** m_resourceSetHash (uint32_t) */

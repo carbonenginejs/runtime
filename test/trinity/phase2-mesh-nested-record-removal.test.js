@@ -23,10 +23,8 @@ test("nested mesh records retain flattened identities without inheriting their e
 test("nested record fields preserve native order and remain nonpersistent", () =>
 {
   const instance = CjsSchema.getSchema(ITr2InstanceDataInstanceData).members;
-  assert.deepEqual(instance.map(field => field.name), ["buffer", "offset", "stride", "count"]);
-  assert.equal(instance[0].type.kind, "rawStruct");
-  assert.equal(instance[0].type.className, "Tr2BufferAL");
-  assert.deepEqual(instance.slice(1).map(field => field.type.kind), ["uint32", "uint32", "uint32"]);
+  // The borrowed Tr2BufferAL is a plain field: nothing of the abstraction layer is declared to the graph.
+  assert.deepEqual(instance.map(field => [field.name, field.type.kind]), [["offset", "uint32"], ["stride", "uint32"], ["count", "uint32"]]);
   const hash = CjsSchema.getSchema(ITr2ImpostorSourceImpostorHash).members;
   assert.deepEqual(hash.map(field => [field.name, field.type.kind]), [["viewDir", "vec3"], ["upDir", "vec3"]]);
   for (const member of [...instance, ...hash])

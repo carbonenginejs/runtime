@@ -34,7 +34,6 @@ export class Tr2MaterialStageInput
   uavs = [];
 
   /** m_constantBuffer (Tr2ConstantBufferAL, Shader/Tr2Material.h:98), by value; invalid until the first apply creates it. */
-  @type.rawStruct("Tr2ConstantBufferAL")
   constantBuffer = new Tr2ConstantBufferAL();
 
   /** m_constantMirror (CcpMallocBuffer) */

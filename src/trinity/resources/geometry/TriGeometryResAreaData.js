@@ -59,5 +59,4 @@ CjsSchema.decorateField(TriGeometryResAreaData, "jointBindings", type.array("int
 CjsSchema.decorateField(TriGeometryResAreaData, "staticBlas", type.rawStruct("Tr2RtBottomLevelAccelerationStructureAL"));
 CjsSchema.decorateField(TriGeometryResAreaData, "isSkinned", type.boolean);
 CjsSchema.decorateField(TriGeometryResAreaData, "isMorphed", type.boolean);
-CjsSchema.decorateField(TriGeometryResAreaData, "rtGeometryConstants", type.rawStruct("Tr2ConstantBufferAL"));
 CjsSchema.meta.carbon("TriGeometryResAreaData")(TriGeometryResAreaData);

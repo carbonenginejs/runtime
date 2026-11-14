@@ -267,15 +267,12 @@ export class Tr2GpuParticleSystem
    * system; invalid until FillAndSetConstants creates it at the size it needs
    * (Tr2RenderUtils.cpp:106-110, called at Tr2GpuParticleSystem.cpp:589).
    */
-  @type.rawStruct("Tr2ConstantBufferAL")
   _emitCB = new Tr2ConstantBufferAL();
 
   /** m_updateCB (h:243), by value; filled at cpp:403 and cpp:451. */
-  @type.rawStruct("Tr2ConstantBufferAL")
   _updateCB = new Tr2ConstantBufferAL();
 
   /** m_sortCB (h:245), by value; filled at cpp:671. */
-  @type.rawStruct("Tr2ConstantBufferAL")
   _sortCB = new Tr2ConstantBufferAL();
 
   /** m_liveTime: time until the last particle in the system dies. */

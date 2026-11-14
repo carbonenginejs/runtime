@@ -30,7 +30,6 @@ export class EveInstancedMeshManagerInstanceBuffer
   static Region = EveInstancedMeshManagerInstanceBufferRegion;
 
   /** buffer (std::unique_ptr<Tr2BufferAL>, private). Carbon starts it empty. */
-  @type.rawStruct("Tr2BufferAL")
   _buffer = null;
 
   /** regions (std::vector<Region>, private). */
@@ -38,11 +37,9 @@ export class EveInstancedMeshManagerInstanceBuffer
   _regions = [];
 
   /** retiredBuffers (std::vector<std::unique_ptr<Tr2BufferAL>>, private): replaced buffers kept alive until the next trim. */
-  @type.array("Tr2BufferAL")
   _retiredBuffers = [];
 
   /** mappedRetiredBuffers (std::vector<Tr2BufferAL*>, private): retired buffers still mapped, unmapped by DoneCopying. */
-  @type.array("Tr2BufferAL")
   _mappedRetiredBuffers = [];
 
   /** mappedData (uint8_t*, private): the current buffer's mapping, null when unmapped. */

@@ -38,7 +38,6 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Native by-value AL share; opaque storage, not a Blue resource edge.
    * @type {Tr2TextureAL|null}
    */
-  @type.rawStruct("Tr2TextureAL")
   texture = new Tr2TextureAL();
 
   /**

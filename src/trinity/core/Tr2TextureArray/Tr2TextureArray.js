@@ -35,7 +35,6 @@ export class Tr2TextureArray extends IRoot
     elements = [];
 
     /** m_texture (Tr2TextureAL) */
-    @type.rawStruct("Tr2TextureAL")
     texture = null;
 
     /** m_dimensions (Tr2BitmapDimensions) */

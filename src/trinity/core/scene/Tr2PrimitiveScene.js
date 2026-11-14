@@ -55,7 +55,6 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   _opaqueBatches = new TriRenderBatchAccumulator().SetTriPoolAllocator(this._allocator);
   @type.rawStruct("TriRenderBatchAccumulator")
   _pickingBatches = new TriRenderBatchAccumulator().SetTriPoolAllocator(this._allocator);
-  @type.rawStruct("Tr2ConstantBufferAL")
   _vertexConstants = new Tr2ConstantBufferAL();
   _frameData = RawData.create("Tr2PerFrameVSData");
 

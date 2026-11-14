@@ -18,7 +18,6 @@ export class Tr2SamplerOverrideData
   registerIndex = 0;
 
   /** Tr2SamplerStateAL sampler (Shader/Tr2Material.h:33), by value: invalid until created. Not a Blue resource edge. */
-  @type.rawStruct("Tr2SamplerStateAL")
   sampler = new Tr2SamplerStateAL();
 
 }

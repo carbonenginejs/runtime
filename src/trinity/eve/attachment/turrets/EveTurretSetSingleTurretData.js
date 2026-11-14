@@ -87,7 +87,6 @@ export class EveTurretSetSingleTurretData
   rtMeshArea = null;
 
   /** rtPerObjectData (mutable Tr2ConstantBufferAL) */
-  @type.rawStruct("Tr2ConstantBufferAL")
   rtPerObjectData = new Tr2ConstantBufferAL();
 
 }

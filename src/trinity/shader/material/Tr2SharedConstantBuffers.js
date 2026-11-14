@@ -20,7 +20,6 @@ export class Tr2SharedConstantBuffers
   contents = null;
 
   /** buffer (Tr2ConstantBufferAL) */
-  @type.rawStruct("Tr2ConstantBufferAL")
   buffer = null;
 
   /** refCount (uint32_t) */

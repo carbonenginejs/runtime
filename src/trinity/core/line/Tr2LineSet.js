@@ -59,7 +59,6 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   pickingVertexDeclHandle = Tr2EffectStateManager.Unknown;
 
   /** m_pickingVertexBuffer (Tr2BufferAL) */
-  @type.rawStruct("Tr2BufferAL")
   pickingVertexBuffer = new Tr2BufferAL();
 
   /** m_triangles (std::vector<Triangle>) */

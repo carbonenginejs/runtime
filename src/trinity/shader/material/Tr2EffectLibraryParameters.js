@@ -20,7 +20,6 @@ export class Tr2EffectLibraryParameters
   globalInput = new Tr2MaterialStageInput();
 
   /** m_globalResourceSetDesc (Tr2ResourceSetDescriptionAL) */
-  @type.rawStruct("Tr2ResourceSetDescriptionAL")
   globalResourceSetDesc = new Tr2ResourceSetDescriptionAL();
 
   /**
@@ -29,7 +28,6 @@ export class Tr2EffectLibraryParameters
    * created (trinityal/src/Tr2ResourceSetAL.cpp:552-555); Carbon tests
    * IsValid() before creating it (Shader/Tr2Material.cpp:581).
    */
-  @type.rawStruct("Tr2ResourceSetAL")
   globalResourceSet = new Tr2ResourceSetAL();
 
   /** m_reroutedParameters (std::vector<ITriReroutable*>) */
@@ -41,7 +39,6 @@ export class Tr2EffectLibraryParameters
   usedResources = [];
 
   /** m_usedTextures (Tr2BindlessResourcesAL) */
-  @type.rawStruct("Tr2BindlessResourcesAL")
   usedTextures = null;
 
   /** m_globalResourceSetDirty (bool) */
