@@ -202,15 +202,41 @@ function findDescriptor(prototype, key)
 }
 
 /**
+ * The row a member already has in the table a recompile replaces, taken out of it, or a new row.
+ * A member is the same one by exposed name, key and index. The graph's definition lists these rows,
+ * so a recompile fills them again and never swaps them; what the graph wrote on one stays.
+ *
+ * @param {VarEntry[]} previous The class's rows before this compile; a taken row is removed.
+ * @param {object} member The schema's member or property record.
+ * @returns {VarEntry} The row to fill.
+ */
+function rowFor(previous, member)
+{
+  const key = member.key ?? member.name, index = member.index ?? -1;
+  const at = previous.findIndex(row => row.name === member.name && row.key === key && row.index === index);
+  if (at < 0) return new VarEntry();
+
+  const row = previous[at];
+  previous.splice(at, 1);
+  // What varEntryOf sets only for some members, and what the row resolved on a first read.
+  row.chooserTable = null;
+  row.getProperty = null;
+  row.setProperty = null;
+  row._iids = null;
+  row._structure = undefined;
+  return row;
+}
+
+/**
  * One exposed member or property row as a `VarEntry`, with the flags its exposure macro wrote.
  *
  * @param {Function} Constructor The class, for the property's accessors.
  * @param {object} member The schema's member or property record.
+ * @param {VarEntry} entry The row to fill: a new one, or the member's own from before a recompile.
  * @returns {VarEntry} The row.
  */
-function varEntryOf(Constructor, member)
+function varEntryOf(Constructor, member, entry)
 {
-  const entry = new VarEntry();
   const type = member.type;
   const reference = type && (type.kind === "rootRef" || type.kind === "rootWeak") ? type.className : null;
   entry.name = member.name;
@@ -272,6 +298,7 @@ export function compileClassInfo(Constructor)
   ci.iid = schema.className;
   ci.origin = schema.blue === true ? ClassInfo.Origin.BLUE : schema.carbon ? ClassInfo.Origin.CARBON : ClassInfo.Origin.CJS;
   ci.interfaceTable = [];
+  const previous = ci.memberTable;
   ci.memberTable = [];
   ci.pyMethodTable = [];
   ci.hiddenInherited = new Set();
@@ -317,7 +344,7 @@ export function compileClassInfo(Constructor)
   {
     if (!own.has(member.declaringClass)) continue;
     // Two rows under one name are both kept, as both are in Carbon's table.
-    const row = varEntryOf(Constructor, member);
+    const row = varEntryOf(Constructor, member, rowFor(previous, member));
     row.owner = ci;
     ci.memberTable.push(row);
     ci._declarations.set(row, member);

@@ -51,7 +51,7 @@ export class CjsBlueGraph
   /**
    * Defines one class from its transported declarations. A member Blue's table has a row for is
    * that row, which the graph fills; a typed member with no exposure has none, and the graph makes it.
-   * A later recompile of the class makes new rows: define it again to share them.
+   * A recompile of the class fills the same rows again, so the definition keeps holding them.
    * @param {Function} ctor The class.
    * @param {string} name Its registered name.
    * @returns {object} Graph class info.
