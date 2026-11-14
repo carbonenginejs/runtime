@@ -85,7 +85,7 @@ test("the Blue view is PyGetTypeInfo's members and methods", () =>
     {
       for (const entry of level.memberTable)
       {
-        if (!entry.meta.blue || (level !== ci && ci.hiddenInherited.has(entry.key))) continue;
+        if (entry.origin !== ClassInfo.Origin.BLUE || (level !== ci && ci.hiddenInherited.has(entry.key))) continue;
         rowCount.set(entry.name, (rowCount.get(entry.name) ?? 0) + 1);
         if (!blueRows.has(entry.name)) { blueRows.set(entry.name, entry); rowLevels.set(entry, level); }
       }
@@ -108,7 +108,7 @@ test("the Blue view is PyGetTypeInfo's members and methods", () =>
       if (JSON.stringify(entry.chooserTable) !== JSON.stringify(info.choosers)) problems.push(`${name}.${memberName}: chooser differs`);
     }
     for (const memberName of blueRows.keys()) if (!(memberName in members)) problems.push(`${name}.${memberName}: not in typeinfo`);
-    const blueMethods = new Set(ci.pyMethodTable.filter(method => method.blue).map(method => method.name));
+    const blueMethods = new Set(ci.pyMethodTable.filter(method => method.origin === ClassInfo.Origin.BLUE).map(method => method.name));
     for (const methodName of Object.keys(methods)) if (!blueMethods.has(methodName)) problems.push(`${name}.${methodName}(): missing from the Blue view`);
     for (const methodName of blueMethods) if (!(methodName in methods)) problems.push(`${name}.${methodName}(): not in typeinfo`);
   }
@@ -129,6 +129,6 @@ test("our own map rows are in the store and left out of the Blue view", () =>
   assert.ok(value instanceof BlueRttiValue);
   assert.equal(value.type, BlueRttiValue.Type.var);
   assert.equal(value.var.editFlags, 0x013);
-  assert.equal(value.var.meta.blue, false);
-  assert.equal(ci.blue, false);
+  assert.equal(value.var.origin, ClassInfo.Origin.CJS);
+  assert.equal(ci.origin, ClassInfo.Origin.CJS);
 });

@@ -644,7 +644,7 @@ export class BlueClasses extends IBlueClasses
       {
         if (level !== ci && ci.hiddenInherited.has(row.key)) continue;
         // PyGetTypeInfo lists what Carbon's EXPOSURE table holds; our own rows are not in it.
-        if (!row.meta.blue || completeExposureNames.has(row.name)) continue;
+        if (row.origin !== ClassInfo.Origin.BLUE || completeExposureNames.has(row.name)) continue;
         const member = level.declarationOf(row);
         if (member.exposure) completeExposureNames.add(row.name);
         members[row.name] = {
@@ -663,7 +663,7 @@ export class BlueClasses extends IBlueClasses
 
     // The PyMethodDef table, which only the MAP_METHOD* macros fill (TypeInfo.cpp:155-160).
     const methods = {};
-    for (const method of ci.pyMethodTable) if (method.blue) methods[method.name] = "";
+    for (const method of ci.pyMethodTable) if (method.origin === ClassInfo.Origin.BLUE) methods[method.name] = "";
 
     return [ classInfo, interfaces, members, methods ];
   }

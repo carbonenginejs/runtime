@@ -231,7 +231,7 @@ function varEntryOf(Constructor, member)
   entry.description = member.jessica && member.jessica.description ? member.jessica.description : "";
   // Blue's stamp comes only from Carbon's exposure (`be`, which names its macro); ours (`meta.mapAttribute`, no macro) is
   // in the table but not Blue's (operator, 2026-11-10).
-  entry.meta.blue = Boolean(member.exposure) && typeof member.exposure.macro === "string";
+  entry.origin = typeof member.exposure?.macro === "string" ? ClassInfo.Origin.BLUE : ClassInfo.Origin.CJS;
   entry.editFlags = getEditFlags(member);
   // A chooser names its enum, which may register after the class: the row resolves it on first read.
   const chooser = member.exposure ? (member.exposure.chooser ? member.chooser : null) : member.chooser ?? null;
@@ -270,7 +270,7 @@ export function compileClassInfo(Constructor)
 
   ci.classId = schema.className;
   ci.iid = schema.className;
-  ci.blue = schema.blue === true;
+  ci.origin = schema.blue === true ? ClassInfo.Origin.BLUE : schema.carbon ? ClassInfo.Origin.CARBON : ClassInfo.Origin.CJS;
   ci.interfaceTable = [];
   ci.memberTable = [];
   ci.pyMethodTable = [];
@@ -331,12 +331,12 @@ export function compileClassInfo(Constructor)
     for (const method of Schema.getDeclaredSchema(type).methods || [])
     {
       if (!method.exposure) continue;
-      const blue = typeof method.exposure.macro === "string";
+      const origin = typeof method.exposure.macro === "string" ? ClassInfo.Origin.BLUE : ClassInfo.Origin.CJS;
       for (const name of [ method.exposure.name ?? method.name, ...(method.exposure.aliases ?? []).map(alias => alias.name ?? method.name) ])
       {
         if (methodNames.has(name)) continue;
         methodNames.add(name);
-        ci.pyMethodTable.push({ name, key: method.name, blue });
+        ci.pyMethodTable.push({ name, key: method.name, origin });
       }
     }
   }

@@ -26,7 +26,7 @@ export const BLACK_DESTINATION = Object.freeze({
  * Adapted: Carbon's `mOffset` and `mSize` locate the member's bytes in the
  * object; a JavaScript member is located by its property key, so `key` stands
  * in for both. Carbon's table holds only Blue rows; ours also holds the rows
- * our own classes declare with `meta.map*`, and `meta.blue` says which a row is
+ * our own classes declare with `meta.map*`, and `origin` says which a row is
  * (`be` is `meta` plus Blue, decorator-upgrade.md § 6.8).
  *
  * Ours, on the same row: what Carbon reads from the C++ member type and a
@@ -39,7 +39,7 @@ export const BLACK_DESTINATION = Object.freeze({
  *
  * Carbon: Be::VarEntry (blueexposure/include/BlueTypes.h:321-375)
  *
- * @adapted `key` stands in for `mOffset` and `mSize`, and the table also carries our own `meta.map*` rows, flagged by `meta.blue`.
+ * @adapted `key` stands in for `mOffset` and `mSize`, and the table also carries our own `meta.map*` rows, told apart by `origin`.
  */
 export class VarEntry
 {
@@ -66,13 +66,13 @@ export class VarEntry
   key = "";
 
   /**
-   * JavaScript-specific member metadata. `blue` marks rows exposed to Blue rather than
-   * only our own metadata consumers. Each entry owns its metadata object.
+   * Whose row this is, a `ClassInfo.Origin` value: BLUE when Carbon's exposure macro wrote it, CJS when
+   * ours did. Null on a row no exposure wrote (a typed member the graph compiled), which nothing states yet.
    *
-   * @cjs
-   * @implemented
+   * @cjs Carbon's table holds only Carbon's rows.
+   * @type {string|null}
    */
-  meta = { blue: false };
+  origin = null;
 
   /**
    * `mIID`: the interface or class a reference member holds, by registered name, or null.

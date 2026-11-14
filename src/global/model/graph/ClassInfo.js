@@ -78,12 +78,12 @@ export class ClassInfo
   rtti = null;
 
   /**
-   * Ours: whether the class is Carbon's exposure (`be.define`) rather than ours (`meta.define`).
+   * Ours: whose class this is (see `ClassInfo.Origin`), from its define decorator and never from an author.
    *
-   * @cjs
-   * @implemented
+   * @cjs Carbon's registry holds only its own exposed classes, so its record has no such field.
+   * @type {string}
    */
-  blue = false;
+  origin = "CJS";
 
   /**
    * Ours: the keys of parent rows this class hides (`hideInherited`), which its RTTI leaves out. Carbon has no way to
@@ -283,6 +283,16 @@ export class ClassInfo
    * @type {Map<Function, ClassInfo>}
    */
   static _byType = new Map();
+
+  /**
+   * Ours: whose a class, a member row or a method is. BLUE is Carbon's and exposed (`be.define`, a
+   * `be.map*` row), CARBON is Carbon's and not exposed (`meta.carbon`), CJS is ours (`meta.define`,
+   * a `meta.map*` row).
+   *
+   * @cjs Carbon has one origin, itself.
+   * @enum {string}
+   */
+  static Origin = Object.freeze({ BLUE: "BLUE", CARBON: "CARBON", CJS: "CJS" });
 
   /**
    * Ours: the schema's compile, for a class asked about before or without
