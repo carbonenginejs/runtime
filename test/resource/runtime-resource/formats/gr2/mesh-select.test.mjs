@@ -116,7 +116,7 @@ test("an absent mesh is a RangeError and a bad index a TypeError", () =>
 test("a reader profile keeps its selection and its bounds rebuild", () =>
 {
     const reader = new CjsGr2Format({ meshIndex: 1, rebuildMissingBounds: true });
-    const values = reader.GetValues();
+    const values = reader.GetConfiguration();
     assert.equal(values.meshIndex, 1);
     assert.equal(values.rebuildMissingBounds, true);
     const json = reader.Read(buildRaw());

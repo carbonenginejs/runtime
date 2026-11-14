@@ -15,8 +15,8 @@ test("package root exports one public format class", async () =>
 test("format facade exposes the standard reusable API", () =>
 {
     assert.deepEqual(Object.getOwnPropertyNames(CjsYamlFormat.prototype).sort(), [
-        "GetValues", "Inspect", "Read", "ReadDocument", "ReadPayload", "ReadRaw",
-        "SetValues", "ToJSON", "Write", "constructor"
+        "GetConfiguration", "Inspect", "Read", "ReadDocument", "ReadPayload", "ReadRaw",
+        "SetConfiguration", "ToJSON", "Write", "constructor"
     ].sort());
     assert.equal(CjsYamlFormat.id, "CjsYamlFormat");
     assert.deepEqual(CjsYamlFormat.extensions, [ ".yaml", ".yml" ]);
@@ -25,8 +25,8 @@ test("format facade exposes the standard reusable API", () =>
 test("instance and emit-mode APIs share the same normalized options", () =>
 {
     const yaml = new CjsYamlFormat({ sourceName: "profile.yaml" });
-    assert.equal(yaml.SetValues({ maxAliasCount: 4 }), yaml);
-    assert.equal(yaml.GetValues().maxAliasCount, 4);
+    assert.equal(yaml.SetConfiguration({ maxAliasCount: 4 }), yaml);
+    assert.equal(yaml.GetConfiguration().maxAliasCount, 4);
     assert.deepEqual(yaml.Read("value: 1\n"), { value: 1 });
     assert.deepEqual(yaml.ReadPayload("value: 1\n"), { value: 1 });
     assert.deepEqual(yaml.Read("value: 1\n", { emit: "raw" }), { value: 1 });

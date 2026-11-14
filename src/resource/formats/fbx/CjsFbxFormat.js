@@ -44,7 +44,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -53,7 +53,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
      * @param {Partial<import("./core/helpers.js").FbxReaderValues>} [options] Values to merge.
      * @returns {CjsFbxFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, { inputType: "fbx", ...options }, FORMAT_NAME);
         return this;
@@ -65,7 +65,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
      * @param {Partial<import("./core/helpers.js").FbxReaderValues>} [options] Per-call values.
      * @returns {import("./core/helpers.js").FbxReaderValues} Normalized read values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, { inputType: "fbx", ...options }, FORMAT_NAME);
     }
@@ -82,7 +82,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
      */
     SetClasses(classes = {})
     {
-        return this.SetValues({ classes });
+        return this.SetConfiguration({ classes });
     }
 
     /**
@@ -105,7 +105,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
         }
 
         validateClass(type, Class, FORMAT_NAME);
-        return this.SetValues({ classes: { [type]: Class } });
+        return this.SetConfiguration({ classes: { [type]: Class } });
     }
 
     /**
@@ -140,7 +140,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options));
+        return readWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -188,7 +188,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options));
+        return inspectWithValues(input, this.GetConfiguration(options));
     }
 
     /**

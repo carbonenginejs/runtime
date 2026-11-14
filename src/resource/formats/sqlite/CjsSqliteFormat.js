@@ -212,12 +212,12 @@ export class CjsSqliteFormat extends CjsFormat {
         batch.Add(entry.name, keyPath === null ? rowid : value[keyPath], value);
         total++;
         if (++count === batchSize) {
-          yield batch.GetValues();
+          yield batch.GetData();
           batch = new CjsTableData(metadata).AddTable(entry.name, { columns, keyPath });
           count = 0;
         }
       }
-      if (count || total === 0) yield batch.GetValues();
+      if (count || total === 0) yield batch.GetData();
     }
   }
 

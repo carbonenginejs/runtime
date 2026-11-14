@@ -88,7 +88,7 @@ export class CjsJsonlFormat extends CjsFormat
         }
 
         return (options.emit ?? options.output) === "cjstables"
-            ? CjsTableData.fromRecords(records, options).GetValues()
+            ? CjsTableData.fromRecords(records, options).GetData()
             : records;
     }
 
@@ -233,12 +233,12 @@ export class CjsJsonlFormat extends CjsFormat
             ordinal++;
             if (++count === batchSize)
             {
-                yield batch.GetValues();
+                yield batch.GetData();
                 batch = new CjsTableData(metadata).AddTable(name, { keyPath });
                 count = 0;
             }
         }
-        if (count || ordinal === 0) yield batch.GetValues();
+        if (count || ordinal === 0) yield batch.GetData();
     }
 
     /**
@@ -252,7 +252,7 @@ export class CjsJsonlFormat extends CjsFormat
      */
     static writeTables(document, { table })
     {
-        const data = CjsTableData.from(document);
+        const data = new CjsTableData().SetData(document);
         const selected = data.tables.get(table);
         if (!selected) throw new Error(`Unknown table ${table}`);
         let ordinal = 0;

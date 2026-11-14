@@ -156,10 +156,10 @@ test("readEffectAnalysis resolves one permutation without changing stable emits"
 test("profiles hold values and reject invalid emits", () =>
 {
     const reader = new CjsCarbonEffectFormat({ emit: "raw", source: "profile" });
-    assert.equal(reader.GetValues().emit, "raw");
-    assert.equal(reader.GetValues({ source: "override" }).source, "override");
-    assert.equal(reader.GetValues().source, "profile");
-    assert.equal(new CjsCarbonEffectFormat({ emit: "metadata" }).GetValues().emit, "metadata");
+    assert.equal(reader.GetConfiguration().emit, "raw");
+    assert.equal(reader.GetConfiguration({ source: "override" }).source, "override");
+    assert.equal(reader.GetConfiguration().source, "profile");
+    assert.equal(new CjsCarbonEffectFormat({ emit: "metadata" }).GetConfiguration().emit, "metadata");
     assert.throws(() => new CjsCarbonEffectFormat({ emit: "nonsense" }), /emit must be/);
     assert.throws(() => CjsCarbonEffectFormat.read(buildEffectBytes(), { emit: "nonsense" }), /emit must be/);
 });

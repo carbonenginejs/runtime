@@ -49,7 +49,7 @@ export class CjsCharacterObjectBuilder
             // the existing YAML conversion uses the last value when explicitly allowed.
             uniqueKeys: options.uniqueKeys ?? kind !== "sculptingLimits"
         });
-        this._reader = new CjsYamlReader(bytes, format.GetValues());
+        this._reader = new CjsYamlReader(bytes, format.GetConfiguration());
         this._reader.AssertSyntax();
         this._reader.AssertAliasLimit();
     }

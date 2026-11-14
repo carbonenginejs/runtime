@@ -623,7 +623,7 @@ test("CjsGr2Format instances expose only the PascalCase public profile API", () 
     }
     assert.deepEqual(Object.getOwnPropertyNames(CjsGr2Format.prototype).sort(), [
         "FinishRead",
-        "GetValues",
+        "GetConfiguration",
         "GetWorkerRequest",
         "Inspect",
         "InspectGSF",
@@ -632,7 +632,7 @@ test("CjsGr2Format instances expose only the PascalCase public profile API", () 
         "ReadDataAsync",
         "ReadGSF",
         "ReadRaw",
-        "SetValues",
+        "SetConfiguration",
         "ToJSON",
         "Write",
         "WriteShared",
@@ -658,7 +658,7 @@ test("CjsGr2Format instances carry reusable values and classes", () =>
         .SetClasses({ Bone })
         .SetClass("Animation", Animation);
 
-    const values = reader.GetValues();
+    const values = reader.GetConfiguration();
 
     assert.equal(reader.HasClass("Root"), true);
     assert.equal(reader.HasClass("Bone"), true);
@@ -676,8 +676,8 @@ test("CjsGr2Format instances carry reusable values and classes", () =>
     assert.ok(constructed instanceof Root);
     assert.ok(constructed.meshes[0] instanceof Mesh);
     assert.equal(reader.Read(buildRaw(), { emit: "raw" }).version, 7);
-    assert.equal(reader.GetValues({ emit: "raw" }).emit, "raw");
-    assert.equal(reader.GetValues().emit, "json");
+    assert.equal(reader.GetConfiguration({ emit: "raw" }).emit, "raw");
+    assert.equal(reader.GetConfiguration().emit, "json");
 });
 
 test("unpackTangents accepts per-mesh rule functions", () =>
@@ -697,7 +697,7 @@ test("unpackTangents accepts per-mesh rule functions", () =>
         json = reader.Read(raw);
 
     assert.equal(seen.reader, reader);
-    assert.equal(seen.options.unpackTangents, reader.GetValues().unpackTangents);
+    assert.equal(seen.options.unpackTangents, reader.GetConfiguration().unpackTangents);
     assert.equal(seen.raw, raw);
     assert.equal(seen.json, json);
     assert.equal(seen.mesh, json.meshes[0]);

@@ -40,15 +40,15 @@ test("the package root exports the format", () =>
 test("the format exposes the standard profile API", () =>
 {
     assert.deepEqual(Object.getOwnPropertyNames(CjsBlackFormat.prototype).sort(),
-        [ "GetValues", "Inspect", "Read", "ReadPayload", "ReadRuntime", "SetValues", "ToJSON", "constructor" ].sort());
+        [ "GetConfiguration", "Inspect", "Read", "ReadPayload", "ReadRuntime", "SetConfiguration", "ToJSON", "constructor" ].sort());
     for (const name of [ "read", "readPayload", "readRuntime", "inspect", "createObjectBuilder", "createBlackObjectBuilder", "toJSON", "probeSupport" ])
     {
         assert.equal(typeof CjsBlackFormat[name], "function", name);
     }
     assert.equal(CjsBlackFormat.id, "CjsBlackFormat");
     assert.equal(CjsBlackFormat.version, 1);
-    assert.equal(new CjsBlackFormat().GetValues().emit, "json");
-    assert.equal(new CjsBlackFormat({ emit: "runtime" }).GetValues().emit, "runtime");
+    assert.equal(new CjsBlackFormat().GetConfiguration().emit, "json");
+    assert.equal(new CjsBlackFormat({ emit: "runtime" }).GetConfiguration().emit, "runtime");
 });
 
 test("the support probe recognizes Black's magic without parsing the body", () =>

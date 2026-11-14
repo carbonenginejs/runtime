@@ -36,7 +36,7 @@ export class CjsMp4Format extends CjsFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -45,7 +45,7 @@ export class CjsMp4Format extends CjsFormat
      * @param {object} [options] Values to merge.
      * @returns {CjsMp4Format} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, { inputType: "mp4", ...options }, FORMAT_NAME);
         return this;
@@ -57,7 +57,7 @@ export class CjsMp4Format extends CjsFormat
      * @param {object} [options] Per-call values.
      * @returns {object} Normalized read values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, { inputType: "mp4", ...options }, FORMAT_NAME);
     }
@@ -71,7 +71,7 @@ export class CjsMp4Format extends CjsFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options), "mp4");
+        return readWithValues(input, this.GetConfiguration(options), "mp4");
     }
 
     /**
@@ -95,7 +95,7 @@ export class CjsMp4Format extends CjsFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options), "mp4");
+        return inspectWithValues(input, this.GetConfiguration(options), "mp4");
     }
 
     /**

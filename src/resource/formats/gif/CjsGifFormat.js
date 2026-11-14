@@ -36,7 +36,7 @@ export class CjsGifFormat extends CjsImageFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -49,7 +49,7 @@ export class CjsGifFormat extends CjsImageFormat
      * @param {string} [options.source] Diagnostic source label.
      * @returns {this} This format.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, { inputType: "gif", ...options }, FORMAT_NAME);
         return this;
@@ -65,7 +65,7 @@ export class CjsGifFormat extends CjsImageFormat
      * @param {string} [options.source] Diagnostic source label.
      * @returns {import("./core/helpers.js").GifValues} The normalized values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, { inputType: "gif", ...options }, FORMAT_NAME);
     }
@@ -80,7 +80,7 @@ export class CjsGifFormat extends CjsImageFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options));
+        return readWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -106,7 +106,7 @@ export class CjsGifFormat extends CjsImageFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options));
+        return inspectWithValues(input, this.GetConfiguration(options));
     }
 
     /**

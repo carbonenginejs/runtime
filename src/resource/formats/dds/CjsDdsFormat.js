@@ -131,7 +131,7 @@ export class CjsDdsFormat extends CjsImageFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -142,7 +142,7 @@ export class CjsDdsFormat extends CjsImageFormat
      * @param {string} [options.inputType="dds"] Expected source type.
      * @returns {CjsDdsFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, { inputType: "dds", ...options }, FORMAT_NAME);
         return this;
@@ -156,7 +156,7 @@ export class CjsDdsFormat extends CjsImageFormat
      * @param {string} [options.inputType="dds"] Expected source type.
      * @returns {import("./core/helpers.js").DdsValues} Normalized read values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, { inputType: "dds", ...options }, FORMAT_NAME);
     }
@@ -170,7 +170,7 @@ export class CjsDdsFormat extends CjsImageFormat
      */
     Read(input, options = {})
     {
-        return CjsDdsFormat.read(input, this.GetValues(options));
+        return CjsDdsFormat.read(input, this.GetConfiguration(options));
     }
 
     /**
@@ -194,7 +194,7 @@ export class CjsDdsFormat extends CjsImageFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options), "dds");
+        return inspectWithValues(input, this.GetConfiguration(options), "dds");
     }
 
     /**

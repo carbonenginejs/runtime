@@ -37,7 +37,7 @@ export class CjsWavFormat extends CjsFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -46,7 +46,7 @@ export class CjsWavFormat extends CjsFormat
      * @param {object} [options] Values to merge.
      * @returns {CjsWavFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, { inputType: "wav", ...options }, FORMAT_NAME);
         return this;
@@ -58,7 +58,7 @@ export class CjsWavFormat extends CjsFormat
      * @param {object} [options] Per-call values.
      * @returns {object} Normalized read values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, { inputType: "wav", ...options }, FORMAT_NAME);
     }
@@ -72,7 +72,7 @@ export class CjsWavFormat extends CjsFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options), "wav");
+        return readWithValues(input, this.GetConfiguration(options), "wav");
     }
 
     /**
@@ -96,7 +96,7 @@ export class CjsWavFormat extends CjsFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options), "wav");
+        return inspectWithValues(input, this.GetConfiguration(options), "wav");
     }
 
     /**

@@ -71,7 +71,7 @@ export class CjsResManMainThreadLoader
   {
     if (!descriptor.Format)
     {
-      formatOptions = descriptor.GetValues(formatOptions);
+      formatOptions = descriptor.GetConfiguration(formatOptions);
       const data = await descriptor.ReadDataAsync(input, formatOptions, context);
       return descriptor.FinishRead(data, formatOptions, context);
     }

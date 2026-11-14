@@ -51,13 +51,13 @@ test("reader exposes the expected public profile API", () =>
         "BuildWgslBindingPlan",
         "BuildWgslSet",
         "GetClass",
-        "GetValues",
+        "GetConfiguration",
         "HasClass",
         "Inspect",
         "Read",
         "SetClass",
         "SetClasses",
-        "SetValues",
+        "SetConfiguration",
         "ToJSON",
         "constructor"
     ].sort());
@@ -74,9 +74,9 @@ test("reader manages values and classes", () =>
     assert.equal(reader.HasClass("Package"), true);
     assert.equal(reader.HasClass("Resource"), true);
     assert.equal(reader.GetClass("Package"), Package);
-    assert.equal(reader.GetValues().emit, "json");
-    assert.equal(reader.GetValues().source, "profile");
-    assert.equal(reader.GetValues().decodeInstructions, false);
+    assert.equal(reader.GetConfiguration().emit, "json");
+    assert.equal(reader.GetConfiguration().source, "profile");
+    assert.equal(reader.GetConfiguration().decodeInstructions, false);
 });
 
 test("implemented metadata advertises the package surface", () =>

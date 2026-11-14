@@ -53,7 +53,7 @@ import {
  * `options`, `raw`, `json`, `mesh`, `meshIndex`, `feature` and `channel`.
  *
  * Hydration constructs each registered class with no arguments and calls
- * `SetValues(fields)`; valid keys are in `CjsGr2Format.classKeys`.
+ * `SetConfiguration(fields)`; valid keys are in `CjsGr2Format.classKeys`.
  * `ToJSON`/`toJSON` return a JSON-compatible value, not JSON text.
  *
  * `readGsf` projects a Granny State (`.gsf`) document: container revision,
@@ -98,7 +98,7 @@ export class CjsGr2Format extends CjsGeometryFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -107,9 +107,9 @@ export class CjsGr2Format extends CjsGeometryFormat
      * @param {object} [options] Values to merge into the profile.
      * @returns {CjsGr2Format} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
-        const values = normalizeValues(this.GetValues(), options);
+        const values = normalizeValues(this.GetConfiguration(), options);
 
         this._emit = values.emit;
         this._decompressCurves = values.decompressCurves;
@@ -132,7 +132,7 @@ export class CjsGr2Format extends CjsGeometryFormat
      * @param {object} [options] Optional values to merge into a copy.
      * @returns {object} A copy of the effective values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues({
             emit: this._emit,
@@ -159,7 +159,7 @@ export class CjsGr2Format extends CjsGeometryFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(this, input, this.GetValues(options));
+        return readWithValues(this, input, this.GetConfiguration(options));
     }
 
     /**
@@ -171,7 +171,7 @@ export class CjsGr2Format extends CjsGeometryFormat
      */
     async ReadDataAsync(input, options = {})
     {
-        const values = this.GetValues(options);
+        const values = this.GetConfiguration(options);
         return values.grannyFileInfo ? readFileInfoData(input, values) : readSharedData(this, input, values);
     }
 
@@ -182,7 +182,7 @@ export class CjsGr2Format extends CjsGeometryFormat
      */
     GetWorkerRequest(options = {})
     {
-        const { classes, emit, ...values } = this.GetValues(options);
+        const { classes, emit, ...values } = this.GetConfiguration(options);
         if (!this._workerEnabled || !canCloneFormatOptions(values)) return null;
         const { module, exportName } = this.constructor.worker;
         return { module: String(module), exportName, options: values };
@@ -197,7 +197,7 @@ export class CjsGr2Format extends CjsGeometryFormat
      */
     FinishRead(data, options = {})
     {
-        const { classes } = this.GetValues(options);
+        const { classes } = this.GetConfiguration(options);
         if (data.grannyFileInfo) return data;
         return this._blue && Object.keys(classes).length ? hydrateShared(data, { classes }) : data;
     }

@@ -4147,7 +4147,7 @@ export class BlueResMan
   static _createFormatReadOptions(descriptor, options)
   {
     const Format = !descriptor.Format ? descriptor.constructor : descriptor.Format;
-    const defaults = !descriptor.Format ? descriptor.GetValues() : descriptor.defaults;
+    const defaults = !descriptor.Format ? descriptor.GetConfiguration() : descriptor.defaults;
     const formatOptions = {
       ...defaults,
       ...(options.formatOptions || {})
@@ -4160,7 +4160,7 @@ export class BlueResMan
     // Stream flags select a declared output; they are not decoder options.
     delete formatOptions.outputStreams;
     if (options.classes !== undefined) formatOptions.classes = options.classes;
-    return !descriptor.Format ? descriptor.GetValues(formatOptions) : formatOptions;
+    return !descriptor.Format ? descriptor.GetConfiguration(formatOptions) : formatOptions;
   }
 
   /**

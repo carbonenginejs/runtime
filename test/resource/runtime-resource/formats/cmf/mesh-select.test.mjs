@@ -102,7 +102,7 @@ test("reading bytes selects too, raw output included", () =>
 test("a reader profile keeps its selection", () =>
 {
     const reader = new CjsCmfFormat({ meshIndex: 1 });
-    assert.equal(reader.GetValues().meshIndex, 1);
+    assert.equal(reader.GetConfiguration().meshIndex, 1);
     assert.deepEqual(reader.LoadShared(sharedRoot()).meshes.map(mesh => mesh.name), [ "second" ]);
     assert.equal(reader.LoadShared(sharedRoot(), { meshIndex: null }).meshes.length, 2);
 });

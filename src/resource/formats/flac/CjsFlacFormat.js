@@ -36,7 +36,7 @@ export class CjsFlacFormat extends CjsFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -48,7 +48,7 @@ export class CjsFlacFormat extends CjsFormat
      * @param {string} [options.inputType="flac"] Expected source type.
      * @returns {this} This format.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, { inputType: "flac", ...options }, FORMAT_NAME);
         return this;
@@ -63,7 +63,7 @@ export class CjsFlacFormat extends CjsFormat
      * @param {string} [options.inputType="flac"] Expected source type.
      * @returns {import("./core/helpers.js").FlacValues} The normalized values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, { inputType: "flac", ...options }, FORMAT_NAME);
     }
@@ -77,7 +77,7 @@ export class CjsFlacFormat extends CjsFormat
      * @returns {object} The inspection for "json"/"flacJson", otherwise
      *     `{ sourceFormat, mimeType, metadata, bytes }`.
      */
-    Read(input, options = {}) { return readWithValues(input, this.GetValues(options)); }
+    Read(input, options = {}) { return readWithValues(input, this.GetConfiguration(options)); }
 
     /**
      * Reads the primary public payload representation asynchronously for the
@@ -97,7 +97,7 @@ export class CjsFlacFormat extends CjsFormat
      * @param {Partial<import("./core/helpers.js").FlacValues>} [options={}] Per-call overrides.
      * @returns {import("./core/helpers.js").FlacInspection} The stream metadata.
      */
-    Inspect(input, options = {}) { return inspectWithValues(input, this.GetValues(options)); }
+    Inspect(input, options = {}) { return inspectWithValues(input, this.GetConfiguration(options)); }
 
     /**
      * Converts the current decoded payload into a JSON-safe representation for

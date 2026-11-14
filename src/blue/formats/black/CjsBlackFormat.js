@@ -44,7 +44,7 @@ export class CjsBlackFormat extends CjsFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -53,7 +53,7 @@ export class CjsBlackFormat extends CjsFormat
      * @param {{emit?: string}} [options] Format values.
      * @returns {CjsBlackFormat} This format.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._emit = CjsBlackFormat._normalizeOptions(options, this._emit).emit;
         return this;
@@ -65,7 +65,7 @@ export class CjsBlackFormat extends CjsFormat
      * @param {{emit?: string}} [options] Per-call values.
      * @returns {{emit: string}} The values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return CjsBlackFormat._normalizeOptions(options, this._emit);
     }
@@ -73,25 +73,25 @@ export class CjsBlackFormat extends CjsFormat
     /** Reads with the default output. */
     Read(input, options = {})
     {
-        return CjsBlackFormat.read(input, this.GetValues(options));
+        return CjsBlackFormat.read(input, this.GetConfiguration(options));
     }
 
     /** Reads runtime objects. */
     ReadRuntime(input, options = {})
     {
-        return CjsBlackFormat.readRuntime(input, this.GetValues(options));
+        return CjsBlackFormat.readRuntime(input, this.GetConfiguration(options));
     }
 
     /** Reads the payload: the objects' values. */
     ReadPayload(input, options = {})
     {
-        return CjsBlackFormat.readPayload(input, this.GetValues(options));
+        return CjsBlackFormat.readPayload(input, this.GetConfiguration(options));
     }
 
     /** Reports the header and string tables. */
     Inspect(input, options = {})
     {
-        return CjsBlackFormat.inspect(input, this.GetValues(options));
+        return CjsBlackFormat.inspect(input, this.GetConfiguration(options));
     }
 
     /**

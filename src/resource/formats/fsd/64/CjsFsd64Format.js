@@ -243,12 +243,12 @@ export class CjsFsd64Format extends CjsFormat
             total++;
             if (++count === batchSize)
             {
-                yield batch.GetValues();
+                yield batch.GetData();
                 batch = new CjsTableData(metadata).AddTable(name);
                 count = 0;
             }
         }
-        if (count || total === 0) yield batch.GetValues();
+        if (count || total === 0) yield batch.GetData();
     }
 
     static worker = { module: import.meta.url, exportName: "CjsFsd64Format", outputTypes: [ "payload", "json", "cjstables" ], defaultOutput: "payload" };

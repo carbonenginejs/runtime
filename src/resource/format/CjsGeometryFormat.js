@@ -11,7 +11,7 @@ import { CjsFormat } from "./CjsFormat.js";
  *
  * A subclass supplies:
  * - `static id` and `static classKeys`, the node keys `classes` may name;
- * - `_classes`, the current map, which its `SetValues` merges `classes` into.
+ * - `_classes`, the current map, which its `SetConfiguration` merges `classes` into.
  */
 export class CjsGeometryFormat extends CjsFormat
 {
@@ -61,7 +61,7 @@ export class CjsGeometryFormat extends CjsFormat
    */
   SetClasses(classes = {})
   {
-    return this.SetValues({ classes });
+    return this.SetConfiguration({ classes });
   }
 
   /**
@@ -84,7 +84,7 @@ export class CjsGeometryFormat extends CjsFormat
     }
 
     CjsGeometryFormat.validateClass(type, Class, classKeys, id);
-    return this.SetValues({ classes: { [type]: Class } });
+    return this.SetConfiguration({ classes: { [type]: Class } });
   }
 
   /**

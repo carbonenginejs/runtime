@@ -38,7 +38,7 @@ export class CjsYamlFormat extends CjsFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -48,7 +48,7 @@ export class CjsYamlFormat extends CjsFormat
      * @param {object} [options={}] Option overrides; any CjsYamlValues field.
      * @returns {CjsYamlFormat} This format.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, options, FORMAT_NAME);
         return this;
@@ -61,7 +61,7 @@ export class CjsYamlFormat extends CjsFormat
      * @param {object} [options={}] Option overrides; any CjsYamlValues field.
      * @returns {import("./core/helpers.js").CjsYamlValues} The normalized values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, options, FORMAT_NAME);
     }
@@ -76,7 +76,7 @@ export class CjsYamlFormat extends CjsFormat
      */
     Read(input, options = {})
     {
-        return CjsYamlFormat.read(input, this.GetValues(options));
+        return CjsYamlFormat.read(input, this.GetConfiguration(options));
     }
 
     /**
@@ -88,7 +88,7 @@ export class CjsYamlFormat extends CjsFormat
      */
     ReadPayload(input, options = {})
     {
-        return CjsYamlFormat.readPayload(input, this.GetValues(options));
+        return CjsYamlFormat.readPayload(input, this.GetConfiguration(options));
     }
 
     /**
@@ -100,7 +100,7 @@ export class CjsYamlFormat extends CjsFormat
      */
     ReadRaw(input, options = {})
     {
-        return CjsYamlFormat.readRaw(input, this.GetValues(options));
+        return CjsYamlFormat.readRaw(input, this.GetConfiguration(options));
     }
 
     /**
@@ -112,7 +112,7 @@ export class CjsYamlFormat extends CjsFormat
      */
     ReadDocument(input, options = {})
     {
-        return CjsYamlFormat.readDocument(input, this.GetValues(options));
+        return CjsYamlFormat.readDocument(input, this.GetConfiguration(options));
     }
 
     /**
@@ -125,7 +125,7 @@ export class CjsYamlFormat extends CjsFormat
      */
     Inspect(input, options = {})
     {
-        return CjsYamlFormat.inspect(input, this.GetValues(options));
+        return CjsYamlFormat.inspect(input, this.GetConfiguration(options));
     }
 
     /**
@@ -138,7 +138,7 @@ export class CjsYamlFormat extends CjsFormat
      */
     ToJSON(value, options = {})
     {
-        return toJsonGraph(value, this.GetValues(options));
+        return toJsonGraph(value, this.GetConfiguration(options));
     }
 
     /**

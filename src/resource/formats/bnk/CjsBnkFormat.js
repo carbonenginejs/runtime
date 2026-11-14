@@ -89,7 +89,7 @@ export class CjsBnkFormat extends CjsFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -98,7 +98,7 @@ export class CjsBnkFormat extends CjsFormat
      * @param {Partial<import("./core/helpers.js").BnkValues>} [options] Values to merge.
      * @returns {CjsBnkFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, options, FORMAT_NAME);
         return this;
@@ -110,7 +110,7 @@ export class CjsBnkFormat extends CjsFormat
      * @param {Partial<import("./core/helpers.js").BnkValues>} [options] Per-call values.
      * @returns {import("./core/helpers.js").BnkValues} Normalized read values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, options, FORMAT_NAME);
     }
@@ -124,7 +124,7 @@ export class CjsBnkFormat extends CjsFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options));
+        return readWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -148,7 +148,7 @@ export class CjsBnkFormat extends CjsFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options));
+        return inspectWithValues(input, this.GetConfiguration(options));
     }
 
     /**

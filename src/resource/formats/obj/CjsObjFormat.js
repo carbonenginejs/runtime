@@ -60,7 +60,7 @@ export class CjsObjFormat extends CjsGeometryFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -69,9 +69,9 @@ export class CjsObjFormat extends CjsGeometryFormat
      * @param {object} [options] Values to merge into the profile.
      * @returns {CjsObjFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
-        const values = normalizeValues(this.GetValues(), options, FORMAT_NAME);
+        const values = normalizeValues(this.GetConfiguration(), options, FORMAT_NAME);
 
         this._emit = values.emit;
         this._source = values.source;
@@ -91,7 +91,7 @@ export class CjsObjFormat extends CjsGeometryFormat
      * @param {object} [options] Optional values to merge into a copy.
      * @returns {object} A copy of the effective values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues({
             emit: this._emit,
@@ -114,7 +114,7 @@ export class CjsObjFormat extends CjsGeometryFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(this, input, this.GetValues(options), FORMAT_NAME);
+        return readWithValues(this, input, this.GetConfiguration(options), FORMAT_NAME);
     }
 
     /**
@@ -126,7 +126,7 @@ export class CjsObjFormat extends CjsGeometryFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options), FORMAT_NAME);
+        return inspectWithValues(input, this.GetConfiguration(options), FORMAT_NAME);
     }
 
     /**

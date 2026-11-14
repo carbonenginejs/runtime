@@ -94,7 +94,7 @@ export class CjsJpegFormat extends CjsImageFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -105,7 +105,7 @@ export class CjsJpegFormat extends CjsImageFormat
      * @param {string} [options.inputType="jpeg"] Expected source type.
      * @returns {CjsJpegFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, { inputType: "jpeg", ...options }, FORMAT_NAME);
         return this;
@@ -119,7 +119,7 @@ export class CjsJpegFormat extends CjsImageFormat
      * @param {string} [options.inputType="jpeg"] Expected source type.
      * @returns {import("./core/helpers.js").JpegValues} Normalized read values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, { inputType: "jpeg", ...options }, FORMAT_NAME);
     }
@@ -133,7 +133,7 @@ export class CjsJpegFormat extends CjsImageFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options), "jpeg");
+        return readWithValues(input, this.GetConfiguration(options), "jpeg");
     }
 
     /**
@@ -174,7 +174,7 @@ export class CjsJpegFormat extends CjsImageFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options), "jpeg");
+        return inspectWithValues(input, this.GetConfiguration(options), "jpeg");
     }
 
     /**

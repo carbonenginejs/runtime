@@ -437,7 +437,7 @@ test("GR2 registrations keep distinct options and cached results for the same so
   assert.equal(messages.filter(message => message.operation === "format.read").length, 2);
   assert.equal(geometry.GetGrannyInfo().Meshes[0].PrimaryVertexData.Vertices.type.some(member => member.name === "Normal"), false, "the geometry reads the file's own vertices, with no rebuilt normals");
   assert.deepEqual(Array.from(granny.GetGrannyFile().meshes[0].vertex.normal), [0,0,1, 0,0,1, 0,0,1]);
-  assert.throws(() => manager.GetFormat("gr2").SetValues({ rebuildMissingNormals: true }), TypeError);
+  assert.throws(() => manager.GetFormat("gr2").SetConfiguration({ rebuildMissingNormals: true }), TypeError);
 });
 
 test("GR2 callback options stay in place and preserve their per-mesh behavior", async t =>

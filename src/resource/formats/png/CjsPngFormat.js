@@ -154,7 +154,7 @@ export class CjsPngFormat extends CjsImageFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -163,7 +163,7 @@ export class CjsPngFormat extends CjsImageFormat
      * @param {object} [options] Values to merge.
      * @returns {CjsPngFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, { inputType: "png", ...options }, FORMAT_NAME);
         return this;
@@ -175,7 +175,7 @@ export class CjsPngFormat extends CjsImageFormat
      * @param {object} [options] Per-call values.
      * @returns {object} Normalized read values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, { inputType: "png", ...options }, FORMAT_NAME);
     }
@@ -189,7 +189,7 @@ export class CjsPngFormat extends CjsImageFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options), "png");
+        return readWithValues(input, this.GetConfiguration(options), "png");
     }
 
     /**
@@ -201,7 +201,7 @@ export class CjsPngFormat extends CjsImageFormat
      */
     async ReadAsync(input, options = {})
     {
-        return readWithValuesAsync(input, this.GetValues(options), "png");
+        return readWithValuesAsync(input, this.GetConfiguration(options), "png");
     }
 
     /**
@@ -213,7 +213,7 @@ export class CjsPngFormat extends CjsImageFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options), "png");
+        return inspectWithValues(input, this.GetConfiguration(options), "png");
     }
 
     /**

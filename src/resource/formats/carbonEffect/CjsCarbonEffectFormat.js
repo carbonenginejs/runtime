@@ -55,7 +55,7 @@ export class CjsCarbonEffectFormat extends CjsFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -64,9 +64,9 @@ export class CjsCarbonEffectFormat extends CjsFormat
      * @param {object} [options] Values to merge into the profile.
      * @returns {CjsCarbonEffectFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
-        const values = normalizeValues(this.GetValues(), options, FORMAT_NAME);
+        const values = normalizeValues(this.GetConfiguration(), options, FORMAT_NAME);
 
         this._emit = values.emit;
         this._source = values.source;
@@ -82,7 +82,7 @@ export class CjsCarbonEffectFormat extends CjsFormat
      * @param {object} [options] Optional values to merge into a copy.
      * @returns {object} A copy of the effective values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues({
             emit: this._emit,
@@ -100,7 +100,7 @@ export class CjsCarbonEffectFormat extends CjsFormat
      */
     SetClasses(classes = {})
     {
-        return this.SetValues({ classes });
+        return this.SetConfiguration({ classes });
     }
 
     /**
@@ -122,7 +122,7 @@ export class CjsCarbonEffectFormat extends CjsFormat
         }
 
         validateClass(type, Class, FORMAT_NAME);
-        return this.SetValues({ classes: { [type]: Class } });
+        return this.SetConfiguration({ classes: { [type]: Class } });
     }
 
     /**
@@ -157,7 +157,7 @@ export class CjsCarbonEffectFormat extends CjsFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options));
+        return readWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -170,7 +170,7 @@ export class CjsCarbonEffectFormat extends CjsFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options));
+        return inspectWithValues(input, this.GetConfiguration(options));
     }
 
     /**

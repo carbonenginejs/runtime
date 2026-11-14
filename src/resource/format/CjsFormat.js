@@ -124,7 +124,7 @@ export class CjsFormat
    * @param {object|null} [values=null] Options merged over the current ones.
    * @returns {this} This format.
    */
-  SetValues(values = null)
+  SetConfiguration(values = null)
   {
     this.options = { ...this.options, ...(values || {}) };
     return this;
@@ -136,7 +136,7 @@ export class CjsFormat
    * @param {object|null} [options=null] Per-call overrides.
    * @returns {object} A copy of the effective instance options.
    */
-  GetValues(options = null)
+  GetConfiguration(options = null)
   {
     return { ...this.options, ...(options || {}) };
   }
@@ -171,7 +171,7 @@ export class CjsFormat
   GetWorkerRequest(options = {})
   {
     const declaration = this.constructor.worker;
-    const values = this.GetValues(options);
+    const values = this.GetConfiguration(options);
     if (!this._workerEnabled || !declaration || !canCloneFormatOptions(values)) return null;
     const output = values.emit ?? declaration.defaultOutput;
     if (declaration.outputTypes && !declaration.outputTypes.includes(output)) return null;
@@ -238,7 +238,7 @@ export class CjsFormat
    */
   Inspect(input, options = null)
   {
-    const values = this.GetValues(options || {});
+    const values = this.GetConfiguration(options || {});
     return this.constructor.inspect(input, values);
   }
 
@@ -251,7 +251,7 @@ export class CjsFormat
    */
   GetSupport(input, options = null)
   {
-    const values = this.GetValues(options || {});
+    const values = this.GetConfiguration(options || {});
     return this.constructor.getSupport(input, values);
   }
 
@@ -264,7 +264,7 @@ export class CjsFormat
    */
   VerifySupport(input, options = null)
   {
-    const values = this.GetValues(options || {});
+    const values = this.GetConfiguration(options || {});
     return this.constructor.verifySupport(input, values);
   }
 

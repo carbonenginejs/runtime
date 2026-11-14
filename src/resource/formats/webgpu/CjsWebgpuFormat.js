@@ -58,7 +58,7 @@ export class CjsWebgpuFormat extends CjsFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -67,9 +67,9 @@ export class CjsWebgpuFormat extends CjsFormat
      * @param {object} [options] Values to merge into the profile.
      * @returns {CjsWebgpuFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
-        const values = normalizeValues(this.GetValues(), options, CLASS_KEYS, FORMAT_NAME);
+        const values = normalizeValues(this.GetConfiguration(), options, CLASS_KEYS, FORMAT_NAME);
         this._emit = values.emit;
         this._source = values.source;
         this._decodeInstructions = values.decodeInstructions;
@@ -85,7 +85,7 @@ export class CjsWebgpuFormat extends CjsFormat
      * @param {object} [options] Optional values to merge into a copy.
      * @returns {object} A copy of the effective values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues({
             emit: this._emit,
@@ -105,7 +105,7 @@ export class CjsWebgpuFormat extends CjsFormat
      */
     SetClasses(classes = {})
     {
-        return this.SetValues({ classes });
+        return this.SetConfiguration({ classes });
     }
 
     /**
@@ -161,7 +161,7 @@ export class CjsWebgpuFormat extends CjsFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options));
+        return readWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -173,7 +173,7 @@ export class CjsWebgpuFormat extends CjsFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options));
+        return inspectWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -186,7 +186,7 @@ export class CjsWebgpuFormat extends CjsFormat
      */
     AnalyzeEffect(input, options = {})
     {
-        return analyzeEffectWithValues(input, this.GetValues(options));
+        return analyzeEffectWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -199,7 +199,7 @@ export class CjsWebgpuFormat extends CjsFormat
      */
     BuildEffect(input, options = {})
     {
-        const values = this.GetValues();
+        const values = this.GetConfiguration();
 
         return buildEffectPackage(input, {
             source: values.source,

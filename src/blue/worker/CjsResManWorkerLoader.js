@@ -223,7 +223,7 @@ export class CjsResManWorkerLoader
    */
   CanReadFormat(descriptor, formatOptions = {}, context = null) {
     if (!descriptor.Format) {
-      formatOptions = descriptor.GetValues(formatOptions);
+      formatOptions = descriptor.GetConfiguration(formatOptions);
       const request = descriptor.GetWorkerRequest(formatOptions);
       return Boolean(request && CjsResManWorkerLoader._canCloneWorkerValue(request.options)
         && CjsResManWorkerLoader._canCloneWorkerValue(context) && this.IsAvailable());
@@ -253,7 +253,7 @@ export class CjsResManWorkerLoader
    */
   ReadFormat(descriptor, input, formatOptions = {}, context = null) {
     if (!descriptor.Format) {
-      formatOptions = descriptor.GetValues(formatOptions);
+      formatOptions = descriptor.GetConfiguration(formatOptions);
       const request = descriptor.GetWorkerRequest(formatOptions);
       if (!request || !CjsResManWorkerLoader._canCloneWorkerValue(request.options)
         || !CjsResManWorkerLoader._canCloneWorkerValue(context) || !this.IsAvailable()) {

@@ -68,7 +68,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -77,9 +77,9 @@ export class CjsCmfFormat extends CjsGeometryFormat
      * @param {object} [options] Values to merge into the profile.
      * @returns {CjsCmfFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
-        const values = normalizeValues(this.GetValues(), options);
+        const values = normalizeValues(this.GetConfiguration(), options);
 
         this._emit = values.emit;
         this._validateCrc = values.validateCrc;
@@ -97,7 +97,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      * @param {object} [options] Optional values to merge into a copy.
      * @returns {object} A copy of the effective values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues({
             emit: this._emit,
@@ -120,7 +120,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(this, input, this.GetValues(options));
+        return readWithValues(this, input, this.GetConfiguration(options));
     }
 
     /**
@@ -132,7 +132,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      */
     Load(input, options = {})
     {
-        return loadNativeWithValues(input, this.GetValues(options));
+        return loadNativeWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -144,7 +144,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      */
     LoadShared(input, options = {})
     {
-        return loadSharedWithValues(input, this.GetValues(options));
+        return loadSharedWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -168,7 +168,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      */
     async ReadAsync(input, options = {})
     {
-        return readWithValuesAsync(this, input, this.GetValues(options));
+        return readWithValuesAsync(this, input, this.GetConfiguration(options));
     }
 
     /**
@@ -192,7 +192,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      */
     ReadRaw(input, options = {})
     {
-        return readRawInput(input, this.GetValues(options));
+        return readRawInput(input, this.GetConfiguration(options));
     }
 
     /**
@@ -205,7 +205,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      */
     async ReadRawAsync(input, options = {})
     {
-        return readRawInputAsync(input, this.GetValues(options));
+        return readRawInputAsync(input, this.GetConfiguration(options));
     }
 
     /**
@@ -217,7 +217,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
      */
     Inspect(input, options = {})
     {
-        return inspectRawCmfResult(input, this.GetValues(options));
+        return inspectRawCmfResult(input, this.GetConfiguration(options));
     }
 
     /**

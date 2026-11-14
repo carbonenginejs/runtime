@@ -48,9 +48,9 @@ test("inspect summarizes without instruction decode", () =>
 test("profiles hold values and reject invalid emits", () =>
 {
     const reader = new CjsDxbcFormat({ emit: "raw", source: "profile" });
-    assert.equal(reader.GetValues().emit, "raw");
-    assert.equal(reader.GetValues({ source: "override" }).source, "override");
-    assert.equal(reader.GetValues().source, "profile");
+    assert.equal(reader.GetConfiguration().emit, "raw");
+    assert.equal(reader.GetConfiguration({ source: "override" }).source, "override");
+    assert.equal(reader.GetConfiguration().source, "profile");
     assert.throws(() => new CjsDxbcFormat({ emit: "nonsense" }), /emit must be/);
 });
 

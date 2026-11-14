@@ -125,7 +125,7 @@ export class CjsTgaFormat extends CjsImageFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -134,7 +134,7 @@ export class CjsTgaFormat extends CjsImageFormat
      * @param {object} [options] Values to merge.
      * @returns {CjsTgaFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, { inputType: "tga", ...options }, FORMAT_NAME);
         return this;
@@ -146,7 +146,7 @@ export class CjsTgaFormat extends CjsImageFormat
      * @param {object} [options] Per-call values.
      * @returns {object} Normalized read values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, { inputType: "tga", ...options }, FORMAT_NAME);
     }
@@ -160,7 +160,7 @@ export class CjsTgaFormat extends CjsImageFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options), "tga");
+        return readWithValues(input, this.GetConfiguration(options), "tga");
     }
 
     /**
@@ -184,7 +184,7 @@ export class CjsTgaFormat extends CjsImageFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options), "tga");
+        return inspectWithValues(input, this.GetConfiguration(options), "tga");
     }
 
     /**

@@ -37,7 +37,7 @@ export class CjsOggFormat extends CjsFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -50,7 +50,7 @@ export class CjsOggFormat extends CjsFormat
      * @param {string} [options.source] Source label.
      * @returns {CjsOggFormat} This format.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, { inputType: "ogg", ...options }, FORMAT_NAME);
         return this;
@@ -63,7 +63,7 @@ export class CjsOggFormat extends CjsFormat
      * @param {object} [options={}] Per-call overrides merged over the stored values.
      * @returns {import("./core/helpers.js").OggValues} The normalized values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, { inputType: "ogg", ...options }, FORMAT_NAME);
     }
@@ -78,7 +78,7 @@ export class CjsOggFormat extends CjsFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options));
+        return readWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -104,7 +104,7 @@ export class CjsOggFormat extends CjsFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options));
+        return inspectWithValues(input, this.GetConfiguration(options));
     }
 
     /**

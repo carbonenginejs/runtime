@@ -21,7 +21,7 @@ test("package subpath exports one public pickle format class", async () =>
 test("pickle facade declares protocol 0 and the standard format vocabulary", () =>
 {
   assert.deepEqual(Object.getOwnPropertyNames(CjsPickleFormat.prototype).sort(), [
-    "GetValues", "Read", "ReadJSON", "ReadPayload", "ReadRaw", "SetValues",
+    "GetConfiguration", "Read", "ReadJSON", "ReadPayload", "ReadRaw", "SetConfiguration",
     "ToJSON", "constructor"
   ].sort());
   assert.equal(CjsPickleFormat.id, "CjsPickleFormat");
@@ -159,9 +159,9 @@ test("pickle profiles strictly validate options and resource limits", () =>
     limits: { maxInputBytes: 8 }
   });
 
-  assert.equal(format.GetValues().emit, "payload");
-  assert.equal(format.GetValues().limits.maxInputBytes, 8);
-  assert.equal(format.SetValues({ emit: "json" }), format);
+  assert.equal(format.GetConfiguration().emit, "payload");
+  assert.equal(format.GetConfiguration().limits.maxInputBytes, 8);
+  assert.equal(format.SetConfiguration({ emit: "json" }), format);
   assert.equal(format.Read(bytes("N.")), null);
 
   assert.throws(

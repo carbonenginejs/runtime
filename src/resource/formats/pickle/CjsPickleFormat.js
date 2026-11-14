@@ -54,7 +54,7 @@ export class CjsPickleFormat extends CjsFormat
   constructor(options = {})
   {
     super();
-    this.SetValues(options);
+    this.SetConfiguration(options);
   }
 
   /**
@@ -63,7 +63,7 @@ export class CjsPickleFormat extends CjsFormat
    * @param {object} [options] Emit mode and partial decoder limits.
    * @returns {CjsPickleFormat} This format profile.
    */
-  SetValues(options = {})
+  SetConfiguration(options = {})
   {
     this._values = this.constructor.normalizeValues(this._values, options);
     return this;
@@ -75,7 +75,7 @@ export class CjsPickleFormat extends CjsFormat
    * @param {object} [options] Per-call format options.
    * @returns {object} Detached effective values.
    */
-  GetValues(options = {})
+  GetConfiguration(options = {})
   {
     return this.constructor.normalizeValues(this._values, options);
   }
@@ -89,7 +89,7 @@ export class CjsPickleFormat extends CjsFormat
    */
   Read(input, options = {})
   {
-    return CjsPickleFormat.read(input, this.GetValues(options));
+    return CjsPickleFormat.read(input, this.GetConfiguration(options));
   }
 
   /**
@@ -101,7 +101,7 @@ export class CjsPickleFormat extends CjsFormat
    */
   ReadJSON(input, options = {})
   {
-    return CjsPickleFormat.readJSON(input, this.GetValues(options));
+    return CjsPickleFormat.readJSON(input, this.GetConfiguration(options));
   }
 
   /**
@@ -113,7 +113,7 @@ export class CjsPickleFormat extends CjsFormat
    */
   ReadPayload(input, options = {})
   {
-    return CjsPickleFormat.readPayload(input, this.GetValues(options));
+    return CjsPickleFormat.readPayload(input, this.GetConfiguration(options));
   }
 
   /**
@@ -125,7 +125,7 @@ export class CjsPickleFormat extends CjsFormat
    */
   ReadRaw(input, options = {})
   {
-    return CjsPickleFormat.readRaw(input, this.GetValues(options));
+    return CjsPickleFormat.readRaw(input, this.GetConfiguration(options));
   }
 
   /**

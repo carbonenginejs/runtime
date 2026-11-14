@@ -254,7 +254,7 @@ test("CjsGltfFormat is a named export with no default", () => {
     assert.equal("cmf", "cmf");
     assert.deepEqual(Object.values(CjsGltfFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "shared", "gr2", "cmf" ]);
     assert.deepEqual(Object.values(CjsGltfFormat.outputs).filter(entry => entry.role === "debug").map(entry => entry.output), [ "json", "gltfJson" ]);
-    assert.equal(new CjsGltfFormat().GetValues().emit, "shared");
+    assert.equal(new CjsGltfFormat().GetConfiguration().emit, "shared");
     assert.equal(Object.values(CjsGltfFormat.outputs).find(entry => entry.default).output, "shared");
 });
 

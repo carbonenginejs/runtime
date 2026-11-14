@@ -67,7 +67,7 @@ export class CjsGltfFormat extends CjsGeometryFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -76,9 +76,9 @@ export class CjsGltfFormat extends CjsGeometryFormat
      * @param {object} [options={}] Values to merge into the profile; the keys of CjsGltfValues.
      * @returns {CjsGltfFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
-        const values = normalizeValues(this.GetValues(), options, FORMAT_NAME);
+        const values = normalizeValues(this.GetConfiguration(), options, FORMAT_NAME);
 
         this._emit = values.emit;
         this._source = values.source;
@@ -99,7 +99,7 @@ export class CjsGltfFormat extends CjsGeometryFormat
      * @param {object} [options={}] Optional values to merge into a copy.
      * @returns {import("./core/helpers.js").CjsGltfValues} A copy of the effective values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues({
             emit: this._emit,
@@ -123,7 +123,7 @@ export class CjsGltfFormat extends CjsGeometryFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(this, input, this.GetValues(options));
+        return readWithValues(this, input, this.GetConfiguration(options));
     }
 
     /**
@@ -135,7 +135,7 @@ export class CjsGltfFormat extends CjsGeometryFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options));
+        return inspectWithValues(input, this.GetConfiguration(options));
     }
 
     /**

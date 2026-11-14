@@ -32,7 +32,7 @@ test("production format worker returns the same cjstables for JSONL, SQLite and 
         assert.equal(loader.CanReadFormat({ Format }, options), true);
         const actual = await loader.ReadFormat({ Format }, input, options);
         assert.deepEqual(actual, expected);
-        assert.deepEqual(CjsTableData.from(actual).GetValues(), expected);
+        assert.deepEqual(new CjsTableData().SetData(actual).GetData(), expected);
         assert.ok(input.byteLength > 0, "default worker ownership must not detach source bytes");
     }
 });

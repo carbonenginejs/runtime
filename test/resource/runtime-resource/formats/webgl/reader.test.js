@@ -85,9 +85,9 @@ test("read rejects a payload that is not a container", () =>
 test("profiles hold values and reject invalid emits/unknown options", () =>
 {
     const reader = new CjsWebglFormat({ source: "profile" });
-    assert.equal(reader.GetValues().emit, "json");
-    assert.equal(reader.GetValues({ source: "override" }).source, "override");
-    assert.equal(reader.GetValues().source, "profile");
+    assert.equal(reader.GetConfiguration().emit, "json");
+    assert.equal(reader.GetConfiguration({ source: "override" }).source, "override");
+    assert.equal(reader.GetConfiguration().source, "profile");
     assert.throws(() => new CjsWebglFormat({ emit: "nonsense" }), /emit must be/u);
     assert.throws(() => new CjsWebglFormat({ bogus: true }), /unknown option/u);
 

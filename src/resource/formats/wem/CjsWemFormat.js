@@ -59,7 +59,7 @@ export class CjsWemFormat extends CjsFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -68,7 +68,7 @@ export class CjsWemFormat extends CjsFormat
      * @param {object} [options] Values to merge.
      * @returns {CjsWemFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, options, FORMAT_NAME);
         return this;
@@ -80,7 +80,7 @@ export class CjsWemFormat extends CjsFormat
      * @param {object} [options] Per-call values.
      * @returns {object} Normalized read values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, options, FORMAT_NAME);
     }
@@ -94,7 +94,7 @@ export class CjsWemFormat extends CjsFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options));
+        return readWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -118,7 +118,7 @@ export class CjsWemFormat extends CjsFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options));
+        return inspectWithValues(input, this.GetConfiguration(options));
     }
 
     /**

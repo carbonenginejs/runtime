@@ -13,11 +13,11 @@ test("table documents preserve native identities and clone across batch boundari
     data.Add("graphics", "1", null).Add("graphics", 9007199254740993n, false).AddTable("empty");
     const rebuilt = new CjsTableData(data.metadata);
     for (const batch of data.Batches(1)) rebuilt.Append(structuredClone(batch));
-    assert.deepEqual(rebuilt.GetValues(), data.GetValues());
+    assert.deepEqual(rebuilt.GetData(), data.GetData());
     assert.equal(rebuilt.Get("graphics", "1").value, null);
     assert.equal(rebuilt.Get("graphics", 999).found, false);
     const malformed = new CjsTableData().AddTable("graphics").Add("graphics", 2, "new").Add("graphics", 1, "duplicate");
-    assert.throws(() => rebuilt.Append(malformed.GetValues()), /Duplicate/);
+    assert.throws(() => rebuilt.Append(malformed.GetData()), /Duplicate/);
     assert.equal(rebuilt.Get("graphics", 2).found, false, "a rejected append changes nothing");
 });
 
@@ -38,8 +38,8 @@ test("JSONL streams handle split UTF-8, BOM, CRLF, blanks and final unterminated
         data.Append(batch);
     }
     assert.deepEqual(sizes, [2, 1]);
-    assert.deepEqual(data.GetValues(), CjsJsonlFormat.read(text, { emit: "cjstables", name: "types", keyPath: "typeID" }));
-    assert.deepEqual(CjsJsonlFormat.read(CjsJsonlFormat.writeTables(data.GetValues(), { table: "types" })), pairs.map(pair => pair[0]));
+    assert.deepEqual(data.GetData(), CjsJsonlFormat.read(text, { emit: "cjstables", name: "types", keyPath: "typeID" }));
+    assert.deepEqual(CjsJsonlFormat.read(CjsJsonlFormat.writeTables(data.GetData(), { table: "types" })), pairs.map(pair => pair[0]));
 });
 
 test("streaming parse has real error locations, strict UTF-8 and early cancellation", async () =>
@@ -67,9 +67,9 @@ test("SQLite batches retain rowid, named keys, wide integers, blobs and empty ta
     const options = { emit: "cjstables", keyPaths: { graphics: "graphicID" }, batchSize: 128 };
     const batches = [...CjsSqliteFormat.readBatches(bytes, options)];
     assert.deepEqual(batches.map(batch => batch.tables[0].entries.length), [128,128,1,0]);
-    const data = CjsTableData.from(CjsSqliteFormat.read(bytes, options));
+    const data = new CjsTableData().SetData(CjsSqliteFormat.read(bytes, options));
     assert.deepEqual(data.Get("graphics", 257).value, { graphicID: 257, bytes: new Uint8Array([1]), wide: 9007199254740993n });
-    assert.deepEqual(CjsTableData.from(CjsSqliteFormat.read(bytes, { emit: "cjstables", tables: ["graphics"] })).Get("graphics", 257), data.Get("graphics", 257));
+    assert.deepEqual(new CjsTableData().SetData(CjsSqliteFormat.read(bytes, { emit: "cjstables", tables: ["graphics"] })).Get("graphics", 257), data.Get("graphics", 257));
 });
 
 test("FSD uses inert schemas for the same native table output and bounded batches", () =>
@@ -79,12 +79,12 @@ test("FSD uses inert schemas for the same native table output and bounded batche
     assert.deepEqual(batches.map(batch => batch.tables[0].entries.length), [2,1]);
     const data = new CjsTableData();
     for (const batch of batches) data.Append(batch);
-    assert.deepEqual(data.GetValues(), CjsFsd64Format.read(bytes, { schema, emit: "cjstables" }));
+    assert.deepEqual(data.GetData(), CjsFsd64Format.read(bytes, { schema, emit: "cjstables" }));
     assert.deepEqual(data.Get("graphics", 11).value, { graphicID: 11, size: 2.25 });
     assert.equal(CjsFsd64Format.getSupport(bytes, { schema, emit: "cjstables" }).supported, true);
     assert.throws(() => CjsFsd64Format.read(bytes, { emit: "cjstables" }), /inert options.schema/);
     const objectSchema = { ...schema, container: { type: "OBJECT", headerSize: 4, fields: [{ name: "graphicID", type: "UINT_32", offset: 0 }] } };
-    const root = CjsTableData.from(CjsFsd64Format.read(bytes, { schema: objectSchema, emit: "cjstables" }));
+    const root = new CjsTableData().SetData(CjsFsd64Format.read(bytes, { schema: objectSchema, emit: "cjstables" }));
     assert.equal(root.Get("graphics", 0).value.graphicID, 32);
     assert.equal(root.tables.get("graphics").records.size, 1);
 });
@@ -93,10 +93,10 @@ test("JSONL table export rejects native values and unrepresentable external keys
 {
     for (const value of [new Uint8Array([1]), new Map([[1, 2]]), 4n, NaN, { missing: undefined }])
     {
-        const doc = new CjsTableData().AddTable("t").Add("t", 0, value).GetValues();
+        const doc = new CjsTableData().AddTable("t").Add("t", 0, value).GetData();
         assert.throws(() => CjsJsonlFormat.writeTables(doc, { table: "t" }), TypeError);
     }
-    const external = new CjsTableData().AddTable("t").Add("t", "external", {}).GetValues();
+    const external = new CjsTableData().AddTable("t").Add("t", "external", {}).GetData();
     assert.throws(() => CjsJsonlFormat.writeTables(external, { table: "t" }), /external record keys/);
 });
 
@@ -111,7 +111,7 @@ test("wide FSD identities stay BigInt natively and exact decimal strings in JSON
         view.setBigUint64(96 + i*16, 9007199254740993n + BigInt(i), true);
         view.setBigUint64(104 + i*16, 18446744073709551615n, true);
     }
-    const data = CjsTableData.from(CjsFsd64Format.read(bytes, { schema, emit: "cjstables" }));
+    const data = new CjsTableData().SetData(CjsFsd64Format.read(bytes, { schema, emit: "cjstables" }));
     assert.deepEqual(data.Get("graphics", 9007199254740993n), { found: true, value: { value: 18446744073709551615n } });
     assert.equal(CjsFsd64Format.read(bytes, { schema, emit: "json" })["9007199254740993"].value, "18446744073709551615");
 });

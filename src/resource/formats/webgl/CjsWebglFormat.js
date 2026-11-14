@@ -51,7 +51,7 @@ export class CjsWebglFormat extends CjsFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -60,9 +60,9 @@ export class CjsWebglFormat extends CjsFormat
      * @param {object} [options] Values to merge into the profile.
      * @returns {CjsWebglFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
-        const values = normalizeValues(this.GetValues(), options, FORMAT_NAME);
+        const values = normalizeValues(this.GetConfiguration(), options, FORMAT_NAME);
 
         this._emit = values.emit;
         this._source = values.source;
@@ -76,7 +76,7 @@ export class CjsWebglFormat extends CjsFormat
      * @param {object} [options] Optional values to merge into a copy.
      * @returns {object} A copy of the effective values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues({
             emit: this._emit,
@@ -93,7 +93,7 @@ export class CjsWebglFormat extends CjsFormat
      */
     Read(input, options = {})
     {
-        return readGlslEffectContainer(input, this.GetValues(options));
+        return readGlslEffectContainer(input, this.GetConfiguration(options));
     }
 
     /**
@@ -105,7 +105,7 @@ export class CjsWebglFormat extends CjsFormat
      */
     Inspect(input, options = {})
     {
-        return inspectGlslEffectContainer(input, this.GetValues(options));
+        return inspectGlslEffectContainer(input, this.GetConfiguration(options));
     }
 
     /**

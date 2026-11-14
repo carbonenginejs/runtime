@@ -61,7 +61,7 @@ export class CjsVtaFormat extends CjsImageFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -70,7 +70,7 @@ export class CjsVtaFormat extends CjsImageFormat
      * @param {object} [options] Values to merge.
      * @returns {CjsVtaFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, options, FORMAT_NAME);
         return this;
@@ -82,7 +82,7 @@ export class CjsVtaFormat extends CjsImageFormat
      * @param {object} [options] Per-call values.
      * @returns {object} Normalized read values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, options, FORMAT_NAME);
     }
@@ -96,7 +96,7 @@ export class CjsVtaFormat extends CjsImageFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options));
+        return readWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -108,7 +108,7 @@ export class CjsVtaFormat extends CjsImageFormat
      */
     async ReadAsync(input, options = {})
     {
-        return readAsyncWithValues(input, this.GetValues(options));
+        return readAsyncWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -231,7 +231,7 @@ export class CjsVtaFormat extends CjsImageFormat
      */
     ReadFrames(input, options = {})
     {
-        return CjsVtaFormat.readFrames(input, this.GetValues(options));
+        return CjsVtaFormat.readFrames(input, this.GetConfiguration(options));
     }
 
     static id = "CjsVtaFormat";

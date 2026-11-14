@@ -82,7 +82,7 @@ export class CjsDxbcFormat extends CjsFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -91,9 +91,9 @@ export class CjsDxbcFormat extends CjsFormat
      * @param {object} [options] Values to merge into the profile.
      * @returns {CjsDxbcFormat} This format profile.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
-        const values = normalizeValues(this.GetValues(), options, FORMAT_NAME);
+        const values = normalizeValues(this.GetConfiguration(), options, FORMAT_NAME);
 
         this._emit = values.emit;
         this._source = values.source;
@@ -108,7 +108,7 @@ export class CjsDxbcFormat extends CjsFormat
      * @param {object} [options] Optional values to merge into a copy.
      * @returns {object} A copy of the effective values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues({
             emit: this._emit,
@@ -126,7 +126,7 @@ export class CjsDxbcFormat extends CjsFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options));
+        return readWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -138,7 +138,7 @@ export class CjsDxbcFormat extends CjsFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options));
+        return inspectWithValues(input, this.GetConfiguration(options));
     }
 
     /**

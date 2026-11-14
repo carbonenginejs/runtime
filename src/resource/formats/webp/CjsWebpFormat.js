@@ -36,7 +36,7 @@ export class CjsWebpFormat extends CjsFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -49,7 +49,7 @@ export class CjsWebpFormat extends CjsFormat
      * @param {string} [options.source] Source label for metadata.
      * @returns {CjsWebpFormat} This format.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
         this._values = normalizeValues(this._values, { inputType: "webp", ...options }, FORMAT_NAME);
         return this;
@@ -65,7 +65,7 @@ export class CjsWebpFormat extends CjsFormat
      * @param {string} [options.source] Source label for metadata.
      * @returns {import("./core/helpers.js").CjsWebpValues} The normalized values.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues(this._values, { inputType: "webp", ...options }, FORMAT_NAME);
     }
@@ -83,7 +83,7 @@ export class CjsWebpFormat extends CjsFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(input, this.GetValues(options));
+        return readWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -115,7 +115,7 @@ export class CjsWebpFormat extends CjsFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options));
+        return inspectWithValues(input, this.GetConfiguration(options));
     }
 
     /**

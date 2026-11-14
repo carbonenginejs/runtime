@@ -107,7 +107,7 @@ export class CjsStlFormat extends CjsGeometryFormat
     constructor(options = {})
     {
         super();
-        this.SetValues(options);
+        this.SetConfiguration(options);
     }
 
     /**
@@ -117,9 +117,9 @@ export class CjsStlFormat extends CjsGeometryFormat
      * @returns {CjsStlFormat} This format profile.
      * @throws {TypeError} If an option, output mode, numeric value, or class map is invalid.
      */
-    SetValues(options = {})
+    SetConfiguration(options = {})
     {
-        const values = normalizeValues(this.GetValues(), options, FORMAT_NAME);
+        const values = normalizeValues(this.GetConfiguration(), options, FORMAT_NAME);
 
         this._emit = values.emit;
         this._source = values.source;
@@ -143,7 +143,7 @@ export class CjsStlFormat extends CjsGeometryFormat
      * @returns {CjsStlFormatOptions} A validated copy of the effective values.
      * @throws {TypeError} If an override is invalid.
      */
-    GetValues(options = {})
+    GetConfiguration(options = {})
     {
         return normalizeValues({
             emit: this._emit,
@@ -169,7 +169,7 @@ export class CjsStlFormat extends CjsGeometryFormat
      */
     Read(input, options = {})
     {
-        return readWithValues(this, input, this.GetValues(options));
+        return readWithValues(this, input, this.GetConfiguration(options));
     }
 
     /**
@@ -187,7 +187,7 @@ export class CjsStlFormat extends CjsGeometryFormat
      */
     Write(input, options = {})
     {
-        return writeWithValues(input, this.GetValues(options));
+        return writeWithValues(input, this.GetConfiguration(options));
     }
 
     /**
@@ -199,7 +199,7 @@ export class CjsStlFormat extends CjsGeometryFormat
      */
     Inspect(input, options = {})
     {
-        return inspectWithValues(input, this.GetValues(options));
+        return inspectWithValues(input, this.GetConfiguration(options));
     }
 
     /**
