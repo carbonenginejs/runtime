@@ -16,6 +16,7 @@ export const DEFAULT_VALUES = {
     maxAliasCount: 100,
     uniqueKeys: true,
     intAsBigInt: false,
+    preservePythonTags: false,
     idField: "$yamlId",
     refField: "$yamlRef",
     valuesField: "$yamlValues",
@@ -37,6 +38,8 @@ const OPTION_KEYS = new Set(Object.keys(DEFAULT_VALUES));
  * @property {number} maxAliasCount Maximum number of aliases accepted.
  * @property {boolean} uniqueKeys True to reject duplicate mapping keys.
  * @property {boolean} intAsBigInt True to keep integer scalars as bigint.
+ * @property {boolean} preservePythonTags True to keep `!!python/tuple` and `!!python/unicode` as tag envelopes
+ *   (`tagField`/`valueField`), so a writer can restore them; false converts them to an array and a string.
  * @property {string} idField Field marking a repeated node's identity.
  * @property {string} refField Field marking a reference to a repeated node.
  * @property {string} valuesField Field holding a repeated sequence's items.
@@ -244,6 +247,10 @@ export function normalizeValues(base, options = {}, readerName = "CjsYamlFormat"
     if (Object.hasOwn(options, "intAsBigInt"))
     {
         values.intAsBigInt = normalizeBoolean(options.intAsBigInt, "intAsBigInt", readerName);
+    }
+    if (Object.hasOwn(options, "preservePythonTags"))
+    {
+        values.preservePythonTags = normalizeBoolean(options.preservePythonTags, "preservePythonTags", readerName);
     }
     if (Object.hasOwn(options, "uniqueKeys"))
     {

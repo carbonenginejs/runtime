@@ -277,6 +277,14 @@ export class CjsYamlReader extends CjsReader
                 return handled;
             }
 
+            if ((tag === PYTHON_TUPLE || tag === PYTHON_UNICODE) && this.options.preservePythonTags)
+            {
+                const wrapper = { [this.options.tagField]: tag };
+                memo.set(node, wrapper);
+                wrapper[this.options.valueField] = this.ConvertBase(node, memo, false);
+                return wrapper;
+            }
+
             if (tag === PYTHON_TUPLE)
             {
                 if (!isSeq(node)) throw this.NodeError(node, `${tag} must decorate a sequence`);

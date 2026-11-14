@@ -80,6 +80,7 @@
     "./blue/formats/black": "./src/blue/formats/black/index.js",
     "./resource/formats/bmp": "./src/resource/formats/bmp/index.js",
     "./resource/formats/bnk": "./src/resource/formats/bnk/index.js",
+    "./resource/formats/character": "./src/resource/formats/character/index.js",
     "./resource/formats/cmf": "./src/resource/formats/cmf/index.js",
     "./resource/formats/dds": "./src/resource/formats/dds/index.js",
     "./resource/codecs/bcn": "./src/resource/codecs/bcn/index.js",
