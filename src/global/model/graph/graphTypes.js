@@ -53,6 +53,8 @@ export const GRAPH_TYPES = {
   wreference: scalar(VARTYPE.WREFERENCE, "cstring"),
   sharedString: scalar(VARTYPE.SHAREDSTRING, "cstring"),
   sharedStringW: scalar(VARTYPE.SHAREDSTRINGW, "cstring"),
+  pyObject: scalar(VARTYPE.PYOBJECTPTR, "pyObject"),
+  scriptCallback: scalar(VARTYPE.SCRIPTCALLBACK, "pyObject"),
   vec2: floats(2),
   vec3: floats(3),
   vec4: floats(4),

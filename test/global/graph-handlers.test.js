@@ -43,6 +43,29 @@ test("a compiled member is one flat shape, whatever its type", () =>
   assert.deepEqual(Object.keys(CjsGraph.compileMember({ name: "value" })), keys, "no type is the same shape");
 });
 
+test("a script object and a callback are held by reference and never equal", () =>
+{
+  // Be::PYOBJECTPTR is 11 and Be::SCRIPTCALLBACK 33 (blueexposure/include/BlueTypes.h:230,247).
+  assert.equal(member("pyObject").type, VARTYPE.PYOBJECTPTR);
+  assert.equal(member("scriptCallback").type, VARTYPE.SCRIPTCALLBACK);
+
+  for (const kind of [ "pyObject", "scriptCallback" ])
+  {
+    const row = member(kind), holder = { value: null }, callback = () => 1;
+
+    assert.equal(row.handler.Set(holder, "value", callback, row), true);
+    assert.equal(row.handler.Get(holder, "value", row), callback);
+    assert.equal(row.handler.Set(holder, "value", callback, row), true);
+    assert.equal(row.handler.IsEqual(callback, callback, row), false);
+    assert.equal(row.handler.IsUnchanged(callback, callback, row), false);
+    assert.equal(row.handler.IsExactEqual(callback, callback, row), true);
+    assert.equal(row.handler.IsExactEqual(callback, () => 1, row), false);
+    assert.equal(row.handler.IsValidValue(null, row), true);
+    row.handler.Write(holder, "value", null, row);
+    assert.equal(holder.value, null);
+  }
+});
+
 test("a compiled member is Carbon's row: its VARTYPE is type, its type name is kind, and no index is -1", () =>
 {
   const row = member("vec3");

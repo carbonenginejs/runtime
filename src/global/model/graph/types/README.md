@@ -18,6 +18,7 @@ class per type.
 | `CjsGraphTypeFloatArray`, `CjsGraphTypeDoubleArray`, `CjsGraphTypeIntArray` | FLOATARRAY, DOUBLEARRAY, INTARRAY and the typed integer arrays |
 | `CjsGraphTypeObject`, `CjsGraphTypeIRoot` | IROOTPTR, IROOTWEAKREF; IROOT and structs |
 | `CjsGraphTypeList`, `CjsGraphTypeMap`, `CjsGraphTypeValues` | Lists and structure lists; Maps of objects; lists of plain values |
+| `CjsGraphTypePyObject` | PYOBJECTPTR, SCRIPTCALLBACK: a reference, never equal to another |
 | `CjsGraphTypeInvalid` | INVALID: describes and walks, and refuses every value operation |
 
 Each takes the member: `Get(holder, key, member, options)`, `Set(holder, key, value, member, options)`,
