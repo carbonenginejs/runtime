@@ -643,4 +643,28 @@ export class EveVirtualCamera extends IRoot
   }
 
   static scratch = { vec3_0: vec3.create(), vec4_0: vec4.create() };
+
+  /**
+   * Carbon: EveVirtualCamera::GetDebugOptions (trinity/trinity/Eve/VirtualCamera/EveVirtualCamera.h:67), `void GetDebugOptions( Tr2DebugRendererOptions& options ) override`.
+   *
+   * @notImplemented
+   * @param {Tr2DebugRendererOptions} options Debug options to fill.
+   * @throws {Error} Always.
+   */
+  GetDebugOptions(options)
+  {
+    throw new Error("EveVirtualCamera.GetDebugOptions is not implemented in CarbonEngineJS.");
+  }
+
+  /**
+   * Carbon: EveVirtualCamera::RenderDebugInfo (trinity/trinity/Eve/VirtualCamera/EveVirtualCamera.h:68), `void RenderDebugInfo( ITr2DebugRenderer2& renderer ) override`.
+   *
+   * @notImplemented
+   * @param {ITr2DebugRenderer2} renderer Debug renderer to draw into.
+   * @throws {Error} Always.
+   */
+  RenderDebugInfo(renderer)
+  {
+    throw new Error("EveVirtualCamera.RenderDebugInfo is not implemented in CarbonEngineJS.");
+  }
 }

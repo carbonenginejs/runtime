@@ -760,4 +760,28 @@ export class EveStretch extends IEveFiringEffectElement
   static _sourceCorrection = mat4.fromXRotation(mat4.create(), -Math.PI * 0.5);
   static _yAxis = vec3.fromValues(0, 1, 0);
   static scratch = { vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create(), quat_0: quat.create(), mat4_0: mat4.create() };
+
+  /**
+   * Carbon: EveStretch::GetDebugOptions (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:126), `void GetDebugOptions( Tr2DebugRendererOptions& options )`.
+   *
+   * @notImplemented
+   * @param {Tr2DebugRendererOptions} options Debug options to fill.
+   * @throws {Error} Always.
+   */
+  GetDebugOptions(options)
+  {
+    throw new Error("EveStretch.GetDebugOptions is not implemented in CarbonEngineJS.");
+  }
+
+  /**
+   * Carbon: EveStretch::RenderDebugInfo (trinity/trinity/Eve/Renderable/Stretch/EveStretch.h:127), `void RenderDebugInfo( ITr2DebugRenderer2& renderer )`.
+   *
+   * @notImplemented
+   * @param {ITr2DebugRenderer2} renderer Debug renderer to draw into.
+   * @throws {Error} Always.
+   */
+  RenderDebugInfo(renderer)
+  {
+    throw new Error("EveStretch.RenderDebugInfo is not implemented in CarbonEngineJS.");
+  }
 }

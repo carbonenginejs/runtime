@@ -239,4 +239,28 @@ export class EveVirtualCameraSystem
     }
     this.transition = transition;
   }
+
+  /**
+   * Carbon: EveVirtualCameraSystem::GetDebugOptions (trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.h:45), `void GetDebugOptions( Tr2DebugRendererOptions& options ) override`.
+   *
+   * @notImplemented
+   * @param {Tr2DebugRendererOptions} options Debug options to fill.
+   * @throws {Error} Always.
+   */
+  GetDebugOptions(options)
+  {
+    throw new Error("EveVirtualCameraSystem.GetDebugOptions is not implemented in CarbonEngineJS.");
+  }
+
+  /**
+   * Carbon: EveVirtualCameraSystem::RenderDebugInfo (trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.h:46), `void RenderDebugInfo( ITr2DebugRenderer2& renderer ) override`.
+   *
+   * @notImplemented
+   * @param {ITr2DebugRenderer2} renderer Debug renderer to draw into.
+   * @throws {Error} Always.
+   */
+  RenderDebugInfo(renderer)
+  {
+    throw new Error("EveVirtualCameraSystem.RenderDebugInfo is not implemented in CarbonEngineJS.");
+  }
 }

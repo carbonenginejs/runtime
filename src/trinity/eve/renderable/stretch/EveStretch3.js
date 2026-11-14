@@ -1339,6 +1339,30 @@ export class EveStretch3 extends IEveFiringEffectElement
   static _movePosition = vec3.create();
   static _sphere = vec4.create();
   static _destinationScale = vec3.create();
+
+  /**
+   * Carbon: EveStretch3::GetDebugOptions (trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h:96), `void GetDebugOptions( Tr2DebugRendererOptions& options )`.
+   *
+   * @notImplemented
+   * @param {Tr2DebugRendererOptions} options Debug options to fill.
+   * @throws {Error} Always.
+   */
+  GetDebugOptions(options)
+  {
+    throw new Error("EveStretch3.GetDebugOptions is not implemented in CarbonEngineJS.");
+  }
+
+  /**
+   * Carbon: EveStretch3::RenderDebugInfo (trinity/trinity/Eve/Renderable/Stretch/EveStretch3.h:97), `void RenderDebugInfo( ITr2DebugRenderer2& renderer ) override`.
+   *
+   * @notImplemented
+   * @param {ITr2DebugRenderer2} renderer Debug renderer to draw into.
+   * @throws {Error} Always.
+   */
+  RenderDebugInfo(renderer)
+  {
+    throw new Error("EveStretch3.RenderDebugInfo is not implemented in CarbonEngineJS.");
+  }
 }
 
 // Native exposure includes the concrete class itself; JS has no implicit self mapping.

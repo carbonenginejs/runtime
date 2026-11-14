@@ -61,4 +61,20 @@ export class Tr2RenderNodeSprite2dScene extends IRoot
     return true;
   }
 
+  /**
+   * Carbon: Tr2RenderNodeSprite2dScene::Execute (trinity/trinity/Tr2RenderNodeSprite2dScene.h:17), `void Execute( const Span<const Tr2TextureAL>& destinations, const Span<TempOutput>& outputs, Be::Time realTime, Be::Time simTime, const Tr2ProfileTimer& rootTimer, Tr2RenderContext& renderContext ) override`.
+   *
+   * @notImplemented
+   * @param {Tr2TextureAL[]} destinations Destination textures.
+   * @param {object[]} outputs Temporary outputs (TempOutput).
+   * @param {number} realTime Real time (Be::Time).
+   * @param {number} simTime Simulation time (Be::Time).
+   * @param {object} rootTimer Profile timer (Tr2ProfileTimer).
+   * @param {Tr2RenderContext} renderContext Render context.
+   * @throws {Error} Always.
+   */
+  Execute(destinations, outputs, realTime, simTime, rootTimer, renderContext)
+  {
+    throw new Error("Tr2RenderNodeSprite2dScene.Execute is not implemented in CarbonEngineJS.");
+  }
 }

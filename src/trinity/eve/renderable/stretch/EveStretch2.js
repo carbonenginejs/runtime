@@ -658,6 +658,30 @@ export class EveStretch2 extends IEveFiringEffectElement
   static _sourceEmitterArguments = new ITr2GenericEmitterUpdateArguments();
 
   static _destinationEmitterArguments = new ITr2GenericEmitterUpdateArguments();
+
+  /**
+   * Carbon: EveStretch2::GetDebugOptions (trinity/trinity/Eve/Renderable/Stretch/EveStretch2.h:77), `void GetDebugOptions( Tr2DebugRendererOptions& options ) override`.
+   *
+   * @notImplemented
+   * @param {Tr2DebugRendererOptions} options Debug options to fill.
+   * @throws {Error} Always.
+   */
+  GetDebugOptions(options)
+  {
+    throw new Error("EveStretch2.GetDebugOptions is not implemented in CarbonEngineJS.");
+  }
+
+  /**
+   * Carbon: EveStretch2::RenderDebugInfo (trinity/trinity/Eve/Renderable/Stretch/EveStretch2.h:78), `void RenderDebugInfo( ITr2DebugRenderer2& renderer ) override`.
+   *
+   * @notImplemented
+   * @param {ITr2DebugRenderer2} renderer Debug renderer to draw into.
+   * @throws {Error} Always.
+   */
+  RenderDebugInfo(renderer)
+  {
+    throw new Error("EveStretch2.RenderDebugInfo is not implemented in CarbonEngineJS.");
+  }
 }
 
 // EveStretch2_Blue.cpp: native exposure; unported contracts: ITr2LightOwner.
