@@ -447,7 +447,7 @@ export class BlackReader extends IRootReaderBase
         // Carbon reads members through instance->ClassType() (IRootReader.cpp:58). IRoot.ClassType returns
         // ClassInfo.exposeToBlue(this.constructor), and 213 Blue classes do not extend IRoot yet, so the reader
         // asks for it directly: the port's current state (needs-owner.md), not a JavaScript limitation.
-        const definition = ClassInfo.exposeToBlue(instance.constructor).meta;
+        const definition = ClassInfo.exposeToBlue(instance.constructor);
 
         if (definition.isProxy)
         {
@@ -856,7 +856,7 @@ export class BlackReader extends IRootReaderBase
         this.ReadString();
 
         // obj->ClassType(), as in CreateObject above.
-        const definition = ClassInfo.exposeToBlue(obj.constructor).meta;
+        const definition = ClassInfo.exposeToBlue(obj.constructor);
 
         this.ReadMembers(obj, definition, startPos + dataSize);
 

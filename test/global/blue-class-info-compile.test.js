@@ -46,20 +46,20 @@ test("a late chain and interface recompile into the ClassInfo already held", () 
 
   const held = ClassInfo.exposeToBlue(LateChainChild);
   assert.equal(held.parentClassInfo, null);
-  assert.equal(held.meta.entries.has("size"), false);
+  assert.equal(held.entries.has("size"), false);
 
   be.exposureChainTo(LateChainBase)(LateChainChild);
   assert.equal(ClassInfo.exposeToBlue(LateChainChild), held);
   assert.equal(getClassRegistration("LateChainChild").classInfo, held);
   assert.equal(held.parentClassInfo, ClassInfo.exposeToBlue(LateChainBase));
-  assert.equal(held.meta.entries.has("size"), true);
+  assert.equal(held.entries.has("size"), true);
 
   const notify = blue.classes.GetClassRegistration("INotify").type;
-  assert.equal(held.meta.isNotify, false);
+  assert.equal(held.isNotify, false);
   be.mapInterface(notify)(LateChainChild);
   assert.equal(ClassInfo.exposeToBlue(LateChainChild), held);
   assert.ok(held.interfaceTable.includes("INotify"));
-  assert.equal(held.meta.isNotify, true);
+  assert.equal(held.isNotify, true);
 });
 
 test("an enum that registers after its class resolves on first read", () =>

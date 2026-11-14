@@ -1,7 +1,7 @@
 // The one compile of a class into its Blue type information (Blue plan step 6).
 // It reads the schema's sealed record once, at registration, and fills the base
 // records (blue/base): ClassInfo with its VarEntry rows, and on first use the
-// readers' ClassInfoMeta of VarEntry rows. The records import nothing
+// readers' table of persisted rows. The records import nothing
 // but global/consts; everything that looks things up lives here.
 //
 // A late change to a registered class - a chain, an interface or a base declared
@@ -16,7 +16,6 @@ import { baseList, exposureChainTo, mappedInterfaces, ownMappedInterfaces, setEx
 import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { registerClass } from "../exposure/classes/registry.js";
 import { ClassInfo } from "../base/ClassInfo.js";
-import { ClassInfoMeta } from "../base/ClassInfoMeta.js";
 import { BLACK_DESTINATION, VarEntry } from "../base/VarEntry.js";
 import { blueEnums } from "../enums/CjsBlueEnumRegistry.js";
 
@@ -278,7 +277,7 @@ export function compileClassInfo(Constructor)
   ci.pyMethodTable = [];
   ci.hiddenInherited = new Set();
   ci._declarations = new Map();
-  ci._meta = null;
+  ci._entries = null;
   ci.rtti = null;
 
   for (const Interface of ownMappedInterfaces(Constructor)) ci.interfaceTable.push(Schema.getClassName(Interface));
@@ -394,7 +393,7 @@ function provides(mapped, Constructor, Interface)
 }
 
 /**
- * The readers' record of a class: its persisted members, walked as Carbon's
+ * Fills what the readers ask a class for: its persisted members by name, walked as Carbon's
  * `IRootReaderBase::FindEntry` does (IRootReader.cpp:303-319) - the class's
  * table, then each parent's, a row with PERSIST, first name wins - and the
  * interfaces they ask about. A row its class hides with `hideInherited` is left
@@ -402,29 +401,29 @@ function provides(mapped, Constructor, Interface)
  * our values path persists (non-carbon-extensions.md).
  *
  * @param {ClassInfo} ci The class information.
- * @returns {ClassInfoMeta} The record.
+ * @returns {void}
  */
-export function buildClassInfoMeta(ci)
+export function buildReaderEntries(ci)
 {
-  const record = new ClassInfoMeta();
+  const entries = new Map();
   for (let type = ci; type; type = type.parentClassInfo)
   {
     for (const row of type.memberTable)
     {
-      if (record.entries.has(row.name)) continue;
+      if (entries.has(row.name)) continue;
       if (type !== ci && ci.hiddenInherited.has(row.meta.key)) continue;
       const declaration = type.declarationOf(row);
       if (!(row.editFlags & EDITFLAGS.PERSIST) && declaration.edit?.persist !== true && declaration.edit?.persistOnly !== true) continue;
-      record.entries.set(row.name, row);
+      entries.set(row.name, row);
     }
   }
   const Constructor = ci._type, mapped = mappedInterfaces(Constructor);
   // By registered name: the interface classes extend IRoot, which the base must not import.
-  record.isInitialize = provides(mapped, Constructor, "IInitialize");
-  record.isNotify = provides(mapped, Constructor, "INotify");
-  record.isProxy = provides(mapped, Constructor, "IBlueObjectProxy");
-  record.isCustomPersist = provides(mapped, Constructor, "ICustomPersist");
-  return record;
+  ci._isInitialize = provides(mapped, Constructor, "IInitialize");
+  ci._isNotify = provides(mapped, Constructor, "INotify");
+  ci._isProxy = provides(mapped, Constructor, "IBlueObjectProxy");
+  ci._isCustomPersist = provides(mapped, Constructor, "ICustomPersist");
+  ci._entries = entries;
 }
 
 /**
@@ -557,7 +556,7 @@ export function installClassInfoCompile(schema)
   Schema = schema;
   setExposureChangeListener(onExposureChanged);
   ClassInfo.compiler = compileClassInfo;
-  ClassInfo.metaBuilder = buildClassInfoMeta;
+  ClassInfo.entriesBuilder = buildReaderEntries;
   VarEntry.chooserResolver = blueEnumChooser;
   VarEntry.classResolver = name => Schema.getConstructor(name);
   VarEntry.structureResolver = structureLayout;

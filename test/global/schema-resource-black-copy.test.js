@@ -98,6 +98,6 @@ test("a runtime-only stored name blocks inherited copy, and Black finds the base
     assert.equal(destination._baseCache.value, 1);
     assert.equal(destination._cache, cache);
     // The derived row has no PERSIST, so FindEntry walks on to the base's (IRootReader.cpp:303-319).
-    assert.equal(ClassInfo.exposeToBlue(ResourceDerived).meta.entries.get("cache").key, "_baseCache");
+    assert.equal(ClassInfo.exposeToBlue(ResourceDerived).entries.get("cache").key, "_baseCache");
 });
 

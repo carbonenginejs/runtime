@@ -16,7 +16,7 @@ import { exposure as be } from "../../npm/dist/blue/exposure/be.js";
 
 const entry = (className, name) =>
 {
-  const found = ClassInfo.exposeToBlue(CjsSchema.getConstructor(className)).meta.entries.get(name);
+  const found = ClassInfo.exposeToBlue(CjsSchema.getConstructor(className)).entries.get(name);
   assert.ok(found, `${className}.${name} is persisted`);
   return found;
 };
@@ -47,7 +47,7 @@ test("persisted members keep their declared key and table order", () =>
     { exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, name: "boosters", key: "_boosters", type: { kind: "rootRef" }, edit: { persist: true } },
     { exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, name: "baseName", key: "baseName", type: { kind: "wstring" }, edit: { persist: true } }
   ] });
-  const { entries } = ClassInfo.exposeToBlue(Owner).meta;
+  const { entries } = ClassInfo.exposeToBlue(Owner);
   assert.deepEqual([ ...entries.keys() ], [ "boosters", "baseName" ]);
   assert.equal(entries.get("boosters").key, "_boosters");
   assert.equal(entries.get("boosters").type, VARTYPE.IROOTPTR);

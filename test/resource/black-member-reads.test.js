@@ -122,7 +122,7 @@ test("each stored write of a NOTIFY member is reported, and an unmapped Initiali
   CjsSchema.be.define(Notified, { name: "BlackReadsNotified", members: [
     member("value", "uint32", { key: "_value", exposure: { macro: "MAP_ATTRIBUTE", flags: 20 }, edit: { persist: true, notify: true } }), member("quiet", "uint32")
   ] });
-  assert.equal(ClassInfo.exposeToBlue(Notified).meta.isInitialize, false);
+  assert.equal(ClassInfo.exposeToBlue(Notified).isInitialize, false);
   const f = new Fixture();
   const root = readBlack(f.Finish(f.Object(1, "BlackReadsNotified", [ [ "value", u32(7) ], [ "value", u32(7) ], [ "quiet", u32(9) ] ])));
   assert.equal(root.quiet, 9);
@@ -156,7 +156,7 @@ test("a wrapped TriMatrix member fills the instance's own mat4 from the matrix's
   const members = [ { ...member("transform", "mat4"), type: { kind: "mat4", wrapped: "TriMatrix" } }, member("after", "uint32") ];
   CjsSchema.define(Owner, { name: "BlackReadsMatrixOwner", members });
   CjsSchema.define(NullOwner, { name: "BlackReadsMatrixNullOwner", members });
-  const entry = ClassInfo.exposeToBlue(Owner).meta.entries.get("transform");
+  const entry = ClassInfo.exposeToBlue(Owner).entries.get("transform");
   assert.equal(entry.wrapperClass, "TriMatrix");
   assert.equal(entry.wrapperKind, "mat4");
   const file = kind =>
@@ -301,5 +301,5 @@ test("OnModified is called only on a class that maps INotify", () =>
     assert.equal(owner.value, 9);
     assert.deepEqual(owner.notifications, Type === Notified ? [ [ "value", 9 ] ] : []);
   }
-  assert.equal(ClassInfo.exposeToBlue(UnexposedNotify).meta.isNotify, false);
+  assert.equal(ClassInfo.exposeToBlue(UnexposedNotify).isNotify, false);
 });

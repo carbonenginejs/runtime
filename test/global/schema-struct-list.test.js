@@ -45,7 +45,7 @@ test("structList declares a BlueStructureList of its item class", () =>
 
 test("Black reads a structure list with the item class's layout", () =>
 {
-    const entry = ClassInfo.exposeToBlue(StructListOwner).meta.entries.get("records");
+    const entry = ClassInfo.exposeToBlue(StructListOwner).entries.get("records");
     assert.equal(entry.destination, BLACK_DESTINATION.STRUCTURELIST);
     assert.equal(entry.structClass, "StructListRecord");
     assert.equal(entry.structure.size, 24);

@@ -643,7 +643,7 @@ export class YamlReader extends IRootReaderBase
   _ReadMembers(instance)
   {
     // instance->ClassType(), as BlackReader.CreateObject explains.
-    const definition = ClassInfo.exposeToBlue(instance.constructor).meta;
+    const definition = ClassInfo.exposeToBlue(instance.constructor);
     const notify = !definition.isInitialize && definition.isNotify ? instance : null;
     let first = true;
     for (let name = this._ReadMemberName(); name !== null; name = this._ReadMemberName())

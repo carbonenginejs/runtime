@@ -111,24 +111,84 @@ export class ClassInfo
 
   /**
    * Ours, built on first use and cleared when the class or a parent recompiles:
-   * the persisted members as the readers read them, and the interfaces they ask
-   * about. Carbon's readers take the same from the C++ member types and `BlueCastPtr`.
+   * the persisted rows by exposed name, found as `IRootReaderBase::FindEntry`
+   * finds them (IRootReader.cpp:303-319). Null until a reader asks.
    *
-   * @cjs
-   * @type {import("./ClassInfoMeta.js").ClassInfoMeta|null}
+   * @cjs Carbon keeps no such table: FindEntry walks the chain on every lookup.
+   * @type {Map<string, import("./VarEntry.js").VarEntry>|null}
    */
-  _meta = null;
+  _entries = null;
+
+  /** Ours, built with `_entries`: whether instances are IInitialize. Carbon casts each object (BlackReader.cpp:397). */
+  _isInitialize = false;
+
+  /** Ours, built with `_entries`: whether instances are INotify (BlackReader.cpp:420). */
+  _isNotify = false;
+
+  /** Ours, built with `_entries`: whether instances are IBlueObjectProxy (BlackReader.cpp:355). */
+  _isProxy = false;
+
+  /** Ours, built with `_entries`: whether instances are ICustomPersist (IRootReader.cpp:84). */
+  _isCustomPersist = false;
 
   /**
-   * Ours: the readers' record of this class (`ClassInfoMeta`), from the compile's builder.
+   * The persisted rows by exposed name.
    *
    * @cjs
-   * @returns {import("./ClassInfoMeta.js").ClassInfoMeta} The record.
+   * @returns {Map<string, import("./VarEntry.js").VarEntry>} The rows.
    */
-  get meta()
+  get entries()
   {
-    if (this._meta === null) this._meta = ClassInfo.metaBuilder(this);
-    return this._meta;
+    if (this._entries === null) ClassInfo.entriesBuilder(this);
+    return this._entries;
+  }
+
+  /**
+   * Whether instances are IInitialize.
+   *
+   * @cjs
+   * @returns {boolean} True when they are.
+   */
+  get isInitialize()
+  {
+    if (this._entries === null) ClassInfo.entriesBuilder(this);
+    return this._isInitialize;
+  }
+
+  /**
+   * Whether instances are INotify.
+   *
+   * @cjs
+   * @returns {boolean} True when they are.
+   */
+  get isNotify()
+  {
+    if (this._entries === null) ClassInfo.entriesBuilder(this);
+    return this._isNotify;
+  }
+
+  /**
+   * Whether instances are IBlueObjectProxy.
+   *
+   * @cjs
+   * @returns {boolean} True when they are.
+   */
+  get isProxy()
+  {
+    if (this._entries === null) ClassInfo.entriesBuilder(this);
+    return this._isProxy;
+  }
+
+  /**
+   * Whether instances are ICustomPersist.
+   *
+   * @cjs
+   * @returns {boolean} True when they are.
+   */
+  get isCustomPersist()
+  {
+    if (this._entries === null) ClassInfo.entriesBuilder(this);
+    return this._isCustomPersist;
   }
 
   /**
@@ -161,12 +221,12 @@ export class ClassInfo
   static compiler = null;
 
   /**
-   * Ours: the schema's builder for `meta`. Null until the schema loads.
+   * Ours: the schema's builder for `entries` and the four interface answers. Null until the schema loads.
    *
    * @cjs
-   * @type {((ci: ClassInfo) => import("./ClassInfoMeta.js").ClassInfoMeta)|null}
+   * @type {((ci: ClassInfo) => void)|null}
    */
-  static metaBuilder = null;
+  static entriesBuilder = null;
 
   /**
    * `ExposeToBlue()` (BlueExposureMacrosPython.h:20-67): the class's

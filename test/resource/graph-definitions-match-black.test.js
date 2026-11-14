@@ -10,7 +10,7 @@ import { ImportAllDistModules } from "../support/allDistClasses.js";
 await ImportAllDistModules();
 CjsBlueGraph.register(blue.classes);
 
-// What the readers read: each class's ClassInfo record (ClassInfoMeta, of VarEntry rows).
+// What the readers read: each class's ClassInfo record (its persisted VarEntry rows).
 const { ClassInfo } = await import("../../npm/dist/blue/base/ClassInfo.js");
 const { BLACK_DESTINATION } = await import("../../npm/dist/blue/base/VarEntry.js");
 
@@ -50,7 +50,7 @@ test("every persisted member compiles to what the readers' ClassInfo record says
 
   for (const { name, type } of getClassRegistrations())
   {
-    const entries = ClassInfo.exposeToBlue(type).meta.entries;
+    const entries = ClassInfo.exposeToBlue(type).entries;
     const members = CjsGraph.getClassInfo(type).compiled.persistByName;
 
     for (const [ member, entry ] of entries)

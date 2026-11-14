@@ -166,7 +166,7 @@ export class CjsBlackRecordReader extends BlackReader
             throw new IRootReaderException(`Failed to create an instance of ${typeName}`);
         }
 
-        const definition = ClassInfo.exposeToBlue(registration.type).meta;
+        const definition = ClassInfo.exposeToBlue(registration.type);
 
         const record = Object.create(null);
         record[TYPE_FIELD] = typeName;

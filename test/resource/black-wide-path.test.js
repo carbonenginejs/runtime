@@ -18,7 +18,7 @@ test("wpath maps to STDWSTRING and keeps its path meaning", () =>
   // EveSOFData_Blue.cpp:1094 maps m_data.texturePath, a std::wstring.
   const field = CjsSchema.getField(EveSOFDataHullLightSetTexturedPointLight, "texturePath");
   assert.deepEqual(field.type, { kind: "wpath", accepts: [ "TriTextureRes" ] });
-  assert.equal(ClassInfo.exposeToBlue(EveSOFDataHullLightSetTexturedPointLight).meta.entries.get("texturePath").type, VARTYPE.STDWSTRING);
+  assert.equal(ClassInfo.exposeToBlue(EveSOFDataHullLightSetTexturedPointLight).entries.get("texturePath").type, VARTYPE.STDWSTRING);
   assert.equal(declaredMemberType({ kind: "path", accepts: [] }).type, VARTYPE.STDSTRING);
 });
 
