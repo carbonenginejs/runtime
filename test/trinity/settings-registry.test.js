@@ -108,7 +108,7 @@ test("only approved extension names are exempt from Carbon setting-name checks",
 {
   const approved = [ "webgpuMaxBufferSize", "webgpuTextureCompressionBC", "webgpuTextureCompressionBCSliced3D", "webgpuTextureCompressionUnaligned", "webgpuFloat32Filterable", "webgpuTextureFormatsTier2" ];
   const ours = settings.GetNames().filter(name => !settings.FindSetting(name).carbon);
-  assert.deepEqual(ours.slice().sort(), [...approved, "characterTextureQuality", "compressUncompressedTextures", "eveSpacePickingFramework", "postprocessDofCarryForegroundBlur", "webgl2LightAveraging", "webgl2ProgramLinking", "webgpuLightAveraging"].sort());
+  assert.deepEqual(ours.slice().sort(), [...approved, "characterAccessoryMapFallback", "characterTextureQuality","compressUncompressedTextures", "eveSpacePickingFramework", "postprocessDofCarryForegroundBlur", "webgl2LightAveraging", "webgl2ProgramLinking", "webgpuLightAveraging"].sort());
   const webgl2 = settings.FindSetting("webgl2LightAveraging"), webgpu = settings.FindSetting("webgpuLightAveraging");
   assert.equal(webgl2.owner, Tr2PlatformInfo);
   assert.deepEqual(Object.keys(webgl2.enum), [ "OFF", "APPROXIMATION", "WEB_CODEC" ], "each backend offers only its own options");
@@ -125,6 +125,8 @@ test("only approved extension names are exempt from Carbon setting-name checks",
   assert.equal(settings.FindSetting("characterTextureQuality").owner, CjsCharacterTextureRoles);
   assert.equal(settings.FindSetting("characterTextureQuality").applies, meta.setting.CREATE);
   assert.equal(settings.GetValue("characterTextureQuality"), "4k");
+  assert.equal(settings.FindSetting("characterAccessoryMapFallback").owner, CjsCharacterTextureRoles);
+  assert.equal(settings.GetValue("characterAccessoryMapFallback"), true);
   assert.equal(settings.FindSetting("compressUncompressedTextures").applies, meta.setting.LOAD);
   assert.equal(settings.GetValue("compressUncompressedTextures"), false);
   for (const name of approved)
