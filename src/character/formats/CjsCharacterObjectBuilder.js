@@ -2,12 +2,13 @@ import { CjsSchema } from "../../blue/schema/CjsSchema.js";
 import { DictReader } from "../../blue/formats/graph/DictReader.js";
 import { getResourceExtension, normalizeResourcePath } from "#utils/path";
 import { CjsLoadingObject } from "../../blue/resman/CjsLoadingObject.js";
-import { CjsYamlFormat } from "../../resource/formats/yaml/CjsYamlFormat.js";
+import { CjsCharacterYamlFormat } from "../../resource/formats/character/CjsCharacterYamlFormat.js";
 import { CjsYamlReader } from "../../resource/formats/yaml/core/CjsYamlReader.js";
 import { createCharacterYamlTagHandlers, normalizeCharacterYamlValues } from "./yaml.js";
 
 /**
- * Caches one character YAML parse and creates fresh typed records per LoadObject.
+ * Caches one character YAML parse and creates fresh typed records per LoadObject. The file is read through the
+ * character format (`CjsCharacterYamlFormat`) as plain values: tuples as arrays, ints as numbers.
  * Identification is separate from construction, as in the static format route.
  * It does not build characters or acquire any referenced resource. It holds no table of its own: its caller hands it
  * the configuration that declares the files it reads, `{ kinds, sourceLists }` (the parts library's
@@ -40,8 +41,10 @@ export class CjsCharacterObjectBuilder
         this._kind = kind;
         this._path = path;
         this._configuration = configuration;
-        const format = new CjsYamlFormat({
+        const format = new CjsCharacterYamlFormat({
             ...options,
+            preservePythonTags: false,
+            intAsBigInt: false,
             sourceName: path,
             tagPolicy: "handle",
             tagHandlers: createCharacterYamlTagHandlers(configuration.sourceLists),
@@ -124,10 +127,12 @@ export class CjsCharacterObjectBuilder
 
     /**
      * The extensions a configuration's text kinds register under: each kind's own extension (`color`, `type`,
-     * `proj`, ...), and `.yaml` + `ex` for the `.yaml` kinds and the files without an extension.
+     * `proj`, ...), each one the character format reads (`CjsCharacterYamlFormat.extensions`), and `.yaml` + `ex` for
+     * the `.yaml` kinds and the files without an extension.
      * @param {{ kinds: Object<string, object>, getRows: function(): Array<{match: string, kind: string}> }} configuration
      *   The kinds and their path rows (`CjsCharacterLibraryConfiguration`).
      * @returns {string[]} Normalized registration extensions.
+     * @throws {TypeError} For a text kind whose extension the character format does not read.
      */
     static getExtensions(configuration)
     {
@@ -135,7 +140,10 @@ export class CjsCharacterObjectBuilder
         for (const row of configuration.getRows())
         {
             if (configuration.kinds[row.kind].pathOnly) continue;
-            extensions.add(CjsCharacterObjectBuilder.getRouteExtension(row.match.slice(row.match.lastIndexOf("/") + 1)));
+            const extension = CjsCharacterObjectBuilder.getRouteExtension(row.match.slice(row.match.lastIndexOf("/") + 1));
+            if (extension !== "yaml" + CjsCharacterObjectBuilder.ex && !CjsCharacterYamlFormat.extensions.includes("." + extension))
+                throw new TypeError(`The character format reads no .${extension} (${row.kind})`);
+            extensions.add(extension);
         }
         return [ ...extensions ].sort();
     }
@@ -165,8 +173,10 @@ export class CjsCharacterObjectBuilder
     }
 
     /**
-     * Registers the character object builder for every text extension of a configuration on a resMan
-     * (`getExtensions`). Each build asks `kindOf` which configured kind the path is.
+     * Registers the character format on a resMan by its own extensions (`RegisterFormat`), so a caller can read a
+     * character file's values through resMan, and the character object builder for every text extension of a
+     * configuration (`getExtensions`), which LoadObject prefers. Each build asks `kindOf` which configured kind the
+     * path is.
      *
      * Ours (non-carbon-extensions.md § *The shared character library*): the character formats register
      * themselves, as Carbon modules register their own extensions (`BLUE_REGISTER_RESOURCE_EXTENSION`,
@@ -187,6 +197,7 @@ export class CjsCharacterObjectBuilder
             if (!kind) throw new TypeError(`No configured character source for ${path}`);
             return new CjsCharacterObjectBuilder(bytes, kind, path, configuration);
         };
+        resMan.RegisterFormat(CjsCharacterYamlFormat);
         for (const extension of CjsCharacterObjectBuilder.getExtensions(configuration)) resMan.RegisterObjectBuilder(extension, create);
         // LoadObject consults a bare object builder only without an ex (BlueResMan LoadObject), so the .yaml + ex
         // route is an explicit object route over the builder just registered. Its builder answers the object, so

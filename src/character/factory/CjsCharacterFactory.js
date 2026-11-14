@@ -409,8 +409,9 @@ export class CjsCharacterFactory
     };
 
     /**
-     * Registers the recipe reader on a resMan: a `.prs` file builds through `CjsCharacterObjectBuilder` with the
-     * factory's `recipeConfiguration`. `CjsLibrary` calls it beside the parts library's `Initialize`.
+     * Registers the recipe reader on a resMan: a `.prs` file (the extension of `recipeConfiguration.match`) builds
+     * through `CjsCharacterObjectBuilder`, which reads it with the character format, with the factory's
+     * `recipeConfiguration`. `CjsLibrary` calls it beside the parts library's `Initialize`.
      *
      * Ours (non-carbon-extensions.md § *The shared character library*): as the character formats register
      * themselves (`CjsCharacterObjectBuilder.registerObjectBuilders`), after Carbon's modules
@@ -420,7 +421,8 @@ export class CjsCharacterFactory
      */
     static registerObjectBuilders(resMan)
     {
-        resMan.RegisterObjectBuilder("prs", (bytes, context) =>
+        const extension = CjsCharacterObjectBuilder.getRouteExtension(CjsCharacterFactory.recipeConfiguration.match);
+        resMan.RegisterObjectBuilder(extension, (bytes, context) =>
             new CjsCharacterObjectBuilder(bytes, "recipes", normalizeResourcePath(context.path), CjsCharacterFactory.recipeConfiguration));
     }
 
