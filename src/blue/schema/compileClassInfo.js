@@ -14,13 +14,20 @@ import { EDITFLAGS, VARTYPE } from "../../global/consts/blue.js";
 import { CJS_CLASS_NAME } from "../compose/className.js";
 import { baseList, exposureChainTo, mappedInterfaces, ownMappedInterfaces, setExposureChangeListener } from "../compose/interface.js";
 import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
-import { registerClass } from "../exposure/classes/registry.js";
+import { getRegisteredConstructor, registerClass } from "../exposure/classes/registry.js";
 import { ClassInfo } from "../../global/model/graph/ClassInfo.js";
 import { BLACK_DESTINATION, VarEntry } from "../../global/model/graph/VarEntry.js";
 import { blueEnums } from "../enums/CjsBlueEnumRegistry.js";
 
 /** The schema, from `installClassInfoCompile`. @type {typeof import("./CjsSchema.js").CjsSchema} */
 let Schema = null;
+
+/**
+ * Defines a class to the graph from its declarations, from `installGraphDefine`. Null until CjsBlueGraph has
+ * loaded: it reads classes that are themselves compiled here, and defines those when it hands this over.
+ * @type {((Constructor: Function, name: string) => object)|null}
+ */
+let DefineGraphClass = null;
 
 /** Every class compiled so far, for a late change to a base class to reach its subclasses. */
 const COMPILED = new Set();
@@ -371,6 +378,9 @@ export function compileClassInfo(Constructor)
     }
   }
 
+  // The class is declared: the graph holds its definition from here, and again after each recompile.
+  defineGraphClass(Constructor, schema.className);
+
   // The classes chaining to this one see its new rows through parentClassInfo; their own derived state
   // (hidden keys, method tables, persisted members) is rebuilt.
   for (const Child of CHAINED_FROM.get(Constructor) ?? []) if (ClassInfo._byType.get(Child)?.exposed) compileClassInfo(Child);
@@ -378,9 +388,32 @@ export function compileClassInfo(Constructor)
 }
 
 /**
+ * Defines a compiled class to the graph, when it is the class registered under the name. A class whose name
+ * another holds has no registration, and no definition.
+ *
+ * @param {Function} Constructor The class.
+ * @param {string} name Its registered name.
+ */
+function defineGraphClass(Constructor, name)
+{
+  if (DefineGraphClass !== null && getRegisteredConstructor(name) === Constructor) DefineGraphClass(Constructor, name);
+}
+
+/**
+ * Takes the function that defines a class to the graph. CjsBlueGraph calls it once, when it loads.
+ *
+ * @param {(Constructor: Function, name: string) => object} define Defines one class from its declarations.
+ */
+export function installGraphDefine(define)
+{
+  DefineGraphClass = define;
+}
+
+/**
  * Supplies own teardown facts at class registration, independently of graph value registration:
  * the base list, the class's own _Destructor and its declared capabilities. OnDestruct is found by
- * ordinary dispatch. A class with nothing to end gets no record: one that declares no capability,
+ * ordinary dispatch. A class with nothing to end gets no record here (its definition gives the graph one
+ * that ends nothing): one that declares no capability,
  * has no _Destructor of its own, and has no base with a record. A class Blue knows only by its
  * JavaScript parent (no definition, no declared base list) keeps the record it gave the graph itself.
  * @cjs Constructor identities carry native base lists without loading readers or compiling values.

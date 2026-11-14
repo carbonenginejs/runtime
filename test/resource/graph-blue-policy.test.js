@@ -71,8 +71,8 @@ test("a member keeps the class it declares, though that class is defined after i
     held = null;
   }
   CjsSchema.decorateField(GraphPolicyHolder, "held", be.mapAttribute(be.READWRITE | be.PERSIST), type.object.ref("GraphPolicyLate"));
+  // The define declares the class to the graph: nothing else does.
   be.define("GraphPolicyHolder")(GraphPolicyHolder);
-  CjsBlueGraph.define(GraphPolicyHolder, "GraphPolicyHolder");
 
   assert.deepEqual(CjsGraph.getClassInfo(GraphPolicyHolder).compiled.byName.held[0].edgeType, [ "GraphPolicyLate" ]);
 
@@ -87,12 +87,57 @@ test("a member keeps the class it declares, though that class is defined after i
   }
   CjsSchema.decorateField(GraphPolicyLate, "name", be.mapAttribute(be.READWRITE | be.PERSIST), type.string);
   be.define("GraphPolicyLate")(GraphPolicyLate);
-  CjsBlueGraph.define(GraphPolicyLate, "GraphPolicyLate");
 
   assert.throws(() => CjsGraph.get(holder, { full: true }), /not assignable to GraphPolicyLate/);
   holder.held = new GraphPolicyLate();
   holder.held.name = "late";
   assert.equal(CjsGraph.get(holder, { full: true }).held.name, "late");
+});
+
+test("a Map and a member of two classes keep what they declare, and set and diff ask the graph as get does", () =>
+{
+  const { exposure: be, type } = CjsSchema;
+
+  class GraphPolicyBag
+  {
+    byName = new Map();
+    either = null;
+  }
+  CjsSchema.decorateField(GraphPolicyBag, "byName", be.mapAttribute(be.READWRITE | be.PERSIST), type.map("GraphPolicyMapped"));
+  CjsSchema.decorateField(GraphPolicyBag, "either", be.mapAttribute(be.READWRITE | be.PERSIST), type.object.ref([ "Tr2MeshArea", "GraphPolicyMapped" ]));
+  be.define("GraphPolicyBag")(GraphPolicyBag);
+
+  const { byName } = CjsGraph.getClassInfo(GraphPolicyBag).compiled;
+  assert.deepEqual(byName.byName[0].edgeType, [ "GraphPolicyMapped" ]);
+  assert.deepEqual(byName.either[0].edgeType, [ "Tr2MeshArea", "GraphPolicyMapped" ]);
+
+  // The first class a member accepts is defined, and an object of it is held without asking for the second.
+  const bag = new GraphPolicyBag();
+  bag.either = create("Tr2MeshArea");
+  bag.either.name = "area";
+  assert.equal(CjsGraph.get(bag, { full: true, typeTags: true }).either.name, "area");
+  assert.deepEqual(CjsGraph.diff(bag, { either: { name: "other" } }), { either: { name: "other" } });
+
+  // The Map's class is not defined yet: writing one, or asking what a write would change, names it.
+  const mapped = { byName: { a: { name: "a" } } };
+  assert.throws(() => CjsGraph.set(bag, mapped, { skipEvents: true }), /Unknown graph class: GraphPolicyMapped/);
+
+  class GraphPolicyMapped
+  {
+    name = "";
+  }
+  CjsSchema.decorateField(GraphPolicyMapped, "name", be.mapAttribute(be.READWRITE | be.PERSIST), type.string);
+  be.define("GraphPolicyMapped")(GraphPolicyMapped);
+
+  CjsGraph.set(bag, mapped, { skipEvents: true });
+  assert.equal(bag.byName.get("a").constructor, GraphPolicyMapped);
+  assert.equal(bag.byName.get("a").name, "a");
+  assert.equal(CjsGraph.diff(bag, mapped), false);
+
+  // The second accepted class, by its tag.
+  CjsGraph.set(bag, { either: { _type: "GraphPolicyMapped", name: "second" } }, { skipEvents: true });
+  assert.equal(bag.either.constructor, GraphPolicyMapped);
+  assert.equal(CjsGraph.get(bag, { full: true, typeTags: true }).either._type, "GraphPolicyMapped");
 });
 
 test("a mapped interface counts as assignable, and a legacy material sits in an effect member", () =>

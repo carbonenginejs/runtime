@@ -1,6 +1,5 @@
 import { meta, type } from "#schema";
 import { BlueList } from "#blue";
-import { CjsBlueGraph } from "../../blue/formats/graph/CjsBlueGraph.js";
 import { EveMobile } from "../../trinity/eve/spaceObject/EveMobile.js";
 import { TnySpaceObject } from "./TnySpaceObject.js";
 import { TnySlot } from "./TnySlot.js";
@@ -72,5 +71,3 @@ export class TnyMobile extends TnySpaceObject
     static className = "TnyMobile";
 
 }
-
-CjsBlueGraph.define(TnyMobile, "TnyMobile");

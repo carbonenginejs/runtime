@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { carbonChainToDecorator } from "../../src/blue/compose/interface.js";
-import { CjsBlueGraph } from "../../src/blue/formats/graph/index.js";
+import "../../src/blue/index.js";
 import { CjsSchema } from "../../src/blue/schema/CjsSchema.js";
 import { EDITFLAGS } from "../../src/global/consts/blue.js";
 import { CjsGraph, GraphMemberFlags } from "../../src/global/model/graph/index.js";
@@ -33,12 +33,8 @@ CjsSchema.define(Thing, { name: "GraphFlagsThing", members: [
   { name: "mask", key: "mask", type: { kind: "int32", flags: true }, exposure: { macro: "MAP_ATTRIBUTE", flags: 259 }, edit: { read: true, write: true } },
   { name: "live", key: "live", type: { kind: "rootRef", runtimeOnly: true }, exposure: { macro: "MAP_ATTRIBUTE", flags: 16 }, edit: { persist: true } }
 ] });
-// A base is named only when the graph holds its definition, so the bases are defined first.
-CjsBlueGraph.define(Parent, "GraphFlagsParent");
-CjsBlueGraph.define(Face, "GraphFlagsFace");
-CjsBlueGraph.define(Chained, "GraphFlagsChained");
-CjsBlueGraph.define(Thing, "GraphFlagsThing");
 
+// Nothing here defines a class to the graph: each define above did, the bases before the class that names them.
 const { compiled } = CjsGraph.getClassInfo(Thing);
 const flagsOf = name => compiled.byName[name][0].flags;
 

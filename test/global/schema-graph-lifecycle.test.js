@@ -275,10 +275,11 @@ test("capabilities are declared in a definition: IRoot declares once, and the gr
     assert.throws(() => CjsGraph.destruct(new Value()), /CapabilityPlainValue does not declare the destruct capability/);
     assert.doesNotThrow(() => CjsGraph.finalDelete(new Value()));
 
-    // A class with nothing to end has no lifetime record at all.
+    // A class with nothing to end has the record its definition gives the graph, which ends nothing.
     class Inert {}
     CjsSchema.define(Inert, { name: "CapabilityInert" });
-    assert.equal(CjsGraph.hasLifetime(Inert), false);
+    assert.equal(CjsGraph.hasLifetime(Inert), true);
+    assert.doesNotThrow(() => CjsGraph.finalDelete(new Inert()));
     assert.equal(CjsGraph.hasLifetime(Value), true);
     assert.throws(() => CjsGraph.destruct(new Inert()), /does not declare the destruct capability/);
 

@@ -1,5 +1,4 @@
 import { meta } from "#schema";
-import { CjsBlueGraph } from "../../blue/formats/graph/CjsBlueGraph.js";
 import { EveStation2 } from "../../trinity/eve/spaceObject/EveStation2.js";
 import { TnySpaceObject } from "./TnySpaceObject.js";
 
@@ -27,5 +26,3 @@ export class TnyStationary extends TnySpaceObject
     static className = "TnyStationary";
 
 }
-
-CjsBlueGraph.define(TnyStationary, "TnyStationary");

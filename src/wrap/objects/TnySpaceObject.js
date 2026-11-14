@@ -2,7 +2,6 @@ import { CjsSchema, meta, type } from "#schema";
 import { vec4 } from "#math/vec4";
 import { ICjsGraphRoot } from "../../global/model/graph/ICjsGraphRoot.js";
 import { INotify } from "../../blue/exposure/INotify.js";
-import { CjsBlueGraph } from "../../blue/formats/graph/CjsBlueGraph.js";
 import { CjsLibrary } from "../../core/CjsLibrary.js";
 import { EveSpaceObject2 } from "../../trinity/eve/spaceObject/EveSpaceObject2.js";
 import { Tr2ExternalParameter } from "../../trinity/core/binding/Tr2ExternalParameter.js";
@@ -665,5 +664,3 @@ export class TnySpaceObject extends ICjsGraphRoot
     static className = "TnySpaceObject";
 
 }
-
-CjsBlueGraph.define(TnySpaceObject, "TnySpaceObject");

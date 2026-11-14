@@ -1,6 +1,5 @@
 import { CjsSchema, meta, type } from "#schema";
 import { vec3 } from "#math/vec3";
-import { CjsBlueGraph } from "../../blue/formats/graph/CjsBlueGraph.js";
 import { Type } from "../../trinity/controllers/enums.js";
 import { Tr2ActionPlayMeshAnimation } from "../../trinity/controllers/action/Tr2ActionPlayMeshAnimation.js";
 import { EveShip2 } from "../../trinity/eve/spaceObject/EveShip2.js";
@@ -445,5 +444,3 @@ export class TnyShip extends TnyMobile
     static className = "TnyShip";
 
 }
-
-CjsBlueGraph.define(TnyShip, "TnyShip");

@@ -1,11 +1,14 @@
 // Blue's side of the independent graph (global/model/graph), which imports nothing of Blue.
 // Blue supplies its classes, as definitions with their flags as data, and as a class library.
+// A class is defined to the graph when it is declared: the schema's compile calls `define` (bottom of this file).
 // Disconnected: DictReader and DictWriter stay the live path until the one reviewed cutover.
 import * as graph from "../../../global/model/graph/index.js";
 import { ClassInfo } from "../../../global/model/graph/ClassInfo.js";
 import { CjsSchema } from "#schema";
+import { getRegisteredClassName } from "../../compose/className.js";
+import { isTransportedDeclaration } from "../../compose/fieldFlags.js";
 import { baseList, exposureChainTo, mappedInterfaces } from "../../compose/interface.js";
-import { getDeclaredEditFlags } from "../../schema/compileClassInfo.js";
+import { getDeclaredEditFlags, installGraphDefine } from "../../schema/compileClassInfo.js";
 import { ICustomPersist } from "../../exposure/ICustomPersist.js";
 import { IInitialize } from "../../exposure/IInitialize.js";
 import { IList } from "../../exposure/IList.js";
@@ -33,17 +36,12 @@ export class CjsBlueGraph
 {
 
   /**
-   * Defines every registered class that has no definition yet, and adds Blue's class library.
+   * Adds Blue's class library and metadata store to the graph. It defines no class: each is defined when declared.
    * @param {object} classes The class library, normally blue.classes.
    * @returns {void}
    */
   static register(classes)
   {
-    for (const { name, type } of getClassRegistrations())
-    {
-      if (!CjsGraph.isDefined(type)) this.define(type, name);
-    }
-
     CjsGraph.registerLibrary(classes);
     CjsGraph.setMetadataStore(BeObjectMetadata);
   }
@@ -59,11 +57,9 @@ export class CjsBlueGraph
    */
   static define(ctor, name)
   {
-    const { fields, levels } = IRootReaderBase.getDictionaryDeclarations(ctor);
     const mapped = mappedInterfaces(ctor);
-    // The class's own level: what it declares, and what unregistered helper classes below its registered parent do.
-    const own = new Set([ ...levels[0].members, ...levels[0].properties ]);
-    const rows = this._getRows(levels[0]);
+    const fields = this._getOwnDeclarations(ctor);
+    const rows = this._getRows(ctor, fields);
 
     return CjsGraph.define(ctor, {
       name,
@@ -79,7 +75,7 @@ export class CjsBlueGraph
       interfaces: Array.from(mapped, item => CjsSchema.getClassName(item)),
       bases: this._getBases(ctor),
       chainTo: this._getChainTo(ctor),
-      members: fields.filter(field => own.has(field)).map(field =>
+      members: fields.map(field =>
       {
         const member = this._getMember(field);
         const row = rows.get(field);
@@ -90,23 +86,53 @@ export class CjsBlueGraph
   }
 
   /**
-   * The row Blue's member table holds for each of a class's own declarations.
-   * @param {{type: Function, members: object[], properties: object[]}} level The class's own exposure level.
-   * @returns {Map<object, object>} Declaration to row.
+   * A class's own declarations, as the values view selects and orders them (IRootReaderBase.getDictionaryDeclarations):
+   * what it declares and what unregistered helper classes below its registered parent do, stored members before
+   * live properties, each name once, in Carbon's member order where the class has an exposure bag.
+   * Read from the declared schema, which resolves no enum: a class is defined when it is declared, and an enum
+   * its members name may register after it.
+   * @param {Function} ctor The class.
+   * @returns {object[]} Schema declarations.
    */
-  static _getRows(level)
+  static _getOwnDeclarations(ctor)
   {
-    const rows = new Map();
-    const table = ClassInfo.exposeToBlue(level.type).memberTable;
+    const schema = CjsSchema.getDeclaredSchema(ctor);
+    const own = new Set([ ctor ]);
+    for (let helper = Object.getPrototypeOf(ctor); typeof helper === "function" && helper !== Function.prototype && !getRegisteredClassName(helper); helper = Object.getPrototypeOf(helper))
+    {
+      own.add(helper);
+    }
 
-    for (const declarations of [ level.members, level.properties ])
+    const fields = [], names = new Set();
+    for (const declarations of [ schema.members, schema.properties ])
     {
       for (const field of declarations)
       {
-        const key = field.key ?? field.name, index = field.index ?? -1;
-        const row = table.find(each => each.name === field.name && each.key === key && each.index === index);
-        if (row !== undefined) rows.set(field, row);
+        if (!own.has(field.declaringClass) || names.has(field.name) || !isTransportedDeclaration(field)) continue;
+        names.add(field.name);
+        fields.push(field);
       }
+    }
+
+    return CjsSchema.orderByExposureRows(ctor, fields);
+  }
+
+  /**
+   * The row Blue's member table holds for each of a class's own declarations.
+   * @param {Function} ctor The class.
+   * @param {object[]} fields Its own declarations.
+   * @returns {Map<object, object>} Declaration to row.
+   */
+  static _getRows(ctor, fields)
+  {
+    const rows = new Map();
+    const table = ClassInfo.exposeToBlue(ctor).memberTable;
+
+    for (const field of fields)
+    {
+      const key = field.key ?? field.name, index = field.index ?? -1;
+      const row = table.find(each => each.name === field.name && each.key === key && each.index === index);
+      if (row !== undefined) rows.set(field, row);
     }
 
     return rows;
@@ -136,7 +162,7 @@ export class CjsBlueGraph
    */
   static _getLayout(ctor)
   {
-    const schema = CjsSchema.getSchema(ctor);
+    const schema = CjsSchema.getDeclaredSchema(ctor);
     const definition = schema.structureDefinition;
     if (!definition) return null;
 
@@ -206,7 +232,8 @@ export class CjsBlueGraph
   /**
    * The classes a member may hold, the declared one first, as declared: whether each is defined is
    * the graph's question when the member is used, so a class may be defined before the ones it names.
-   * A member that declares no class is dynamic.
+   * A member that declares no class is dynamic; "unknown" is `type.unknown`, the item name of a list
+   * declared to hold anything.
    * @param {object} type Schema type.
    * @returns {string[]} Class names.
    */
@@ -323,4 +350,12 @@ export class CjsBlueGraph
   /** Stable class identity. */
   static className = "CjsBlueGraph";
 
+}
+
+// From here the schema's compile defines each class as it is declared. The classes declared before this module
+// loaded, Blue's own that it imports, are defined now, in the order they registered.
+installGraphDefine((ctor, name) => CjsBlueGraph.define(ctor, name));
+for (const { name, type } of getClassRegistrations())
+{
+  if (!CjsGraph.isDefined(type)) CjsBlueGraph.define(type, name);
 }

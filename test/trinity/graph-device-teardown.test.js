@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { BlueResMan, blue } from "../../npm/dist/blue/index.js";
 import { TriGeometryRes } from "../../npm/dist/trinity/resources/geometry/TriGeometryRes.js";
 import test from "node:test";
-import { CjsGraph } from "../../npm/dist/global/model/graph/index.js";
 import { Tr2Mesh, Tr2InstancedMesh, Tr2Sprite2dLayer, Tr2Sprite2dContainer, Tr2Sprite2dDisplayList, Tr2GpuResourcePool, Tr2LightManager, TriDevice, EveChildLineSet, EveCurveLineSet, EveSpherePin, Tr2ImpostorManager } from "../../npm/dist/trinity/index.js";
 
 for (const Type of [Tr2GpuResourcePool, Tr2LightManager])
@@ -10,7 +9,6 @@ for (const Type of [Tr2GpuResourcePool, Tr2LightManager])
   test(`${Type.name}: unexposed composition dispatches device teardown`, () =>
   {
     const owner = new Type();
-    assert.equal(CjsGraph.isDefined(Type), false, "lifetime must not activate value handling");
     TriDevice.RegisterResource(owner);
     assert.ok(TriDevice.GetResourcesRegistered().includes(owner));
     owner.Destruct();

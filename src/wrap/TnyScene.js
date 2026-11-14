@@ -1,7 +1,6 @@
 import { CjsSchema, meta, type } from "#schema";
 import { ICjsGraphRoot } from "../global/model/graph/ICjsGraphRoot.js";
 import { INotify } from "../blue/exposure/INotify.js";
-import { CjsBlueGraph } from "../blue/formats/graph/CjsBlueGraph.js";
 import { CjsLibrary } from "../core/CjsLibrary.js";
 import { EveSpaceScene } from "../trinity/eve/scene/EveSpaceScene.js";
 import { TnySpaceObject } from "./objects/TnySpaceObject.js";
@@ -365,5 +364,3 @@ export class TnyScene extends ICjsGraphRoot
     static postProcessTemplates = "res:/dx9/postprocess/environmenttemplate/";
 
 }
-
-CjsBlueGraph.define(TnyScene, "TnyScene");

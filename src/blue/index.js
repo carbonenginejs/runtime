@@ -138,6 +138,9 @@ export { GetResources } from "./getResources.js";
 export * from "./interfaces/ITriObserverLocal.js";
 
 import "./values.js";
+// The graph's Blue side: from here a class is defined to the graph as it is declared, and the classes declared
+// before this line, Blue's own, are defined now.
+import "./formats/graph/CjsBlueGraph.js";
 
 // Composition owns the concrete manager dependency. The holder module imports
 // no manager or resource implementation, so resources and MotherLode can use

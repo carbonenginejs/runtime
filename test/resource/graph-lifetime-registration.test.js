@@ -5,7 +5,7 @@ import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { CjsGraph } from "../../npm/dist/global/model/graph/index.js";
 import { CjsBlueGraph } from "../../npm/dist/blue/formats/graph/index.js";
 
-test("Blue declares own destructors without activating graph values or copying a second base's", () =>
+test("Blue declares own destructors with the class's definition, without copying a second base's", () =>
 {
   const calls = [], argument = new Set();
   class Primary { _Destructor(...args) { calls.push([ "primary", args.length ]); } }
@@ -15,12 +15,13 @@ test("Blue declares own destructors without activating graph values or copying a
   CjsSchema.meta.define("LifetimeBridgeSecondary")(Secondary);
   CjsSchema.meta.inherit(Secondary)(Owner);
   CjsSchema.meta.define({ name: "LifetimeBridgeOwner", capabilities: [ "destruct" ] })(Owner);
-  assert.equal(CjsGraph.isDefined(Owner), false);
+  // The define declared the class to the graph, lifetime and members together.
+  assert.equal(CjsGraph.isDefined(Owner), true);
   const object = new Owner();
   CjsGraph.destruct(object, argument);
   assert.deepEqual(calls, [ [ "owner", 0 ], [ "secondary", 0 ], [ "primary", 0 ] ], "a destructor takes no arguments");
+  // Defined again, the class keeps the lifetime it declared.
   CjsBlueGraph.define(Owner, "LifetimeBridgeOwner");
-  assert.equal(CjsGraph.isDefined(Owner), true);
   calls.length = 0;
   assert.equal(CjsGraph.destruct(object, argument), false, "once only");
   CjsGraph.destruct(new Owner(), argument);

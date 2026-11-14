@@ -1,5 +1,4 @@
 import { meta, type } from "#schema";
-import { CjsBlueGraph } from "../../blue/formats/graph/CjsBlueGraph.js";
 import { TnySpaceObjectIdentity } from "./TnySpaceObjectIdentity.js";
 
 /**
@@ -38,5 +37,3 @@ export class TnyShipIdentity extends TnySpaceObjectIdentity
     static className = "TnyShipIdentity";
 
 }
-
-CjsBlueGraph.define(TnyShipIdentity, "TnyShipIdentity");

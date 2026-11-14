@@ -1,6 +1,5 @@
 import { parseEnumValues } from "#utils/text";
 import { CjsSchema, meta } from "#schema";
-import { CjsBlueGraph } from "../blue/formats/graph/CjsBlueGraph.js";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
 import { mat4 } from "#math/mat4";
@@ -774,8 +773,6 @@ export class TnyHangar extends TnyScene
     static scratch = { vec3_0: vec3.create(), quat_0: quat.create() };
 
 }
-
-CjsBlueGraph.define(TnyHangar, "TnyHangar");
 
 /**
  * The first locator of a named set, or null.

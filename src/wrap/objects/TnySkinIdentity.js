@@ -1,5 +1,4 @@
 import { meta, type } from "#schema";
-import { CjsBlueGraph } from "../../blue/formats/graph/CjsBlueGraph.js";
 import { ICjsGraphRoot } from "../../global/model/graph/ICjsGraphRoot.js";
 
 /**
@@ -46,5 +45,3 @@ export class TnySkinIdentity extends ICjsGraphRoot
     static className = "TnySkinIdentity";
 
 }
-
-CjsBlueGraph.define(TnySkinIdentity, "TnySkinIdentity");

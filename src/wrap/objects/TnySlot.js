@@ -2,7 +2,6 @@ import { CjsSchema, meta, type } from "#schema";
 import { ICjsGraphRoot } from "../../global/model/graph/ICjsGraphRoot.js";
 import { INotify } from "../../blue/exposure/INotify.js";
 import { Copier } from "../../blue/exposure/Copier.js";
-import { CjsBlueGraph } from "../../blue/formats/graph/CjsBlueGraph.js";
 import { blue } from "../../blue/index.js";
 import { CjsLibrary } from "../../core/CjsLibrary.js";
 import { EveTurretSet } from "../../trinity/eve/attachment/turrets/EveTurretSet.js";
@@ -372,5 +371,3 @@ export class TnySlot extends ICjsGraphRoot
     static className = "TnySlot";
 
 }
-
-CjsBlueGraph.define(TnySlot, "TnySlot");

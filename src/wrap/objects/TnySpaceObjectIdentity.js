@@ -1,5 +1,4 @@
 import { meta, type } from "#schema";
-import { CjsBlueGraph } from "../../blue/formats/graph/CjsBlueGraph.js";
 import { ICjsGraphRoot } from "../../global/model/graph/ICjsGraphRoot.js";
 
 /**
@@ -83,5 +82,3 @@ export class TnySpaceObjectIdentity extends ICjsGraphRoot
     static className = "TnySpaceObjectIdentity";
 
 }
-
-CjsBlueGraph.define(TnySpaceObjectIdentity, "TnySpaceObjectIdentity");
