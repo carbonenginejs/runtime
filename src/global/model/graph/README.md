@@ -7,9 +7,10 @@ CjsGraph.define(Constructor, definition) registers a stable name and the class's
 member declarations. Each member compiles once to one flat object: a `GRAPH_TYPES` entry's data,
 then name, flags, edge and a slot for anything rare. Every walk, reader and writer reads that one
 shape. The class's `ClassInfo` retains the compiled members and the class's facts in `declared`, among them
-`bases`, its C++ base list, and `chainTo`, the class its exposure table continues into; `compiled` holds only
-what the chain flattens to: the members, `byName`, and `memberNames` and `notifyNames` (each name once, member
-order, for notification). A fact is stored once, and a lookup is stored only where a measured benefit shows.
+`bases`, its C++ base list, and `chainTo`, the class its exposure table continues into; `compiled` holds the
+rows the chain flattens to, and the table each kind of operation reads (its rows and those rows by name), built
+when first asked. A fact is stored once, and a lookup only where a measured benefit shows: those tables make
+get, set and diff about twice as fast, and a map of every row by name made none faster.
 Member lookup walks `chainTo`, as Carbon's walks `mParentClassInfo`; the prototype chain is the bases. Default values are not cloned or instantiated, and must not later be assigned as shared
 mutable instance storage.
 
@@ -37,8 +38,7 @@ date; a new class changes no other class's record. A base given by a name must b
 snapshot may be mutated (immutability.md: nothing but enums is frozen). Replacing a definition retains class-info identity.
 
 Compiled members preserve derived-first order, including same-name alternatives.
-`byName[name]` contains those alternatives in that order. Filtering by flags must
-precede choosing one: Carbon's HIDDEN derived member can leave a base member visible.
+Filtering by flags must precede choosing one: Carbon's HIDDEN derived member can leave a base member visible.
 No Blue flags are interpreted by the compiler itself.
 
 Registration snapshots member containers and validates names before

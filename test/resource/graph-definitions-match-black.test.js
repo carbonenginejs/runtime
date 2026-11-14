@@ -101,7 +101,7 @@ test("a class defines its own rows only, and the chain walk gives the readers' f
     }
 
     // Each name once, the nearest class first: what the readers' own selection gives, in its order.
-    const names = info.compiled.memberNames;
+    const names = [ ...new Set(info.compiled.members.map(member => member.name)) ];
     const want = IRootReaderBase.getDictionaryDeclarations(type).fields.map(field => field.name);
     inherited += names.length - new Set(info.declared.members.map(row => row.name)).size;
     if (names.join() !== want.join()) differences.push(`${name}: ${names.join()} / ${want.join()}`);
@@ -128,9 +128,9 @@ test("a name a class declares again is answered by its own row in every table, o
   {
     const info = CjsGraph.getClassInfo(type);
 
-    for (const member of info.compiled.memberNames)
+    for (const member of new Set(info.compiled.members.map(row => row.name)))
     {
-      const candidates = info.compiled.byName[member];
+      const candidates = info.compiled.members.filter(row => row.name === member);
       if (candidates.length < 2) continue;
       shadowed++;
 

@@ -1,8 +1,11 @@
 import { EDITFLAGS } from "../../src/global/consts/blue.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsGraph, ClassInfo, CjsGraphTypeFloat, VARTYPE } from "../../src/global/model/graph/index.js";
+import { CjsGraph, ClassInfo, CjsGraphTypeFloat, GraphOperation, VARTYPE } from "../../src/global/model/graph/index.js";
 import { VarEntry } from "../../src/global/model/graph/VarEntry.js";
+
+/** Each member name once, the nearest class's first: the order a class's values are listed in. */
+const namesOf = info => [ ...new Set(info.compiled.members.map(member => member.name)) ];
 
 
 test("source declarations and compiled members share one stable class record", () =>
@@ -20,15 +23,15 @@ test("source declarations and compiled members share one stable class record", (
   assert.equal(info.constructor, ClassInfo);
   // The record is whole when define returns: nothing is built on a later ask.
   const built = info.compiled;
-  assert.deepEqual(built.memberNames, [ "value" ]);
+  assert.deepEqual(built.members.map(member => member.name), [ "value" ]);
   assert.equal(info.declared.members[0].key, "storedValue");
 
   declaration.members[0].key = "changedExternally";
   const resolved = CjsGraph.getClassInfo("GraphInfoExample");
   assert.equal(resolved, info);
-  assert.equal(resolved.compiled.byName.value[0].key, "storedValue");
-  assert.equal(resolved.compiled.byName.value[0].handler.constructor, CjsGraphTypeFloat);
-  assert.deepEqual(resolved.compiled.byName.value[0].options, { flags: 7 });
+  assert.equal(CjsGraph._FindEntry(resolved, "value").key, "storedValue");
+  assert.equal(CjsGraph._FindEntry(resolved, "value").handler.constructor, CjsGraphTypeFloat);
+  assert.deepEqual(CjsGraph._FindEntry(resolved, "value").options, { flags: 7 });
   assert.equal(CjsGraph.getClassInfo(Example).compiled, built);
   assert.equal(constructions, 0);
   assert.equal(reads, 0);
@@ -47,9 +50,10 @@ test("compilation preserves derived precedence and authored member order", () =>
   ] });
   const compiled = CjsGraph.getClassInfo(Derived).compiled;
   assert.deepEqual(compiled.members.map(member => member.name), ["own", "shared", "shared", "baseOnly"]);
-  assert.equal(compiled.byName.shared[0].key, "derivedValue");
-  assert.equal(compiled.byName.shared[0].owner, info);
-  assert.equal(compiled.byName.baseOnly[0].owner, CjsGraph.getClassInfo(Base));
+  assert.equal(CjsGraph._FindEntry(info, "shared").key, "derivedValue");
+  assert.equal(CjsGraph._FindEntry(info, "shared").owner, info);
+  assert.equal(CjsGraph._FindEntry(info, "baseOnly").owner, CjsGraph.getClassInfo(Base));
+  assert.equal(CjsGraph._FindEntry(info, "missing"), undefined);
   assert.equal(info.declared.members.length, 2);
 });
 
@@ -69,19 +73,19 @@ test("a class defined again, or a parent that arrives late, rebuilds the classes
   CjsGraph.define(Parent, { name: "GraphLateParent", members: [{ name: "parent", type: "float32" }] });
   assert.notEqual(info.compiled, first);
   assert.deepEqual(info.compiled.members.map(member => member.name), ["child", "parent"]);
-  assert.deepEqual(grand.compiled.memberNames, ["grand", "child", "parent"]);
+  assert.deepEqual(namesOf(grand), ["grand", "child", "parent"]);
   assert.equal(unrelated.compiled, other);
 
   // Defined again: the classes built from its rows are built again, through every level.
   CjsGraph.define(Parent, { name: "GraphLateParent", members: [{ name: "replaced", type: "float32" }] });
-  assert.deepEqual(grand.compiled.memberNames, ["grand", "child", "replaced"]);
+  assert.deepEqual(namesOf(grand), ["grand", "child", "replaced"]);
   assert.equal(unrelated.compiled, other);
 
   assert.equal(CjsGraph.define(Child, { name: "GraphRenamedChild", chainTo: "GraphLateParent", members: [{ name: "replacement", type: "float32" }] }), info);
   assert.throws(() => CjsGraph.getClassInfo("GraphLateChild"), TypeError);
   assert.deepEqual(CjsGraph.getClassInfo(Child).compiled.members.map(member => member.name), ["replacement", "replaced"]);
   // The grandchild's chain names the old name, which nothing holds now: it ends there.
-  assert.deepEqual(grand.compiled.memberNames, ["grand"]);
+  assert.deepEqual(namesOf(grand), ["grand"]);
 });
 
 test("failed registration does not mutate published definitions", () =>
@@ -115,15 +119,19 @@ test("untyped members share the throwing Invalid handler until explicitly define
   assert.equal(info.compiled.members[0].handler.constructor, CjsGraphTypeFloat);
 });
 
-test("compiled lookup accepts object-prototype names without collision", () =>
+test("a member lookup accepts object-prototype names without collision", () =>
 {
   class Names {}
   CjsGraph.define(Names, { name: "GraphSpecialNames", members: [
     { name: "__proto__", type: "float32" }, { name: "constructor", type: "float32" }
   ] });
-  const compiled = CjsGraph.getClassInfo(Names).compiled;
-  assert.equal(compiled.byName.__proto__[0].name, "__proto__");
-  assert.equal(compiled.byName.constructor[0].name, "constructor");
+  const info = CjsGraph.getClassInfo(Names);
+  assert.equal(CjsGraph._FindEntry(info, "__proto__").name, "__proto__");
+  assert.equal(CjsGraph._FindEntry(info, "constructor").name, "constructor");
+  assert.equal(CjsGraph._FindEntry(info, "toString"), undefined);
+  // The per-operation tables are keyed by name with no prototype behind them.
+  assert.equal(CjsGraph._getMemberTable(info, GraphOperation.SET, {}).byName.toString, undefined);
+  assert.equal(CjsGraph._getMemberTable(info, GraphOperation.SET, {}).byName.constructor.name, "constructor");
 });
 
 test("Blue and graph use the single Carbon VARTYPE enum", () =>
@@ -140,7 +148,7 @@ test("policy can skip a hidden derived candidate without losing the visible base
   class Hidden extends Visible {}
   CjsGraph.define(Visible, { name: "GraphVisibleBase", members: [{ name: "x", key: "base", type: "float32" }] });
   CjsGraph.define(Hidden, { name: "GraphHiddenDerived", chainTo: "GraphVisibleBase", members: [{ name: "x", key: "derived", type: "float32", flags: EDITFLAGS.HIDDEN }] });
-  const candidates = CjsGraph.getClassInfo(Hidden).compiled.byName.x;
+  const candidates = CjsGraph.getClassInfo(Hidden).compiled.members.filter(member => member.name === "x");
   assert.deepEqual(candidates.map(member => member.key), ["derived", "base"]);
   assert.equal(candidates.find(member => (member.flags & EDITFLAGS.HIDDEN) === 0).key, "base");
 });
@@ -166,5 +174,5 @@ test("a definition that throws leaves the rows handed in as they were", () =>
   same();
 
   assert.equal(info.declared.members[0], row);
-  assert.equal(info.compiled.byName.value[0].kind, "float32");
+  assert.equal(CjsGraph._FindEntry(info, "value").kind, "float32");
 });

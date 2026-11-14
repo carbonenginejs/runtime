@@ -74,7 +74,7 @@ test("a member keeps the class it declares, though that class is defined after i
   // The define declares the class to the graph: nothing else does.
   be.define("GraphPolicyHolder")(GraphPolicyHolder);
 
-  assert.deepEqual(CjsGraph.getClassInfo(GraphPolicyHolder).compiled.byName.held[0].edgeType, [ "GraphPolicyLate" ]);
+  assert.deepEqual(CjsGraph._FindEntry(CjsGraph.getClassInfo(GraphPolicyHolder), "held").edgeType, [ "GraphPolicyLate" ]);
 
   // A class nothing defines is not answered by "any object": the member refuses what it is given.
   const holder = new GraphPolicyHolder();
@@ -107,9 +107,9 @@ test("a Map and a member of two classes keep what they declare, and set and diff
   CjsSchema.decorateField(GraphPolicyBag, "either", be.mapAttribute(be.READWRITE | be.PERSIST), type.object.ref([ "Tr2MeshArea", "GraphPolicyMapped" ]));
   be.define("GraphPolicyBag")(GraphPolicyBag);
 
-  const { byName } = CjsGraph.getClassInfo(GraphPolicyBag).compiled;
-  assert.deepEqual(byName.byName[0].edgeType, [ "GraphPolicyMapped" ]);
-  assert.deepEqual(byName.either[0].edgeType, [ "Tr2MeshArea", "GraphPolicyMapped" ]);
+  const info = CjsGraph.getClassInfo(GraphPolicyBag);
+  assert.deepEqual(CjsGraph._FindEntry(info, "byName").edgeType, [ "GraphPolicyMapped" ]);
+  assert.deepEqual(CjsGraph._FindEntry(info, "either").edgeType, [ "Tr2MeshArea", "GraphPolicyMapped" ]);
 
   // The first class a member accepts is defined, and an object of it is held without asking for the second.
   const bag = new GraphPolicyBag();

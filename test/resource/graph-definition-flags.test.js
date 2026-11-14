@@ -35,8 +35,8 @@ CjsSchema.define(Thing, { name: "GraphFlagsThing", members: [
 ] });
 
 // Nothing here defines a class to the graph: each define above did, the bases before the class that names them.
-const { compiled } = CjsGraph.getClassInfo(Thing);
-const flagsOf = name => compiled.byName[name][0].flags;
+const info = CjsGraph.getClassInfo(Thing);
+const flagsOf = name => CjsGraph._FindEntry(info, name).flags;
 
 test("a member's flags are Carbon's EDITFLAGS, with the bits that are ours above EDMASK", () =>
 {

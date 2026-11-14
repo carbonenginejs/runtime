@@ -759,7 +759,7 @@ export class CjsGraph
     {
       for (let i = 0; i < list.length; i++)
       {
-        if (!info.compiled.byName[list[i]]) throw new TypeError(`Unknown graph member: ${info.declared.name}.${list[i]}`);
+        if (!this._FindEntry(info, list[i])) throw new TypeError(`Unknown graph member: ${info.declared.name}.${list[i]}`);
       }
     }
 
@@ -794,7 +794,7 @@ export class CjsGraph
 
       if (!member)
       {
-        if (this._reserved.has(name) || info.compiled.byName[name] || info.declared.ownValues === true) continue;
+        if (this._reserved.has(name) || this._FindEntry(info, name) || info.declared.ownValues === true) continue;
         throw new TypeError(`Unknown graph member: ${info.declared.name}.${name}`);
       }
 
@@ -1085,7 +1085,7 @@ export class CjsGraph
 
       if (!member)
       {
-        if (this._reserved.has(name) || info.compiled.byName[name]) continue;
+        if (this._reserved.has(name) || this._FindEntry(info, name)) continue;
         if (info.declared.ownValues === true) return object.IsOwnValues(value);
         return false;
       }
@@ -1305,7 +1305,7 @@ export class CjsGraph
 
       if (!member)
       {
-        if (this._reserved.has(name) || info.compiled.byName[name] || info.declared.ownValues === true) continue;
+        if (this._reserved.has(name) || this._FindEntry(info, name) || info.declared.ownValues === true) continue;
         throw new TypeError(`Unknown graph member: ${info.declared.name}.${name}`);
       }
 
@@ -1394,27 +1394,37 @@ export class CjsGraph
   {
     if (!info.declared.notify) return;
 
-    const { byName, memberNames, notifyNames } = info.compiled;
+    const { members } = info.compiled;
 
-    if (names === null)
+    for (let i = 0; i < members.length; i++)
     {
-      for (let i = 0; i < notifyNames.length; i++) object.OnModified(notifyNames[i]);
-      return;
+      const member = members[i];
+      if (!all && (member.flags & EDITFLAGS.NOTIFY) === 0) continue;
+      if (names !== null && names.indexOf(member.name) === -1) continue;
+      // The nearest class's row answers for its name, as lookups do: one it shadows tells nothing.
+      if (this._FindEntry(info, member.name) === member) object.OnModified(member.name);
+    }
+  }
+
+  /**
+   * The row a name finds: the class's own, else the nearest along its exposure chain; undefined for no member.
+   * Modelled on: IRootReaderBase::FindEntry (blue/src/IRootReader.cpp:303-319), without its PERSIST test.
+   * @cjs A scan of the rows, as Carbon's is. A map by name was measured against it and bought nothing: the
+   * value operations read the per-operation tables.
+   * @param {ClassInfo} info The class.
+   * @param {string} name A member name.
+   * @returns {VarEntry|undefined} The row.
+   */
+  static _FindEntry(info, name)
+  {
+    const { members } = info.compiled;
+
+    for (let i = 0; i < members.length; i++)
+    {
+      if (members[i].name === name) return members[i];
     }
 
-    // Carbon only ever tells one member: straight to it, no walk.
-    if (names.length === 1)
-    {
-      const candidates = byName[names[0]];
-      if (candidates && (all || (candidates[0].flags & EDITFLAGS.NOTIFY) !== 0)) object.OnModified(names[0]);
-      return;
-    }
-
-    const order = all ? memberNames : notifyNames;
-    for (let i = 0; i < order.length; i++)
-    {
-      if (names.indexOf(order[i]) !== -1) object.OnModified(order[i]);
-    }
+    return undefined;
   }
 
   /** Notes where a record holds live objects, for _recordReferences. @cjs idMap only. */
@@ -2085,34 +2095,20 @@ export class CjsGraph
   static _compile(info)
   {
     const members = [];
-    const byName = Object.create(null);
 
-    // Preserve candidates in derived-first order. Flags filter BEFORE resolving a name;
-    // e.g. a runtime-only derived declaration must not erase a visible base declaration.
+    // Every row in derived-first order, a name as often as the chain declares it. Flags filter BEFORE
+    // resolving a name; e.g. a runtime-only derived declaration must not erase a visible base declaration.
     // Carbon's FindEntry walks mParentClassInfo, which only EXPOSURE_CHAINTO sets: the declared chainTo,
     // never the prototype chain, which is the class's bases.
     for (const owner of this._GetExposureChain(info))
     {
-      for (const member of owner.declared.members)
-      {
-        // The row itself, never a copy: every table lists the same objects.
-        if (!Object.hasOwn(byName, member.name)) byName[member.name] = [];
-        byName[member.name].push(member);
-        members.push(member);
-      }
-    }
-
-    // Each name once, in member-table order; the first candidate decides NOTIFY, as lookups do.
-    const memberNames = [], notifyNames = [];
-    for (const member of members)
-    {
-      if (byName[member.name][0] !== member) continue;
-      memberNames.push(member.name);
-      if ((member.flags & EDITFLAGS.NOTIFY) !== 0) notifyNames.push(member.name);
+      // The row itself, never a copy: every table lists the same objects.
+      for (const member of owner.declared.members) members.push(member);
     }
 
     // The class's own facts (its name, bases, chain, interfaces and what its instances take) are in `declared`, once.
-    return { members, byName, memberNames, notifyNames, tables: [], defaults: null, ui: null };
+    // Stored beside the rows: only the per-operation tables, which measure about twice as fast as deriving them.
+    return { members, tables: [], defaults: null, ui: null };
   }
 
   /** Stable class identity. */

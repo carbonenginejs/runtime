@@ -18,7 +18,7 @@ test("every registered class is defined when its module loads, with every row it
     if (!CjsGraph.isDefined(type)) { missing.push(name); continue; }
 
     // A definition lists its class's own rows; a chain parent the graph has no definition for adds none.
-    const names = CjsGraph.getClassInfo(type).compiled.memberNames;
+    const names = [ ...new Set(CjsGraph.getClassInfo(type).compiled.members.map(member => member.name)) ];
     const want = IRootReaderBase.getDictionaryDeclarations(type).fields.map(field => field.name);
     if (names.join() !== want.join()) differences.push(`${name}: ${names.join()} / ${want.join()}`);
   }

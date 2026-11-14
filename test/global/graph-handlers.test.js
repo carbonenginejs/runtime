@@ -166,14 +166,14 @@ test("a name's rows are listed derived first, and a class's facts stay in its de
       { name: "skipped", type: "float32", flags: GraphMemberFlags.RUNTIMEONLY }
     ] });
 
-  const { compiled, declared } = CjsGraph.getClassInfo(Derived);
-  assert.deepEqual(compiled.byName.shared.map(member => member.key), [ "derived", "base" ]);
-  assert.equal(compiled.byName.quiet[0].flags, EDITFLAGS.READWRITE);
-  assert.equal(compiled.byName.skipped[0].flags, GraphMemberFlags.RUNTIMEONLY);
+  const info = CjsGraph.getClassInfo(Derived), { compiled, declared } = info;
+  assert.deepEqual(compiled.members.filter(member => member.name === "shared").map(member => member.key), [ "derived", "base" ]);
+  assert.equal(CjsGraph._FindEntry(info, "quiet").flags, EDITFLAGS.READWRITE);
+  assert.equal(CjsGraph._FindEntry(info, "skipped").flags, GraphMemberFlags.RUNTIMEONLY);
   assert.deepEqual([ declared.proxy, declared.customPersist, declared.list, declared.abstract ], [ true, true, true, true ]);
   assert.equal(declared.layout.size, 4);
   assert.equal(declared.name, "PersistDerived");
-  assert.deepEqual(Object.keys(compiled).sort(), [ "byName", "defaults", "memberNames", "members", "notifyNames", "tables", "ui" ], "no fact is copied out of the declaration");
+  assert.deepEqual(Object.keys(compiled).sort(), [ "defaults", "members", "tables", "ui" ], "the rows, and what is built from them when asked");
 });
 
 test("Set refuses NaN and Infinity in every number and array type, and there is no way past", () =>
