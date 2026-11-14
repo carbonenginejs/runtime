@@ -16,7 +16,7 @@
 // (`TRINITY_AL_PLATFORM_INCLUDE`, `Tr2VertexLayoutAL.cpp:5`): we ship every
 // backend at once, so the context that knows its backend is the factory
 // (`CreateVertexLayout(definition, true)`).
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -156,5 +156,4 @@ export class Tr2VertexLayoutAL
   }
 }
 
-CjsSchema.decorateField(Tr2VertexLayoutAL, "_layout", type.rawStruct("TrinityALImpl::Tr2VertexLayoutAL"));
 CjsSchema.meta.carbon("Tr2VertexLayoutAL")(Tr2VertexLayoutAL);

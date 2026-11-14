@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/Tr2HalHelperStructures.h:27-48
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 //
 // ONE FOLDER PER DONOR HEADER - see the sibling files for why.
 //
@@ -61,10 +61,4 @@ export class Tr2Viewport
   }
 }
 
-CjsSchema.decorateField(Tr2Viewport, "x", type.float32);
-CjsSchema.decorateField(Tr2Viewport, "y", type.float32);
-CjsSchema.decorateField(Tr2Viewport, "width", type.float32);
-CjsSchema.decorateField(Tr2Viewport, "height", type.float32);
-CjsSchema.decorateField(Tr2Viewport, "minZ", type.float32);
-CjsSchema.decorateField(Tr2Viewport, "maxZ", type.float32);
 CjsSchema.meta.carbon("Tr2Viewport")(Tr2Viewport);

@@ -13,7 +13,7 @@
 // (`TRINITY_AL_PLATFORM_INCLUDE`, `Tr2ShaderProgramAL.cpp:5`): we ship every
 // backend at once, so the context that knows its backend is the factory
 // (`CreateShaderProgram(shaders, count, true)`).
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -209,5 +209,4 @@ export class Tr2ShaderProgramAL
   }
 }
 
-CjsSchema.decorateField(Tr2ShaderProgramAL, "_program", type.rawStruct("TrinityALImpl::Tr2ShaderProgramAL"));
 CjsSchema.meta.carbon("Tr2ShaderProgramAL")(Tr2ShaderProgramAL);

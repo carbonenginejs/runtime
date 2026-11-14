@@ -14,7 +14,7 @@
 // there with `E_FAIL`, as Carbon's backends refuse a query the device cannot
 // make (`Tr2GpuTimerALMetal.mm:48-51`), and the value stays on the null
 // implementation.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -202,5 +202,4 @@ export class Tr2OcclusionQueryAL
   }
 }
 
-CjsSchema.decorateField(Tr2OcclusionQueryAL, "_query", type.rawStruct("TrinityALImpl::Tr2OcclusionQueryAL"));
 CjsSchema.meta.carbon("Tr2OcclusionQueryAL")(Tr2OcclusionQueryAL);

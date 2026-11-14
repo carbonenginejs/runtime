@@ -3,7 +3,7 @@ import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 import { Tr2SamplerStateAL } from "../Tr2SamplerStateAL/index.js";
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:44-127
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:152-543
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { MAX_RESOURCES_IN_STAGE, Tr2RegisterMapAL } from "./Tr2RegisterMapAL.js";
 
 // Hash identities for the native invalid buffer and texture implementations
@@ -403,10 +403,6 @@ function sameValue(left, right)
   return (left ? left.TrinityALImpl_GetObject() : null) === (right ? right.TrinityALImpl_GetObject() : null);
 }
 
-CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "_registerMap", type.rawStruct("Tr2RegisterMapAL"));
-CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "_srv", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Resource" }));
-CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "_uav", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Resource" }));
-CjsSchema.decorateField(Tr2ResourceSetDescriptionAL, "_samplers", type.array({ kind: "rawStruct", className: "Tr2ResourceSetDescriptionAL::Sampler" }));
 CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetSrv__BufferAL");
 CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetSrv__TextureAL");
 CjsSchema.decorateMethod(Tr2ResourceSetDescriptionAL, "SetUav__BufferAL");

@@ -18,7 +18,7 @@
 //
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on
 // `CjsWebgpuShaderAL`: Carbon's impl class carries public state.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Tr2ConstantUsageAL } from "#trinityal";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -248,7 +248,6 @@ export class CjsWebgpuConstantBufferAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(CjsWebgpuConstantBufferAL, "_size", type.uint32);
 // Donor: metal/Tr2ConstantBufferALMetal.mm. Create keeps a 256-aligned shadow copy and an id, and copies at most the shadow's length of initialData. Lock returns { result, data } and E_FAIL (Metal E_INVALIDCALL). Unlock does not check validity. Describe writes memoryClass and size, not type, size and name. SetName does not store the name.
 CjsSchema.decorateMethod(CjsWebgpuConstantBufferAL, "SetConstants");
 CjsSchema.meta.define("CjsWebgpuConstantBufferAL")(CjsWebgpuConstantBufferAL);

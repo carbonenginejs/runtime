@@ -19,7 +19,7 @@
 //   The stub is not a memory model: the map path is what carries data. A caller
 //   that needs the write to land must map for writing.
 
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -345,8 +345,6 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(Tr2BufferALStub, "_desc", type.rawStruct("Tr2BufferDescriptionAL"));
-CjsSchema.decorateField(Tr2BufferALStub, "_buffer", type.uint8Array);
 // States against stub/Tr2BufferALStub.cpp:22-171 and .h:21-24. The three Map methods are adapted: the pointer out-parameter comes back with the result as { result, data }, and the ranged read returns the sub-range where Carbon returns the start of the whole buffer.
 CjsSchema.meta.define("Tr2BufferALStub")(Tr2BufferALStub);
 CjsSchema.meta.exposureChainTo(Tr2DeviceResourceAL)(Tr2BufferALStub);

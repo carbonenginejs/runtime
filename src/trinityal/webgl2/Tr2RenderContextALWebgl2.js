@@ -59,7 +59,7 @@ import { Tr2PipelineStatsQueryALWebgl2 } from "./Tr2PipelineStatsQueryALWebgl2.j
 // indirect draws and compute refuse; the coverage-discard mode is kept but no
 // shader reads it yet.
 
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { CompareFunc, CullMode, FillMode, HasFlag, PixelFormat, RenderState, ShaderType, Topology, Tr2CpuUsage, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { float32FromBits } from "#utils/bytes";
 import { ALResult, Failed } from "../ALResult.js";
@@ -2906,10 +2906,6 @@ export class Tr2RenderContextALWebgl2
   }
 }
 
-CjsSchema.decorateField(Tr2RenderContextALWebgl2, "_isValid", type.boolean);
-CjsSchema.decorateField(Tr2RenderContextALWebgl2, "_readOnlyDepth", type.boolean);
-CjsSchema.decorateField(Tr2RenderContextALWebgl2, "_srgbWrite", type.boolean);
-CjsSchema.decorateField(Tr2RenderContextALWebgl2, "_isDepthReadOnly", type.boolean);
 // States against dx11/Tr2RenderContextDx11.cpp and Tr2PrimaryRenderContextDx11.cpp (stub/Tr2RenderContextStub.cpp:325 for GetTotalVideoMemory, dx12/Tr2RenderContextDx12.h:159 for DestroyMainThreadRenderContext, metal/Tr2RenderContextMetal.h:230 for GetPresentParamaters, which only metal declares). Implemented: the dx11 checks, return codes and bookkeeping on the GL context. Adapted: IsValid (also fails on a lost GL context), BeginScene, GetBackBufferFormat (UNKNOWN before the back buffer exists), SetRenderTarget (slot first, as every AL port here), the out-parameter getters, and the calls whose binding the GL context defers to the draw (SetStreamSource, SetIndices__Stride, SetResourceSet), SetRenderStatesImpl (an array, not a pair pointer and count), the draw calls (no CCP_STATS counters), RenderPassHint and EndRenderPassHint (metal-only; GL has no render-pass object), EnableUpscaling (accepts any technique), ReleaseDeviceResources (dx11 does nothing) and Destroy. NotSupported: WebGL2 has no compute shaders or UAVs (ClearUav, RunComputeShader, RunComputeShaderIndirect) and no NVIDIA Aftermath (GetGpuStateMarker, GetGpuPageFaultResource, AddGpuMarker).
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "CreateDevice");
 CjsSchema.decorateMethod(Tr2RenderContextALWebgl2, "SetPresentParameters");

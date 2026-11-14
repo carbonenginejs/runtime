@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/Tr2HalHelperStructures.h
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 // Source: trinity/trinityal/Tr2HalHelperStructures.cpp
 //
 // ONE FOLDER PER DONOR HEADER. Carbon declares six types in this header, and a
@@ -404,11 +404,6 @@ export function Crop(sourceSR, sourceBD, destSR, destBD)
   return sourceSR.IsValid() && destSR.IsValid();
 }
 
-CjsSchema.decorateField(Tr2TextureSubresource, "startFace", type.uint32);
-CjsSchema.decorateField(Tr2TextureSubresource, "endFace", type.uint32);
-CjsSchema.decorateField(Tr2TextureSubresource, "startMipLevel", type.uint32);
-CjsSchema.decorateField(Tr2TextureSubresource, "endMipLevel", type.uint32);
-CjsSchema.decorateField(Tr2TextureSubresource, "box", type.rawStruct("Tr2TextureCoordBox"));
 // States: each method is Tr2HalHelperStructures.h:58-69, 96-123 and Tr2HalHelperStructures.cpp:57-216 statement for statement.
 // Unsigned wraparound on degenerate input (a mip width of zero, an inverted box) is not reproduced. SetRect is the four-argument overload.
 CjsSchema.meta.carbon("Tr2TextureSubresource")(Tr2TextureSubresource);

@@ -732,11 +732,6 @@ export function CopyRegion(region)
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(Tr2TextureALStub, "_desc", type.rawStruct("Tr2BitmapDimensions"));
-CjsSchema.decorateField(Tr2TextureALStub, "_msaa", type.rawStruct("Tr2MsaaDesc"));
-CjsSchema.decorateField(Tr2TextureALStub, "_gpuUsage", type.int32);
-CjsSchema.decorateField(Tr2TextureALStub, "_cpuUsage", type.int32);
-CjsSchema.decorateField(Tr2TextureALStub, "_data", type.uint8Array);
 // States against stub/Tr2TextureALStub.cpp:45-345 (Tr2ReadbackAL 11-44). Create is adapted: it keeps the caller's description and MSAA objects where Carbon copies them by value. MapForReading and MapForWriting are adapted: the pointer and pitch out-parameters come back with the result as { result, data, pitch }. Every validation and return code is Carbon's, in Carbon's order.
 CjsSchema.meta.define("Tr2TextureALStub")(Tr2TextureALStub);
 CjsSchema.meta.exposureChainTo(Tr2DeviceResourceAL)(Tr2TextureALStub);

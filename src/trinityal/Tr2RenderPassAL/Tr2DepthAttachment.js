@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/include/Tr2RenderPassAL.h
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 //
 // The two attachment descriptions `RenderPassHint` takes.
 //
@@ -34,7 +34,4 @@ export class Tr2DepthAttachment
   }
 }
 
-CjsSchema.decorateField(Tr2DepthAttachment, "load", type.int32);
-CjsSchema.decorateField(Tr2DepthAttachment, "store", type.int32);
-CjsSchema.decorateField(Tr2DepthAttachment, "clearValue", type.float32);
 CjsSchema.meta.carbon("Tr2DepthAttachment")(Tr2DepthAttachment);

@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/Tr2HalHelperStructures.h:20-25
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 //
 // ONE FOLDER PER DONOR HEADER - see the sibling files for why.
 //
@@ -50,6 +50,4 @@ export class Tr2SubresourceData
   }
 }
 
-CjsSchema.decorateField(Tr2SubresourceData, "sysMemPitch", type.uint32);
-CjsSchema.decorateField(Tr2SubresourceData, "sysMemSlicePitch", type.uint32);
 CjsSchema.meta.carbon("Tr2SubresourceData")(Tr2SubresourceData);

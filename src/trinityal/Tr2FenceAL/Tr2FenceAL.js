@@ -12,7 +12,7 @@
 // (`TRINITY_AL_PLATFORM_INCLUDE`, `Tr2FenceAL.cpp:5`): we ship every backend at
 // once, so the context that knows its backend is the factory
 // (`CreateFence(true)`).
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -189,5 +189,4 @@ export class Tr2FenceAL
   }
 }
 
-CjsSchema.decorateField(Tr2FenceAL, "_fence", type.rawStruct("TrinityALImpl::Tr2FenceAL"));
 CjsSchema.meta.carbon("Tr2FenceAL")(Tr2FenceAL);

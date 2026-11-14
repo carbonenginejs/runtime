@@ -1582,12 +1582,6 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.decorateField(Tr2TextureALWebgl2, "_name", type.string);
-CjsSchema.decorateField(Tr2TextureALWebgl2, "_decompressed", type.boolean);
-CjsSchema.decorateField(Tr2TextureALWebgl2, "_desc", type.rawStruct("Tr2BitmapDimensions"));
-CjsSchema.decorateField(Tr2TextureALWebgl2, "_msaa", type.rawStruct("Tr2MsaaDesc"));
-CjsSchema.decorateField(Tr2TextureALWebgl2, "_gpuUsage", type.int32);
-CjsSchema.decorateField(Tr2TextureALWebgl2, "_cpuUsage", type.int32);
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "Create");
 CjsSchema.decorateMethod(Tr2TextureALWebgl2, "CreateViews");
 // States against dx11/Tr2TextureALDx11.cpp. OpenShared and GetSharedHandle are notSupported: WebGL has no cross-process shared resource handle (dx11 opens and queries an IDXGIResource), so OpenShared returns E_FAIL and GetSharedHandle returns 0, dx11's own failure answers. Destroy, IsValid, the accessors, UnmapForReading and GenerateMipMaps (the dx11 checks, then generateMipmap for GenerateMips) are dx11's on GL objects. SetName stores the name with no native debug label. Describe is adapted: it writes type, width, height, depth, mips, format and name where dx11 writes size, mipLevels, texType, array, cpuUsage, gpuUsage and msaa too.

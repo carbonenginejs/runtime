@@ -18,7 +18,7 @@
 // WebGL2 also allows one active query per target, where D3D11 nests them; a
 // `Begin` while another occlusion query is active is refused.
 
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -201,7 +201,6 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.decorateField(Tr2OcclusionQueryALWebgl2, "_name", type.string);
 // States against dx11/Tr2OcclusionQueryALDx11.cpp (Create, Destroy, IsValid, Describe, SetName) and .h (GetMemoryClass). Create makes a GL query where dx11 makes a D3D11_QUERY_OCCLUSION. Donor: the dx11 body of the same Carbon class. Destroy/IsValid/GetMemoryClass/Describe are the same contract on GL objects; SetName stores the name but sets no native debug label, which WebGL has no call for.
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "Begin");
 CjsSchema.decorateMethod(Tr2OcclusionQueryALWebgl2, "End");

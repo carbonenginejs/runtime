@@ -30,7 +30,7 @@
 
 import { ALResult, Failed } from "./ALResult.js";
 import { Tr2BufferDescriptionAL } from "./stub/Tr2BufferALStub.js";
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Topology, Tr2CpuUsage, Tr2GpuUsage } from "../global/consts/renderContext/index.js";
 
 
@@ -357,12 +357,6 @@ export class Tr2DrawUPHelper
 // straight from source by its tests - `#trinityal/...` resolves to `src/` - and
 // raw Node cannot parse decorator syntax, so a decorator here breaks every test
 // that reaches this file without a build first.
-CjsSchema.decorateField(Tr2DrawUPHelper, "_nextRingVB", type.uint32);
-CjsSchema.decorateField(Tr2DrawUPHelper, "_nextRingIB16", type.uint32);
-CjsSchema.decorateField(Tr2DrawUPHelper, "_nextRingIB32", type.uint32);
-CjsSchema.decorateField(Tr2DrawUPHelper, "_vertexUP", type.array({ kind: "rawStruct", className: "Tr2BufferAL" }));
-CjsSchema.decorateField(Tr2DrawUPHelper, "_indexUP16", type.array({ kind: "rawStruct", className: "Tr2BufferAL" }));
-CjsSchema.decorateField(Tr2DrawUPHelper, "_indexUP32", type.array({ kind: "rawStruct", className: "Tr2BufferAL" }));
 // States, all adapted against Tr2DrawUPHelper.cpp:28-150 (the file header says why): the device parameter is gone, the two indexed
 // overloads are one that reads the index width, Destroy destroys the ring buffers Carbon releases by assignment, and the fill helpers
 // recreate a buffer through the context.

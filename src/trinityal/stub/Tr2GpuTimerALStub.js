@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/stub/Tr2GpuTimerALStub.cpp
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -138,7 +138,6 @@ export class Tr2GpuTimerALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(Tr2GpuTimerALStub, "_isValid", type.boolean);
 // States against stub/Tr2GpuTimerALStub.cpp (Create/Destroy/IsValid/Begin/End/GetTime/SetName) and .h (GetMemoryClass = AL_MEMORY_VIDEO). Destroy also runs the base resource's Destroy.
 CjsSchema.meta.define("Tr2GpuTimerALStub")(Tr2GpuTimerALStub);
 CjsSchema.meta.exposureChainTo(Tr2DeviceResourceAL)(Tr2GpuTimerALStub);

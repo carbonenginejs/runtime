@@ -262,7 +262,6 @@ export class Tr2VertexLayoutALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.decorateField(Tr2VertexLayoutALWebgl2, "_name", type.string);
 CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "Create");
 CjsSchema.decorateMethod(Tr2VertexLayoutALWebgl2, "SetLayout");
 // States against dx11/Tr2VertexLayoutALDx11.cpp and .h:22-26. Donor: the dx11 body of the same Carbon class. Destroy/IsValid/GetMemoryClass/Describe are the same contract on GL objects; SetName stores the name but sets no native debug label, which WebGL has no call for.

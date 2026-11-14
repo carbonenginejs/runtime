@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/Tr2HalHelperStructures.h
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 // Source: trinity/trinityal/Tr2HalHelperStructures.cpp
 //
 // ONE FOLDER PER DONOR HEADER. Carbon declares six types in this header, and a
@@ -107,11 +107,5 @@ export class Tr2TextureCoordBox
   }
 }
 
-CjsSchema.decorateField(Tr2TextureCoordBox, "left", type.uint32);
-CjsSchema.decorateField(Tr2TextureCoordBox, "top", type.uint32);
-CjsSchema.decorateField(Tr2TextureCoordBox, "front", type.uint32);
-CjsSchema.decorateField(Tr2TextureCoordBox, "right", type.uint32);
-CjsSchema.decorateField(Tr2TextureCoordBox, "bottom", type.uint32);
-CjsSchema.decorateField(Tr2TextureCoordBox, "back", type.uint32);
 // States: Tr2HalHelperStructures.h:58-74. Carbon subtracts unsigned words, so an inverted box wraps; the JavaScript difference goes negative.
 CjsSchema.meta.carbon("Tr2TextureCoordBox")(Tr2TextureCoordBox);

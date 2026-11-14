@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:23
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:27-144
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { ShaderType } from "#consts/render-context";
 
 export const MAX_RESOURCES_IN_STAGE = 32;
@@ -80,10 +80,4 @@ export class Tr2RegisterMapAL
   }
 }
 
-CjsSchema.decorateField(Tr2RegisterMapAL, "srvCount", type.uint32);
-CjsSchema.decorateField(Tr2RegisterMapAL, "uavCount", type.uint32);
-CjsSchema.decorateField(Tr2RegisterMapAL, "samplerCount", type.uint32);
-CjsSchema.decorateField(Tr2RegisterMapAL, "srvs", type.array({ kind: "typedArray", arrayType: "Uint8Array" }));
-CjsSchema.decorateField(Tr2RegisterMapAL, "uavs", type.array({ kind: "typedArray", arrayType: "Uint8Array" }));
-CjsSchema.decorateField(Tr2RegisterMapAL, "samplers", type.array({ kind: "typedArray", arrayType: "Uint8Array" }));
 CjsSchema.meta.carbon("Tr2RegisterMapAL")(Tr2RegisterMapAL);

@@ -13,7 +13,7 @@
 // refuses there with `E_FAIL`, as Metal's `Create` does when the device has no
 // statistics counter set (`Tr2PipelineStatsQueryALMetal.mm:69-72`, `:88-91`,
 // `:107-110`), and the value stays on the null implementation.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -260,5 +260,4 @@ export class Tr2PipelineStatsQueryAL
   }
 }
 
-CjsSchema.decorateField(Tr2PipelineStatsQueryAL, "_query", type.rawStruct("TrinityALImpl::Tr2PipelineStatsQueryAL"));
 CjsSchema.meta.carbon("Tr2PipelineStatsQueryAL")(Tr2PipelineStatsQueryAL);

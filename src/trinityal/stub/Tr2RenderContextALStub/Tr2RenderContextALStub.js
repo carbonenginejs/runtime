@@ -45,7 +45,7 @@ import { Tr2StubPlatformCaps } from "../Tr2CapsALStub.js";
 // `Tr2StreamlineAL`, none of which the stub implements.
 
 
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ResourceSetAL } from "../../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
 import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2FenceALStub, Tr2ResourceSetALStub, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../../trinityal/index.js";
 import { SamplerDescriptionKey } from "../../Tr2HalHelperStructures/Tr2SamplerDescription.js";
@@ -1743,9 +1743,5 @@ export class Tr2RenderContextALStub
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(Tr2RenderContextALStub, "_isValid", type.boolean);
-CjsSchema.decorateField(Tr2RenderContextALStub, "_boundRenderTargets", type.array({ kind: "rawStruct", className: "Tr2TextureAL" }));
-CjsSchema.decorateField(Tr2RenderContextALStub, "_defaultBackBuffer", type.rawStruct("Tr2TextureAL"));
-CjsSchema.decorateField(Tr2RenderContextALStub, "_viewport", type.rawStruct("Tr2Viewport"));
 // States against stub/Tr2RenderContextStub.cpp:25-465 and .h:89-298 (the stub context: every drawing, state and upscaling call succeeds or fails exactly as Carbon's stub does). Adapted: the device calls that this port records (render targets, depth stencil, viewport, render states, clear and draw counters, stack sizes, which Carbon's stub reports as 0), CreateDevice/SetPresentParameters (no adapter or window argument, no OnContextCreated event), the out-parameter getters (GetRenderTargetSize, GetViewport, GetUpscalingSetup return their values), RenderPassHint and DrawIndexedInstanced/DrawIndexedPrimitiveUP (Carbon's overloads are one method). RunComputeShader and RunComputeShaderIndirect return E_FAIL, matching Carbon's stub (h:171-178).
 CjsSchema.meta.define("Tr2RenderContextALStub")(Tr2RenderContextALStub);

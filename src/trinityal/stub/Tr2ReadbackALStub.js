@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/stub/Tr2TextureALStub.h
 // Source: trinity/trinityal/stub/Tr2TextureALStub.cpp
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "../ALResult.js";
@@ -83,8 +83,6 @@ export class Tr2ReadbackALStub extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.decorateField(Tr2ReadbackALStub, "_data", type.uint8Array);
-CjsSchema.decorateField(Tr2ReadbackALStub, "_rowPitch", type.uint32);
 CjsSchema.decorateMethod(Tr2ReadbackALStub, "IsReady");
 CjsSchema.decorateMethod(Tr2ReadbackALStub, "Map");
 CjsSchema.decorateMethod(Tr2ReadbackALStub, "Destroy");

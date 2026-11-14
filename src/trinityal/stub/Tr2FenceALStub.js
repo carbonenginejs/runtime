@@ -16,7 +16,7 @@
 // one, and the two are not interchangeable: a frame number says "everything up
 // to here is done", a fence says "this particular point is done".
 
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -177,8 +177,6 @@ export class Tr2FenceALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(Tr2FenceALStub, "_isValid", type.boolean);
-CjsSchema.decorateField(Tr2FenceALStub, "_hasFence", type.boolean);
 // States against stub/Tr2FenceALStub.cpp:14-76 and .h:25-31; IsReached is adapted: the bool& comes back with the result as { result, isReached }. Destroy also runs the base resource's Destroy, which is the unregistering Carbon's Tr2DeviceResourceAL template does.
 CjsSchema.meta.define("Tr2FenceALStub")(Tr2FenceALStub);
 CjsSchema.meta.exposureChainTo(Tr2DeviceResourceAL)(Tr2FenceALStub);

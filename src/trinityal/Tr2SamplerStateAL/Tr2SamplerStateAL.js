@@ -15,7 +15,7 @@
 // Ours is the render context's `CreateSamplerState(description, true)`, for the
 // reason the context allocates every AL implementation: it is the one place the
 // backend is known.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -167,5 +167,4 @@ export class Tr2SamplerStateAL
   }
 }
 
-CjsSchema.decorateField(Tr2SamplerStateAL, "_sampler", type.rawStruct("TrinityALImpl::Tr2SamplerStateAL"));
 CjsSchema.meta.carbon("Tr2SamplerStateAL")(Tr2SamplerStateAL);

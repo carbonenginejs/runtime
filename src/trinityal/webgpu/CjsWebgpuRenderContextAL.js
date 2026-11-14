@@ -83,7 +83,7 @@ import { Tr2PipelineStatsQueryAL } from "../Tr2PipelineStatsQueryAL/index.js";
 //   hatches. Ours are `GetWebgpu` and `GetWorkQueue` - Carbon names these per
 //   backend too, so a WebGPU spelling is the faithful thing, not a divergence.
 
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { isTyped } from "#utils/is";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
@@ -3836,7 +3836,6 @@ export class CjsWebgpuRenderContextAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(CjsWebgpuRenderContextAL, "_isValid", type.boolean);
 // Donor: metal/Tr2RenderContextMetal.mm and Tr2PrimaryRenderContextMetal.mm, with stub/Tr2RenderContextStub.cpp where Metal does platform work WebGPU has no counterpart for (bindless resources, acceleration structures, upscaling, GPU state markers: the stub answers are the ones used). Implemented: Metal's (or the stub's) bodies, including the render-target and depth-stencil stacks and the frame numbers. NotSupported: DispatchRays (WebGPU has no ray tracing). Adapted: everything that drives the WebGPU command encoder or the raster pipeline state, which the trinity-abstraction-layer decision records as the one sanctioned gap (SetRenderStates, SetRenderState, SetTopology, SetStreamSource, SetIndices__Stride, the draws, which also record no CCP_STATS counters), device loss and recreation (CreateDevice, IsValid), the canvas back buffer (SetPresentParameters, GetDefaultBackBuffer, GetBackBufferFormat, Present), BeginScene/EndScene (command encoder creation and submit, the bind-group sweep), the out-parameter getters, and the markers (WebGPU has debug markers where Metal's AddGpuMarker is empty).
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "ReleaseLater");
 CjsSchema.decorateMethod(CjsWebgpuRenderContextAL, "Clear");

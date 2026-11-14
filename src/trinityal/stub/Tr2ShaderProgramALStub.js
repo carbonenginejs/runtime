@@ -10,7 +10,7 @@
 // and draw with whichever the backend happened to keep.
 //
 // Carbon quirk: Create leaves the stub map empty (stub cpp:23-49; CE-26).
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -177,8 +177,6 @@ export class Tr2ShaderProgramALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(Tr2ShaderProgramALStub, "_isValid", type.boolean);
-CjsSchema.decorateField(Tr2ShaderProgramALStub, "_registerMap", type.rawStruct("Tr2RegisterMapAL"));
 // States against stub/Tr2ShaderProgramALStub.cpp:11-68 and .h:20-26. Create is adapted: it also keeps the shaders (GetShaders), which Carbon's stub does not.
 CjsSchema.meta.define("Tr2ShaderProgramALStub")(Tr2ShaderProgramALStub);
 CjsSchema.meta.exposureChainTo(Tr2DeviceResourceAL)(Tr2ShaderProgramALStub);

@@ -19,7 +19,7 @@ import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 // `viewFormats` at creation, so it is.
 //
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on `CjsWebgpuShaderAL`.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType, WebgpuLightAveraging } from "#consts/graphics";
 import { ALResult, CopyRegion, Crop, Tr2MsaaDesc, Tr2TextureSubresource } from "#trinityal";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage, HasFlag, IsWritable } from "#consts/render-context";
@@ -1144,9 +1144,6 @@ export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(CjsWebgpuTextureAL, "_name", type.string);
-CjsSchema.decorateField(CjsWebgpuTextureAL, "_desc", type.rawStruct("Tr2BitmapDimensions"));
-CjsSchema.decorateField(CjsWebgpuTextureAL, "_msaa", type.rawStruct("Tr2MsaaDesc"));
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "Create");
 // Donor: metal/Tr2TextureALMetal.mm. OpenShared is E_FAIL as in Metal. CopySubresourceRegion and GenerateMipMaps keep Metal's checks and loops over the work queue. IsValid is adapted (also tracks the video generation). UnmapForReading, MapForWriting (out shape, a single staging array) and UnmapForWriting (uploads through UpdateSubresource) are adapted. SetName stores the name and sets the GPUTexture label.
 CjsSchema.decorateMethod(CjsWebgpuTextureAL, "CreateReadback");

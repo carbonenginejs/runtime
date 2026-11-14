@@ -4,7 +4,7 @@
 // its partner - why these exist at all, why bytecode here is WGSL text rather
 // than DXBC, and why fields are public and Carbon-named - is recorded in the
 // head comment of CjsWebgpuShaderAL.js, which several other files already cite.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Tr2RegisterMapAL } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
@@ -456,6 +456,5 @@ export class CjsWebgpuShaderProgramAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(CjsWebgpuShaderProgramAL, "_registerMap", type.rawStruct("Tr2RegisterMapAL"));
 // Donor: metal/Tr2ShaderProgramALMetal.mm (the stage-bitmask refusals are Metal's and the stub's). Create is adapted: it also merges the stages' bindings into bind-group layouts and a pipeline layout (what dx12 does for its root signature) and creates no function objects. Describe writes memoryClass only and SetName does not store the name.
 CjsSchema.meta.define("CjsWebgpuShaderProgramAL")(CjsWebgpuShaderProgramAL);

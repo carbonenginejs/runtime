@@ -9,7 +9,7 @@
 // records: WebGPU orders a later `writeBuffer` after every earlier submit, so
 // a region whose frame has been submitted can be rewritten safely. That is
 // what `Tr2DynamicRingBuffer` asks a fence.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult } from "#trinityal";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -161,9 +161,5 @@ export class CjsWebgpuFenceAL
 
 // Declared as a call for the reason recorded in Tr2BitmapDimensions.js; the
 // backend is on the class name, and `carbon` names the donor.
-CjsSchema.decorateField(CjsWebgpuFenceAL, "_frame", type.uint64);
-CjsSchema.decorateField(CjsWebgpuFenceAL, "_name", type.string);
-CjsSchema.decorateField(CjsWebgpuFenceAL, "_isValid", type.boolean);
-CjsSchema.decorateField(CjsWebgpuFenceAL, "_hasBeenPut", type.boolean);
 // Donor: metal/Tr2FenceALMetal.mm (frame-number fence; Wait is E_FAIL there too). IsReached is adapted: the bool& comes back with the result as { result, isReached }. Describe is adapted: it also returns the description.
 CjsSchema.meta.define("CjsWebgpuFenceAL")(CjsWebgpuFenceAL);

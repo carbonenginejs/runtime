@@ -18,7 +18,7 @@
 // - ONE ELAPSED-TIME QUERY MAY BE ACTIVE AT A TIME, where timestamps nest
 //   freely; `Begin` while another timer is running answers false.
 
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -213,9 +213,6 @@ export class Tr2GpuTimerALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.decorateField(Tr2GpuTimerALWebgl2, "_name", type.string);
-CjsSchema.decorateField(Tr2GpuTimerALWebgl2, "_lastTime", type.float32);
-CjsSchema.decorateField(Tr2GpuTimerALWebgl2, "_state", type.int32);
 CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "Create");
 CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "Begin");
 CjsSchema.decorateMethod(Tr2GpuTimerALWebgl2, "End");

@@ -906,11 +906,6 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
 // The donor is NAMED: Carbon calls every backend's class `Tr2BufferAL` and
 // carries the backend in the file name; we ship backends together, so the
 // backend moves onto the class name (see Tr2BufferALStub.js).
-CjsSchema.decorateField(Tr2BufferALWebgl2, "_name", type.string);
-CjsSchema.decorateField(Tr2BufferALWebgl2, "_srvDirty", type.boolean);
-CjsSchema.decorateField(Tr2BufferALWebgl2, "_writeLockMemory", type.uint8Array);
-CjsSchema.decorateField(Tr2BufferALWebgl2, "_staging", type.uint8Array);
-CjsSchema.decorateField(Tr2BufferALWebgl2, "_desc", type.rawStruct("Tr2BufferDescriptionAL"));
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "Create");
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "MapForReading");
 CjsSchema.decorateMethod(Tr2BufferALWebgl2, "MapForReading__OffsetSize");

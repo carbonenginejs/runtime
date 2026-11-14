@@ -12,7 +12,7 @@
 // on a real backend - the CPU-side mirror the driver uploads from. Here there
 // is nothing to upload to, so the mirror is the whole resource.
 
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -180,7 +180,6 @@ export class Tr2ConstantBufferALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(Tr2ConstantBufferALStub, "_shadowCopy", type.uint8Array);
 // States against stub/Tr2ConstantBufferALStub.cpp:11-74 and .h:22-26. Create is adapted: it copies initialData into the shadow copy where Carbon's stub only sizes it, and does not log the immutable-without-data error. Lock is adapted: the void** comes back with the result as { result, data }.
 CjsSchema.meta.define("Tr2ConstantBufferALStub")(Tr2ConstantBufferALStub);
 CjsSchema.meta.exposureChainTo(Tr2DeviceResourceAL)(Tr2ConstantBufferALStub);

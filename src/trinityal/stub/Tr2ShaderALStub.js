@@ -27,7 +27,7 @@
 //   empty one; its real backends keep it. Dropping caller data is a shortcut
 //   that is harmless only while nothing reads it, and the register map will.
 
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -195,9 +195,6 @@ export class Tr2ShaderALStub extends Tr2DeviceResourceAL
 // the FILE name, because only one backend compiles at a time; we ship them
 // together, so the backend moves onto the class name. That divergence is the
 // author's to declare, never a checker's to guess.
-CjsSchema.decorateField(Tr2ShaderALStub, "_type", type.int32);
-CjsSchema.decorateField(Tr2ShaderALStub, "_bytecode", type.uint8Array);
-CjsSchema.decorateField(Tr2ShaderALStub, "_signature", type.rawStruct("Tr2ShaderSignatureAL"));
 // States against stub/Tr2ShaderALStub.cpp:14-70 and .h:32-40. Create is adapted: it keeps the signature, which Carbon's stub ignores. GetBytecode is adapted: the Tr2ShaderBytecodeAL& comes back with the result as { result, bytecode }.
 CjsSchema.meta.define("Tr2ShaderALStub")(Tr2ShaderALStub);
 CjsSchema.meta.exposureChainTo(Tr2DeviceResourceAL)(Tr2ShaderALStub);

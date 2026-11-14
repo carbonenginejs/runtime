@@ -673,10 +673,6 @@ export class Tr2ShaderProgramALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_name", type.string);
-CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_log", type.string);
-CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_isValid", type.boolean);
-CjsSchema.decorateField(Tr2ShaderProgramALWebgl2, "_registerMap", type.rawStruct("Tr2RegisterMapAL"));
 // States against dx11/Tr2ShaderProgramALDx11.cpp (Destroy, IsValid, GetRegisterMap, Describe, SetName; memory class AL_MEMORY_MANAGED). CreateCommandSignatures is dx12-only (dx12/Tr2ShaderProgramALDx12.cpp:357): WebGL2 has no indirect command signatures, so it returns E_FAIL.
 CjsSchema.decorateMethod(Tr2ShaderProgramALWebgl2, "Create");
 CjsSchema.meta.define("Tr2ShaderProgramALWebgl2")(Tr2ShaderProgramALWebgl2);

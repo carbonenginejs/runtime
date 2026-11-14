@@ -17,7 +17,7 @@
 // Tr2ShaderSignatureAL, declared in the same header, are plain records here
 // (a typed array and the shader compiler's signature object); they are not
 // ported as classes by this file.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ShaderType } from "#consts/render-context";
 import { ALResult, Failed } from "../ALResult.js";
@@ -227,5 +227,4 @@ export class Tr2ShaderAL
   }
 }
 
-CjsSchema.decorateField(Tr2ShaderAL, "_shader", type.rawStruct("TrinityALImpl::Tr2ShaderAL"));
 CjsSchema.meta.carbon("Tr2ShaderAL")(Tr2ShaderAL);

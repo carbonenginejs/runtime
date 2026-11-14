@@ -12,7 +12,7 @@
 // backend at once, so the context that knows its backend is the factory
 // (`CreateSwapChain(windowHandle, true)`). A backend whose caps report no
 // standalone swap chain refuses there.
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -201,5 +201,4 @@ export class Tr2SwapChainAL
   }
 }
 
-CjsSchema.decorateField(Tr2SwapChainAL, "_swapChain", type.rawStruct("TrinityALImpl::Tr2SwapChainAL"));
 CjsSchema.meta.carbon("Tr2SwapChainAL")(Tr2SwapChainAL);

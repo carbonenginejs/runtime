@@ -1,6 +1,6 @@
 // Source: trinity/trinityal/include/Tr2TextureAL.h
 // Source: trinity/trinityal/src/Tr2TextureAL.cpp
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { ALResult, Failed } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
@@ -502,6 +502,5 @@ export class Tr2TextureAL
 
 
 
-CjsSchema.decorateField(Tr2TextureAL, "_texture", type.rawStruct("TrinityALImpl::Tr2TextureAL"));
 CjsSchema.decorateMethod(Tr2TextureAL, "CreateReadback");
 CjsSchema.meta.carbon("Tr2TextureAL")(Tr2TextureAL);

@@ -8,7 +8,7 @@
 // every other call answers as dx11 does for a query that was never created,
 // and a statistics record has no fields.
 
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
@@ -176,7 +176,6 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.decorateField(Tr2PipelineStatsQueryALWebgl2, "_name", type.string);
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "Create");
 // States against dx11/Tr2PipelineStatsQueryALDx11.cpp. WebGL2 has no pipeline-statistics query, so IsValid is always false and Begin/End return E_INVALIDARG, which is dx11's answer for a query that was never created (cpp Begin/End). GetMemoryClass and Describe are dx11's; SetName stores the name without a native label.
 CjsSchema.decorateMethod(Tr2PipelineStatsQueryALWebgl2, "GetStats");

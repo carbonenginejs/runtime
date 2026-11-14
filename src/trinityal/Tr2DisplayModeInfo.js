@@ -1,5 +1,5 @@
 // Source: trinity/trinityal/Tr2AdapterStructures.h
-import { CjsSchema, type } from "#schema";
+import { CjsSchema } from "#schema";
 
 /**
  * Native display-mode value shape. Carbon declares no initializers
@@ -45,11 +45,4 @@ export class Tr2DisplayModeInfo
   scaling = 0;
 }
 
-CjsSchema.decorateField(Tr2DisplayModeInfo, "width", type.uint32);
-CjsSchema.decorateField(Tr2DisplayModeInfo, "height", type.uint32);
-CjsSchema.decorateField(Tr2DisplayModeInfo, "refreshRateNumerator", type.uint32);
-CjsSchema.decorateField(Tr2DisplayModeInfo, "refreshRateDenominator", type.uint32);
-CjsSchema.decorateField(Tr2DisplayModeInfo, "format", type.uint32);
-CjsSchema.decorateField(Tr2DisplayModeInfo, "scanlineOrdering", type.int32);
-CjsSchema.decorateField(Tr2DisplayModeInfo, "scaling", type.int32);
 CjsSchema.meta.carbon("Tr2DisplayModeInfo")(Tr2DisplayModeInfo);
