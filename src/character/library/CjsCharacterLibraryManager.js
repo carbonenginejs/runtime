@@ -15,6 +15,7 @@ import morphCorrectionDefaults from "../factory/defaults/morphCorrections.json" 
 import bodyCarrierDefaults from "../factory/defaults/bodyCarriers.json" with { type: "json" };
 import exclusivePartDefaults from "../factory/defaults/exclusiveParts.json" with { type: "json" };
 import meshDependantDefaults from "../factory/defaults/meshDependants.json" with { type: "json" };
+import categoryDefaults from "../factory/defaults/categories.json" with { type: "json" };
 import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCorrections.js";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { PaperDollPaletteKind } from "./characterPalettes.js";
@@ -35,6 +36,11 @@ export class CjsCharacterLibraryManager
 
     /** The parts library queries' answers, by query and arguments (`_Query`). */
     _queries = new Map();
+
+    /** The paper doll category rules in force (`_Categories`), and the install generation they were built for. */
+    _categories = null;
+
+    _categoriesGeneration = -1;
 
     /** The indexed paper doll files, sorted, for one install generation (`_PaperDollFiles`). */
     _paperDollFiles = null;
@@ -376,74 +382,12 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * How each paper doll category's content is read, by category path below the sex's paper doll root. The
-     * parts library decides these itself; no caller passes them.
-     *
-     * Derived: the content does not state these rules. Each was found from the content (build 3670638) and from
-     * the sources that read it before the parts library did (character-structure-and-plugins.md R5):
-     * - `options`: `type`, one option per `.type`, named by its file; `folder`, one option per first-level
-     *   folder, whose `.type`s name the bloodlines that wear it (underwear: telling it from the content would mean
-     *   reading every `.type`); `self`, the category folder is its one option (skin tone).
-     * - `maps`: `name`, a variation's map replaces the part folder's of the same name (map decals); `composed`, the
-     *   composed names in the option's folder; `catalog`, one map per stem directly in the part folder, with no
-     *   variation; `garment`, the garment name lists, the variation folder first.
-     * - `palettes`: `own`, the `.color` files directly in the option's folder; `shared`, those and the category's
-     *   `colors/` (female eye shadow ships a `colors/` too, which is not offered: its options keep their own).
-     * - `areas`: how its colour areas are found (`FetchColorAreas`): `zone`, `detail` or `none`.
-     * Every category that ships `.type` files is listed. null is no rule: the content has not been surveyed for it
-     * (the mesh parts, and categories no paper doll part reads), and the query for it throws. `head`
-     * has no option rule: a head is a folder whose options the archetype decides. An archetype is one option per folder.
-     * `accessories/piercings` repeats type names across its folders (`stud02` in five) and its types name parts the
-     * index does not hold (`accessories/earslow/stud02`; build 3670638), so its option ids are not unique.
-     * @type {Object<string, { options: ?("type"|"folder"|"self"), maps: ?("name"|"composed"|"catalog"|"garment"), palettes: ?("own"|"shared"), areas: ?("zone"|"detail"|"none") }>}
+     * The shipped paper doll category rules (`factory/defaults/categories.json`, which says what each value means),
+     * by category path below the sex's paper doll root. An empty rule is no rule. The parts library reads the rules
+     * in force through `_Categories`, where a library's generic overrides these by name.
+     * @type {Object<string, { options: (""|"type"|"folder"|"self"), maps: (""|"name"|"composed"|"catalog"|"garment"), palettes: (""|"own"|"shared"), areas: (""|"zone"|"detail"|"none") }>}
      */
-    static categories = {
-        "makeup/aging": { options: "type", maps: "name", palettes: "own", areas: "none" },
-        "makeup/augmentations": { options: "type", maps: "name", palettes: "own", areas: "none" },
-        "makeup/freckles": { options: "type", maps: "name", palettes: "own", areas: "none" },
-        "makeup/scarring": { options: "type", maps: "name", palettes: "own", areas: "none" },
-        "scars": { options: "type", maps: "name", palettes: "own", areas: "none" },
-        "makeup/eyeshadow": { options: "type", maps: "composed", palettes: "own", areas: "zone" },
-        "makeup/eyeliner": { options: "type", maps: "composed", palettes: "own", areas: "zone" },
-        "makeup/lipstick": { options: "type", maps: "composed", palettes: "own", areas: "zone" },
-        "tattoo/head": { options: "type", maps: "composed", palettes: "shared", areas: "zone" },
-        "skintone/basic": { options: "self", maps: "composed", palettes: "own", areas: "detail" },
-        "makeup/blush": { options: "type", maps: "catalog", palettes: "shared", areas: "detail" },
-        "makeup/eyebrows": { options: "type", maps: "catalog", palettes: "shared", areas: "detail" },
-        "makeup/eyes": { options: "type", maps: "catalog", palettes: "shared", areas: "detail" },
-        "makeup/armleft": { options: "type", maps: "garment", palettes: "own", areas: "detail" },
-        "makeup/armright": { options: "type", maps: "garment", palettes: "own", areas: "detail" },
-        "makeup/bodyaugmentations": { options: "type", maps: "garment", palettes: "own", areas: "detail" },
-        "bottommiddle": { options: "type", maps: "garment", palettes: "own", areas: "detail" },
-        "bottomouter": { options: "type", maps: "garment", palettes: "own", areas: "detail" },
-        "topmiddle": { options: "type", maps: "garment", palettes: "own", areas: "detail" },
-        "topouter": { options: "type", maps: "garment", palettes: "own", areas: "detail" },
-        "outer": { options: "type", maps: "garment", palettes: "own", areas: "detail" },
-        "feet": { options: "type", maps: "garment", palettes: "own", areas: "detail" },
-        "bottomunderwear": { options: "folder", maps: "garment", palettes: "own", areas: "detail" },
-        "topunderwear": { options: "folder", maps: "garment", palettes: "own", areas: "detail" },
-        "hair": { options: "type", maps: null, palettes: null, areas: null },
-        "beard": { options: "type", maps: null, palettes: null, areas: null },
-        "bottominner": { options: "type", maps: null, palettes: null, areas: null },
-        "skintype": { options: "type", maps: null, palettes: null, areas: null },
-        "tattoo/armleft": { options: "type", maps: null, palettes: null, areas: null },
-        "makeup/blemish": { options: "type", maps: null, palettes: null, areas: null },
-        "makeup/eyelashes": { options: "type", maps: null, palettes: null, areas: null },
-        "makeup/implants": { options: "type", maps: null, palettes: null, areas: null },
-        "makeup/teeth": { options: "type", maps: null, palettes: null, areas: null },
-        "accessories/brow": { options: "type", maps: null, palettes: null, areas: null },
-        "accessories/chin": { options: "type", maps: null, palettes: null, areas: null },
-        "accessories/ears": { options: "type", maps: null, palettes: null, areas: null },
-        "accessories/earshigh": { options: "type", maps: null, palettes: null, areas: null },
-        "accessories/earslow": { options: "type", maps: null, palettes: null, areas: null },
-        "accessories/glasses": { options: "type", maps: null, palettes: null, areas: null },
-        "accessories/lips": { options: "type", maps: null, palettes: null, areas: null },
-        "accessories/masks": { options: "type", maps: null, palettes: null, areas: null },
-        "accessories/nose": { options: "type", maps: null, palettes: null, areas: null },
-        "accessories/piercings": { options: "type", maps: null, palettes: null, areas: null },
-        "head": { options: null, maps: null, palettes: null, areas: null },
-        "archetypes": { options: "folder", maps: null, palettes: null, areas: null }
-    };
+    static categories = categoryDefaults.categories;
 
     /**
      * The paper doll content root of a sex, which every category path is relative to.
@@ -486,7 +430,7 @@ export class CjsCharacterLibraryManager
      */
     async FetchOptions(sex, category)
     {
-        const rule = CjsCharacterLibraryManager._CategoryRule(category, "options");
+        const rule = this._CategoryRule(category, "options");
         return (await this._Query("options|" + sex + "|" + category, async () =>
         {
             const root = CjsCharacterLibraryManager.paperDollRoot(sex), folder = root + category + "/", files = this._PaperDollFiles(folder);
@@ -525,7 +469,7 @@ export class CjsCharacterLibraryManager
      */
     async FetchFoldersWithoutOptions(sex, category)
     {
-        if (CjsCharacterLibraryManager._CategoryRule(category, "options").options !== "type") throw new Error("The paper doll category " + category + " does not list options by .type");
+        if (this._CategoryRule(category, "options").options !== "type") throw new Error("The paper doll category " + category + " does not list options by .type");
         const root = CjsCharacterLibraryManager.paperDollRoot(sex), folder = root + category + "/", files = this._PaperDollFiles(folder);
         const typed = new Set(files.filter(path => path.endsWith(".type")).map(path => path.slice(0, path.lastIndexOf("/types/") + 1)));
         return [ ...new Set(files.filter(path => path.indexOf("/", folder.length) >= 0).map(path => path.slice(0, path.indexOf("/", folder.length) + 1))) ]
@@ -696,7 +640,7 @@ export class CjsCharacterLibraryManager
      */
     async FetchOptionMaps(option)
     {
-        const rule = CjsCharacterLibraryManager._CategoryRule(option.category, "maps").maps, tier = CjsCharacterTextureRoles.tierOrder()[0];
+        const rule = this._CategoryRule(option.category, "maps").maps, tier = CjsCharacterTextureRoles.tierOrder()[0];
         return this._Query("maps|" + tier + "|" + CjsCharacterLibraryManager._OptionKey(option), async () =>
         {
             if (rule === "composed") return CjsCharacterTextureRoles.readFolder(option.folder, this._PaperDollFiles(option.folder));
@@ -754,7 +698,7 @@ export class CjsCharacterLibraryManager
         {
             const shared = CjsCharacterLibraryManager.paperDollRoot(option.sex) + option.category + "/colors/";
             const own = this._PaperDollFiles(option.folder).filter(path => path.endsWith(".color") && path.lastIndexOf("/") === option.folder.length - 1);
-            const category = CjsCharacterLibraryManager._CategoryRule(option.category, "palettes").palettes === "shared" ? this._PaperDollFiles(shared).filter(path => path.endsWith(".color")) : [];
+            const category = this._CategoryRule(option.category, "palettes").palettes === "shared" ? this._PaperDollFiles(shared).filter(path => path.endsWith(".color")) : [];
             return [ ...new Set([ ...own, ...category ]) ].map(path => CjsCharacterLibraryManager.paletteRecord(path));
         })).slice();
     }
@@ -772,7 +716,7 @@ export class CjsCharacterLibraryManager
      */
     async FetchColorAreas(option)
     {
-        const rule = CjsCharacterLibraryManager._CategoryRule(option.category, "areas");
+        const rule = this._CategoryRule(option.category, "areas");
         if (rule.areas === "none") return [];
         return (await this._Query("areas|" + CjsCharacterTextureRoles.tierOrder()[0] + "|" + CjsCharacterLibraryManager._OptionKey(option), async () =>
         {
@@ -822,7 +766,7 @@ export class CjsCharacterLibraryManager
         const colorVariant = option.typePath !== null ? (await this.FetchOptionPart(option)).colorVariant : "";
         // A garment whose colour variant names no palette it ships takes its first. Derived: our pick, not a source's
         // (15 female and 12 male garments in build 3670638; the recipe-colours ruling is open).
-        const garment = CjsCharacterLibraryManager.categories[option.category].maps === "garment";
+        const garment = this._Categories().get(option.category).maps === "garment";
         const chosen = named(palette) ?? named(colorVariant) ?? named("default") ?? named("default_a") ?? (garment ? palettes[0] ?? null : null);
         const result = { palette: chosen ? chosen.path : null, colors: [ null, null, null ], specularColors: [ null, null, null ], pattern: null };
         if (chosen)
@@ -1000,9 +944,9 @@ export class CjsCharacterLibraryManager
     async ResolveRecipeEntry(sex, { path, variation = "", colorVariation = "" })
     {
         const lower = path.toLowerCase(), wanted = colorVariation.toLowerCase();
-        const category = Object.keys(CjsCharacterLibraryManager.categories).filter(name => lower.startsWith(name + "/")).sort((a, b) => b.length - a.length)[0];
+        const category = [ ...this._Categories().keys() ].filter(name => lower.startsWith(name + "/")).sort((a, b) => b.length - a.length)[0];
         if (!category) return null;
-        if (CjsCharacterLibraryManager.categories[category].options === null) return { category, option: null };
+        if (this._Categories().get(category).options === "") return { category, option: null };
         const unmatched = lower.endsWith("_nude") ? { category, option: null, nude: true } : { category, option: null };
         const same = (a, b) => (a || "v0").toLowerCase() === (b || "v0").toLowerCase();
         for (const option of await this.FetchOptions(sex, category))
@@ -1033,7 +977,7 @@ export class CjsCharacterLibraryManager
      */
     async FetchRecipeOption(sex, category, { path, variation = "" })
     {
-        CjsCharacterLibraryManager._CategoryRule(category, "options");
+        this._CategoryRule(category, "options");
         const lower = path.toLowerCase(), folder = CjsCharacterLibraryManager.paperDollRoot(sex) + lower + "/";
         if (!this._PaperDollFiles(folder).length) return null;
         return { sex, category, id: "recipe", typePath: null, typePaths: [], folder, path: lower, bloodlines: [], variation: variation.toLowerCase() };
@@ -1051,17 +995,35 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * A category's rules, with the one a query needs.
+     * The paper doll category rules in force, by category path: the shipped defaults (`categories`), each replaced by
+     * the installed library's generic category of the same name. Built once per install.
+     * @returns {Map<string, { options: string, maps: string, palettes: string, areas: string }>} The rules; not to be changed.
+     */
+    _Categories()
+    {
+        if (this._categories === null || this._categoriesGeneration !== this._installGeneration)
+        {
+            const rules = new Map(Object.entries(CjsCharacterLibraryManager.categories));
+            for (const [ name, category ] of this._library.generic.categories)
+                rules.set(name, { options: category.options, maps: category.maps, palettes: category.palettes, areas: category.areas });
+            this._categories = rules;
+            this._categoriesGeneration = this._installGeneration;
+        }
+        return this._categories;
+    }
+
+    /**
+     * A category's rules in force (`_Categories`), with the one a query needs.
      * @param {string} category The category path below the root.
      * @param {"options"|"maps"|"palettes"|"areas"} kind The rule the query needs.
-     * @returns {{ options: ?string, maps: ?string, palettes: ?string, areas: ?string }}
+     * @returns {{ options: string, maps: string, palettes: string, areas: string }} The rules; not to be changed.
      * @throws {Error} For a category the library does not list, or one with no rule of that kind.
      */
-    static _CategoryRule(category, kind)
+    _CategoryRule(category, kind)
     {
-        const rule = CjsCharacterLibraryManager.categories[category];
+        const rule = this._Categories().get(category);
         if (!rule) throw new Error("No paper doll category " + category);
-        if (rule[kind] === null) throw new Error("No " + kind + " rule for the paper doll category " + category);
+        if (rule[kind] === "") throw new Error("No " + kind + " rule for the paper doll category " + category);
         return rule;
     }
 

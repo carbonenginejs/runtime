@@ -13,6 +13,7 @@ export { CjsCharacterCamera } from "./CjsCharacterCamera.js";
 export { CjsCharacterColorVariation } from "./CjsCharacterColorVariation.js";
 export { CjsCharacterCurveCacheList } from "./CjsCharacterCurveCacheList.js";
 export { CjsCharacterCurveSetMetadata } from "./CjsCharacterCurveSetMetadata.js";
+export { CjsCharacterDataCategory } from "./CjsCharacterDataCategory.js";
 export { CjsCharacterFaceMapping } from "./CjsCharacterFaceMapping.js";
 export { CjsCharacterFaceTweakSettings } from "./CjsCharacterFaceTweakSettings.js";
 export { CjsCharacterFemale } from "./CjsCharacterFemale.js";

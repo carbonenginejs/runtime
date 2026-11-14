@@ -502,7 +502,7 @@ export class CjsCharacterFactory
             for (const [ category, rule ] of Object.entries(CjsCharacterLibraryManager.categories))
             {
                 const parent = category.slice(0, category.lastIndexOf("/"));
-                if (rule.maps !== null && !parts.has(category) && parts.has(parent)) parts.set(category, parts.get(parent));
+                if (rule.maps !== "" && !parts.has(category) && parts.has(parent)) parts.set(category, parts.get(parent));
             }
             CjsCharacterFactory._partsByCategoryCache = parts;
         }
