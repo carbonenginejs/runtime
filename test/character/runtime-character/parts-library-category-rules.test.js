@@ -7,6 +7,7 @@ import { installBlueServices } from "../../../npm/dist/blue/blue.js";
 import "../../support/frameLoop.js";
 
 const ROOT = "res:/graphics/character/female/paperdoll/";
+const MALE = "res:/graphics/character/male/paperdoll/";
 const META = "!!python/object:paperDoll.AvatarPartMetaData\n";
 const COLOR = "colors: [!!python/tuple [0.5,0,0,1], !!python/tuple [0,0.5,0,1], !!python/tuple [0,0,0.5,1]]\npattern: ''\n";
 const OPAQUE = "opaque";
@@ -55,8 +56,19 @@ function fixture(t)
         [ "makeup/eyelashes/eyelashes_01/comp_head_s.png", OPAQUE ],
         [ "makeup/eyelashes/eyelashes_02/colorize_head_l.png", OPAQUE ],
         [ "accessories/earslow/stud02/comp_acc_d.png", OPAQUE ],
-        [ "accessories/earslow/stud02/stud02.black", OPAQUE ]
-    ].map(([ path, value ]) => [ ROOT + path, value ]));
+        [ "accessories/earslow/stud02/stud02.black", OPAQUE ],
+        // Beards (male): a colourised style with its own default palette, and a baked one with a variation.
+        [ MALE + "beard/beard_01/types/beard_01.type", "!!python/tuple [beard/beard_01, '', '']\n" ],
+        [ MALE + "beard/beard_01/colorize_head_l.png", OPAQUE ],
+        [ MALE + "beard/beard_01/colorize_head_z.png", OPAQUE ],
+        [ MALE + "beard/beard_01/comp_head_s.png", OPAQUE ],
+        [ MALE + "beard/beard_01/default.color", COLOR ],
+        [ MALE + "beard/beard_01/stubble.black", OPAQUE ],
+        [ MALE + "beard/fiveoc/types/fiveoc.type", "!!python/tuple [beard/fiveoc, v1, '']\n" ],
+        [ MALE + "beard/fiveoc/comp_head_d.png", OPAQUE ],
+        [ MALE + "beard/fiveoc/v1/comp_head_d.png", OPAQUE ],
+        [ MALE + "beard/fiveoc/v1/default.color", COLOR ]
+    ].map(([ path, value ]) => [ path.startsWith("res:") ? path : ROOT + path, value ]));
     const cache = new RemoteFileCache();
     cache.AddFileIndex([ ...text.keys() ].map((path, index) => `${path},synthetic/${index},checksum,1`).join("\n"));
     const paths = new BluePaths();
@@ -168,4 +180,21 @@ test("the unqualified accessory map fallback is a setting, on by default", async
     const { regions } = await library.FetchOptionMaps(glasses);
     assert.equal(regions.head.n, null);
     assert.equal(local(regions.head.s.path), "accessories/shared/metal/comp_acc_s.png", "the accessory name still stands in");
+});
+
+test("beards: maps from the variation folder else the style's, every style's default palette with its own first", async t =>
+{
+    const library = fixture(t);
+    const male = path => path.slice(MALE.length);
+    const options = await library.FetchOptions("male", "beard");
+    assert.deepEqual(options.map(option => option.id).sort(), [ "beard_01", "fiveoc" ]);
+    const [ beard, fiveoc ] = [ "beard_01", "fiveoc" ].map(id => options.find(option => option.id === id));
+    assert.deepEqual((await library.FetchOptionMaps(fiveoc)).roles.map(role => male(role.path)), [ "beard/fiveoc/v1/comp_head_d.png" ]);
+    assert.deepEqual((await library.FetchOptionMaps(beard)).roles.map(role => male(role.path)).sort(), [
+        "beard/beard_01/colorize_head_l.png", "beard/beard_01/colorize_head_z.png", "beard/beard_01/comp_head_s.png"
+    ]);
+    assert.deepEqual((await library.FetchPalettes(fiveoc)).map(record => male(record.path)), [ "beard/fiveoc/v1/default.color", "beard/beard_01/default.color" ]);
+    assert.deepEqual((await library.FetchPalettes(beard)).map(record => male(record.path)), [ "beard/beard_01/default.color", "beard/fiveoc/v1/default.color" ]);
+    assert.equal(male((await library.ResolveColors(fiveoc)).palette), "beard/fiveoc/v1/default.color", "a style takes its own default");
+    assert.deepEqual(await library.FetchColorAreas(fiveoc), [], "a baked style paints no colour areas");
 });

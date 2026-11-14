@@ -385,7 +385,7 @@ export class CjsCharacterLibraryManager
      * The shipped paper doll category rules (`factory/defaults/categories.json`, which says what each value means),
      * by category path below the sex's paper doll root. An empty rule is no rule. The parts library reads the rules
      * in force through `_Categories`, where a library's generic overrides these by name.
-     * @type {Object<string, { options: (""|"type"|"folder"|"self"), maps: (""|"name"|"composed"|"variation"|"accessory"|"catalog"|"garment"), palettes: (""|"own"|"shared"|"variant"|"folders"), areas: (""|"zone"|"detail"|"count"|"stated"|"none"), defaultColors?: number[][], requiresModel?: boolean, skipPatternedPalettes?: boolean }>}
+     * @type {Object<string, { options: (""|"type"|"folder"|"self"), maps: (""|"name"|"composed"|"variation"|"accessory"|"catalog"|"garment"), palettes: (""|"own"|"shared"|"variant"|"folders"|"styles"), areas: (""|"zone"|"detail"|"count"|"stated"|"none"), defaultColors?: number[][], requiresModel?: boolean, skipPatternedPalettes?: boolean }>}
      */
     static categories = categoryDefaults.categories;
 
@@ -719,7 +719,9 @@ export class CjsCharacterLibraryManager
      * An option's palettes by path, with their kinds (`paletteRecord`), by its category's rule (`categories`): `own`,
      * the `.color` files directly in its folder; `shared`, those, then those in the category's `colors/`; `variant`,
      * its own where its `.type`'s colour variant names one of them, else the category's `colors/`; `folders`, the
-     * `.color` files directly in each of an accessory's folders (`_AccessoryFolders`). No colour is read.
+     * `.color` files directly in each of an accessory's folders (`_AccessoryFolders`); `styles`, every option's of the
+     * category, each the palette its `.type`'s colour variant names (else `default`) in its folders (beards). No colour
+     * is read except where `skipPatternedPalettes` says.
      *
      * Ours, as `FetchOptions`.
      *
@@ -734,6 +736,19 @@ export class CjsCharacterLibraryManager
             const shared = CjsCharacterLibraryManager.paperDollRoot(option.sex) + option.category + "/colors/";
             const own = this._PaperDollFiles(option.folder).filter(path => path.endsWith(".color") && path.lastIndexOf("/") === option.folder.length - 1);
             const rule = this._CategoryRule(option.category, "palettes").palettes;
+            if (rule === "styles")
+            {
+                // Derived (moved from Graphene's beards): any style may wear any style's default palette.
+                // The option's own comes first, so that its `default` is the one `ResolveColors` names.
+                const paths = [], styles = await this.FetchOptions(option.sex, option.category);
+                for (const style of [ option, ...styles.filter(value => value.typePath !== option.typePath) ])
+                {
+                    const facts = await this.FetchOptionPart(style), name = (facts.colorVariant || "default") + ".color";
+                    const found = facts.folders.map(folder => folder + name).find(path => this._PaperDollFiles(path.slice(0, path.lastIndexOf("/") + 1)).includes(path));
+                    if (found) paths.push(found);
+                }
+                return [ ...new Set(paths) ].map(path => CjsCharacterLibraryManager.paletteRecord(path));
+            }
             if (rule === "folders")
             {
                 const paths = (await this._AccessoryFolders(option)).flatMap(folder => this._PaperDollFiles(folder)
