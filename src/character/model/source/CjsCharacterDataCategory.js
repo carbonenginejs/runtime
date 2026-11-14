@@ -5,8 +5,8 @@ import { meta, type } from "#schema";
  * generic holds these by category path (`CjsCharacterGeneric.categories`); the shipped defaults are
  * `factory/defaults/categories.json`, which also says what each value means. An empty rule is no rule.
  *
- * Modelled on: EveSOFDataGenericHullCategory (EveSOFData.h:2317-2334). Carbon's holds only a category name and a
- * reflection mode, so every field here is ours.
+ * Modelled on: EveSOFDataGenericHullCategory (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:2317-2334)
+ * Carbon's holds only a category name and a reflection mode, so every field here is ours.
  */
 @meta.define("CjsCharacterDataCategory")
 export class CjsCharacterDataCategory
