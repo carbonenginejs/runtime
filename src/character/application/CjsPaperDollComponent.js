@@ -1,12 +1,15 @@
 import { CjsSchema, meta, type } from "#schema";
 import { PaperDollTarget } from "./paperDollOrder.js";
+import { INotify } from "../../blue/exposure/INotify.js";
 
 /**
  * Engine inputs for one paper-doll part, with prepared option and palette tables.
  * Components hold values; the UI owns palette selection and custom-colour edits.
- * Schema notifications only mark pending work for the doll's Update.
+ * Schema notifications only mark pending work for the doll's Update. It is Carbon's INotify: Blue's reader tells it of
+ * each NOTIFY member it reads (`OnModified`).
  */
 @meta.define("CjsPaperDollComponent")
+@meta.mapInterface(INotify)
 export class CjsPaperDollComponent
 {
 

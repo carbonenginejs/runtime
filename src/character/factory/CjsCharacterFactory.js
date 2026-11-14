@@ -193,21 +193,15 @@ export class CjsCharacterFactory
     }
 
     /**
-     * Reads a DNA part's values onto its component through Blue's dict reader, then tells the component once of the
-     * NOTIFY members that changed (its `OnModified`: `Rebuild`, the paper doll's dirty mark). The component is ours and
-     * maps no INotify, so it is not the reader's notify target; the call is direct.
+     * Reads a DNA part's values onto its component through Blue's dict reader. The component is an INotify, so the
+     * reader tells it of each NOTIFY member it reads (its `OnModified`: `Rebuild`, the paper doll's dirty mark).
      * @param {object} component The definition's component.
      * @param {object} values Its fields by exposed name.
      * @returns {void}
      */
     static readOnto(component, values)
     {
-        const notified = [];
-        new DictReader({ liveLists: true }).ReadInto(component, values, null, (field, didChange) =>
-        {
-            if (didChange && field.edit && field.edit.notify) notified.push(field.name);
-        });
-        if (notified.length) component.OnModified(notified.length === 1 ? notified[0] : notified);
+        new DictReader({ liveLists: true }).ReadInto(component, values, component);
     }
 
     /**
