@@ -1,7 +1,7 @@
 // The character factory's DNA core: reading and writing a DNA, the sex defaults, and their merge.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsCharacterFactory, CjsCharacterPdpType, CjsPaperDollDefinition, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
+import { CjsCharacterFactory, CjsCharacterLibraryManager, CjsCharacterPdpType, CjsPaperDollDefinition, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
 import { installPartsLibrary } from "../../support/partsLibrary.js";
 
@@ -9,16 +9,16 @@ test("the defaults are the clean character: eyebrows, head, body, eyes and under
 {
   for (const sex of [ "female", "male" ])
   {
-    const defaults = CjsCharacterFactory.getDefaults(sex);
+    const defaults = CjsCharacterLibraryManager.defaultPaperDoll(sex);
     assert.equal(defaults.sex, sex);
     assert.deepEqual(Object.keys(defaults.parts).sort(), [ "archetype", "bottomUnderwear", "eyebrows", "eyes", "skin", ...(sex === "female" ? [ "topUnderwear" ] : []) ].sort());
     assert.equal(defaults.parts.bottomUnderwear.overridable, false);
     assert.equal(defaults.parts.eyes.overridable, true);
   }
-  const copy = CjsCharacterFactory.getDefaults("female");
+  const copy = CjsCharacterLibraryManager.defaultPaperDoll("female");
   copy.parts.eyes.option = "changed";
-  assert.equal(CjsCharacterFactory.getDefaults("female").parts.eyes.option, "eyes_01", "a copy the caller may change");
-  assert.throws(() => CjsCharacterFactory.getDefaults("other"), /Unknown character sex/);
+  assert.equal(CjsCharacterLibraryManager.defaultPaperDoll("female").parts.eyes.option, "eyes_01", "a copy the caller may change");
+  assert.throws(() => CjsCharacterLibraryManager.defaultPaperDoll("other"), /Unknown character sex/);
 });
 
 test("a DNA reads from JSON text or a value, and writes back to the same DNA", () =>

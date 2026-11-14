@@ -7,8 +7,6 @@ import { CjsCharacterObjectBuilder } from "../formats/CjsCharacterObjectBuilder.
 import { CjsCharacterPdpType } from "../formats/characterPdpType.js";
 import { CjsCharacterRecipeModifier } from "../model/source/CjsCharacterRecipeModifier.js";
 import { normalizeResourcePath } from "#utils/path";
-import female from "./defaults/defaultFemalePaperDoll.json" with { type: "json" };
-import male from "./defaults/defaultMalePaperDoll.json" with { type: "json" };
 
 /** The DNA a part may carry, and the type each takes. */
 const PART_FIELDS = {
@@ -24,13 +22,10 @@ const PART_FIELDS = {
     overridable: "boolean"
 };
 
-/** The sexes a character has, and their default paper dolls. */
-const DEFAULTS = { female, male };
-
 /**
  * The character factory: everything that knows what a character is (character-structure-and-plugins.md, "One role
- * per manager"). DNA in and out as a plain JS object, so a character can be built any way; the sex defaults, which it
- * owns (`defaults/defaultFemalePaperDoll.json`, `defaults/defaultMalePaperDoll.json`); and their merge with a DNA.
+ * per manager"). DNA in and out as a plain JS object, so a character can be built any way; and its merge with the sex's
+ * default paper doll, which the library holds (`CjsCharacterLibraryManager.defaultPaperDoll`).
  * It hydrates a paper doll definition from a DNA (`build`) and puts a part or the whole character back to its defaults
  * (`resetPart`, `reset`). It reads the game's `.prs` recipes, which are DNA, into a DNA (`readRecipe`): their format
  * is its own (`recipeConfiguration`, `registerObjectBuilders`). It holds no content facts: those are the parts
@@ -67,7 +62,8 @@ export class CjsCharacterFactory
         const value = typeof input === "string" ? JSON.parse(input) : input;
         if (value === null || typeof value !== "object" || Array.isArray(value)) throw new Error("A character DNA is an object");
         for (const key of Object.keys(value)) if (![ "sex", "description", "parts", "modifiers" ].includes(key)) throw new Error("Unknown character DNA field " + key);
-        if (!Object.hasOwn(DEFAULTS, value.sex)) throw new Error("Unknown character sex " + value.sex);
+        // A sex the library knows: its paper doll root throws for any other.
+        CjsCharacterLibraryManager.paperDollRoot(value.sex);
         const dna = { sex: value.sex, parts: {} };
         if (value.description !== undefined) dna.description = String(value.description);
         for (const [ name, part ] of Object.entries(value.parts ?? {})) dna.parts[name] = CjsCharacterFactory._readPart(name, part);
@@ -91,15 +87,15 @@ export class CjsCharacterFactory
     }
 
     /**
-     * A sex's default paper doll, a copy the caller may change.
+     * A sex's default paper doll, read as a DNA. The library holds it now (`CjsCharacterLibraryManager.defaultPaperDoll`);
+     * this stays only until Graphene's foundation asks the library, then goes.
      * @param {string} sex The sex.
-     * @returns {{ sex: string, description: string, parts: Object<string, object> }}
-     * @throws {Error} For a sex the factory does not know.
+     * @returns {{ sex: string, description: string, parts: Object<string, object> }} A copy the caller may change.
+     * @throws {Error} For a sex the library does not know.
      */
     static getDefaults(sex)
     {
-        if (!Object.hasOwn(DEFAULTS, sex)) throw new Error("Unknown character sex " + sex);
-        return CjsCharacterFactory.readJSON(DEFAULTS[sex]);
+        return CjsCharacterFactory.readJSON(CjsCharacterLibraryManager.defaultPaperDoll(sex));
     }
 
     /**
@@ -114,7 +110,7 @@ export class CjsCharacterFactory
      */
     static merge(input)
     {
-        const dna = CjsCharacterFactory.readJSON(input), defaults = CjsCharacterFactory.getDefaults(dna.sex);
+        const dna = CjsCharacterFactory.readJSON(input), defaults = CjsCharacterFactory.readJSON(CjsCharacterLibraryManager.defaultPaperDoll(dna.sex));
         const merged = { sex: dna.sex, parts: {}, problems: [] };
         if (dna.description !== undefined) merged.description = dna.description;
         if (dna.modifiers !== undefined) merged.modifiers = dna.modifiers;

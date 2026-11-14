@@ -16,12 +16,17 @@ import bodyCarrierDefaults from "../factory/defaults/bodyCarriers.json" with { t
 import exclusivePartDefaults from "../factory/defaults/exclusiveParts.json" with { type: "json" };
 import meshDependantDefaults from "../factory/defaults/meshDependants.json" with { type: "json" };
 import categoryDefaults from "../factory/defaults/categories.json" with { type: "json" };
+import defaultFemalePaperDoll from "../factory/defaults/defaultFemalePaperDoll.json" with { type: "json" };
+import defaultMalePaperDoll from "../factory/defaults/defaultMalePaperDoll.json" with { type: "json" };
 import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCorrections.js";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { PaperDollPaletteKind } from "./characterPalettes.js";
 import { BlackReader } from "#blue/formats/black/BlackReader";
 import { CjsSchema } from "#schema";
 import { TriBatchType } from "#consts/graphics";
+
+/** The default paper doll of each sex (`defaultPaperDoll`). */
+const defaultPaperDolls = { female: defaultFemalePaperDoll, male: defaultMalePaperDoll };
 
 /** Installs, loads, and queries one combined hydrated character library. */
 export class CjsCharacterLibraryManager
@@ -312,6 +317,22 @@ export class CjsCharacterLibraryManager
         const category = categoryDefaults.parts[member];
         if (category === undefined) throw new Error("No paper doll part " + member);
         return category;
+    }
+
+    /**
+     * A sex's default paper doll: the DNA every character of that sex starts from (`factory/defaults/
+     * defaultFemalePaperDoll.json`, `defaultMalePaperDoll.json`), which only the library loads. The factory merges a DNA
+     * over it (`CjsCharacterFactory.merge`).
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {string} sex The sex.
+     * @returns {{ sex: string, description: string, parts: Object<string, object> }} A copy the caller may change.
+     * @throws {Error} For a sex the library does not know.
+     */
+    static defaultPaperDoll(sex)
+    {
+        if (!Object.hasOwn(defaultPaperDolls, sex)) throw new Error("Unknown character sex " + sex);
+        return structuredClone(defaultPaperDolls[sex]);
     }
 
     /**
