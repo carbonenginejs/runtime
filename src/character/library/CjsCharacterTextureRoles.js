@@ -1,4 +1,5 @@
 import { meta } from "#schema";
+import roles from "../factory/defaults/textureRoles.json" with { type: "json" };
 
 /**
  * The paper-doll map size tiers, largest first, as `[characterTextureQuality value, file suffix]`: `_4k`, unsuffixed
@@ -6,9 +7,6 @@ import { meta } from "#schema";
  * which broke the fallback order for every quality but `4k`.
  */
 const TEXTURE_TIERS = [ [ "4k", "_4k" ], [ "2k", "" ], [ "512", "_512" ], [ "256", "_256" ] ];
-
-/** The note on a derived fact: our own earlier code's behaviour, which the screenshots keep. */
-const DERIVED = "matches Graphene's working behaviour, today's look (Graphene 6a47517 ";
 
 /**
  * What a paper doll texture file is, from its name: `<family>_<region>_<suffix>[<tier>].png`. Every composer reads
@@ -27,8 +25,9 @@ const DERIVED = "matches Graphene's working behaviour, today's look (Graphene 6a
  *   `_512`, `_256` and none (`CjsCharacterTextureRoles.splitTier`).
  *
  * The parts library's one texture-role table (character-structure-and-plugins.md, "One role per manager": the parts
- * library is the only code that parses content paths). The entries below carry their sources. The map size tiers
- * and the `characterTextureQuality` setting live here too.
+ * library is the only code that parses content paths). The tables are data, `factory/defaults/textureRoles.json`,
+ * which only the library loads, each entry with its sources. The map size tiers and the `characterTextureQuality`
+ * setting live here too.
  *
  * Ours (no Carbon counterpart): Carbon ships no paper doll; the client's is Python. The name is a working name.
  */
@@ -57,8 +56,8 @@ export class CjsCharacterTextureRoles
 
     static className = "CjsCharacterTextureRoles";
 
-    /** The regions a file name can carry, as authored. */
-    static regions = [ "head", "body", "hair", "acc" ];
+    /** The regions a file name can carry, as authored (`factory/defaults/textureRoles.json`). */
+    static regions = roles.regions;
 
     /**
      * The character atlas's regions, as an area's `TransformUV0` places them: [u0, v0, u1, v1]. Found: every character
@@ -66,7 +65,7 @@ export class CjsCharacterTextureRoles
      * `atlasRegions.js`).
      * @type {Object<string, number[]>}
      */
-    static atlas = { body: [ 0, 0, 0.5, 1 ], head: [ 0.5, 0, 1, 0.5 ], hair: [ 0.5, 0.5, 0.75, 1 ], acc: [ 0.75, 0.5, 1, 1 ] };
+    static atlas = roles.atlas;
 
     /**
      * The atlas region a `TransformUV0` lies in (`atlas`), `identity` for the whole image, or null for neither.
@@ -154,107 +153,7 @@ export class CjsCharacterTextureRoles
      * which match the working behaviour of our own earlier code (today's look) and wait for a ruling. A key
      * `<family>_<suffix>` is a role for that family alone, read before the suffix's own (`comp_z`).
      */
-    static table = {
-        d: {
-            families: [ "comp" ],
-            property: "DiffuseMap",
-            channels: { rgb: "colour", a: "coverage" },
-            operation: "Simple",
-            plan: "replace",
-            covered: false,
-            source: "simpleblit: RGB = Texture.rgb, SRC_ALPHA/INV_SRC_ALPHA (character-compositing.md:370, :395); "
-                + "DiffuseMap (shaders.yaml partSlots)",
-            derived: "its alpha is coverage: " + DERIVED + "augmentations.js:13)"
-        },
-        l: {
-            families: [ "colorize", "comp" ],
-            property: "DiffuseMap",
-            channels: { rgb: "detail, multiplied by the colour areas", a: "coverage (UseMask 0 keeps the detail's alpha)" },
-            operation: "Colorized",
-            plan: "replace",
-            covered: false,
-            source: "colorizedblit D (character-compositing.md:367, :395)",
-            derived: "drawn as it is (Simple) without a zone map or palette (CjsPaperDollCompositor.CreateMaterialLayer); "
-                + "comp_body_l is a garment detail: " + DERIVED + "bodyComposition.js:74)"
-        },
-        z: {
-            families: [ "colorize" ],
-            property: "DiffuseMap",
-            channels: { r: "colour area 1 weight", g: "colour area 2 weight", b: "colour area 3 weight", a: "where colourising applies" },
-            operation: null,
-            inputOf: "l",
-            plan: "replace",
-            covered: false,
-            source: "colorizedblit Z, and the one-channel compact zone decode (character-compositing.md:367, :379-383)"
-        },
-        comp_z: {
-            families: [ "comp" ],
-            property: "DiffuseMap",
-            channels: { r: "colour area 1 weight", g: "colour area 2 weight", b: "colour area 3 weight", a: "where colourising applies" },
-            operation: null,
-            inputOf: null,
-            plan: "replace",
-            covered: false,
-            source: "the colorizedblit Z decode (character-compositing.md:367, :379-383); every head tattoo folder holds one "
-                + "`comp_head_z` beside its `projection.proj` (resource index)",
-            derived: "PROVISIONAL (Ruru, 2026-11-09): the zone of the head tattoo's bake, which is its colourised detail (no source states it): matches "
-                + "Graphene's working behaviour, today's look (Graphene 5a7e30d tattoos.js); every head tattoo's is a 16x16 "
-                + "map of one texel selecting colour area 1 everywhere (all 115, both sexes)"
-        },
-        n: {
-            families: [ "comp" ],
-            property: "NormalMap",
-            channels: { rgb: "normal (or two-channel: R = X, A = Y, Z rebuilt)" },
-            operation: "Simple",
-            plan: "replace",
-            covered: true,
-            source: "covered SimpleBlit replacement (character-compositing.md:593); RGB at 4k, LA at base (:337-338)",
-            derived: "the coverage is the option's own diffuse: " + DERIVED
-                + "bodyComposition.js:146, hairSupport.js:144, beardSupport.js:67, augmentations.js:14)"
-        },
-        s: {
-            families: [ "comp", "colorize" ],
-            property: "SpecularMap",
-            channels: { rgba: "specular (LA at base, RGBA in some variations)" },
-            operation: "Simple",
-            plan: "replace",
-            covered: true,
-            source: "LA versus RGBA (character-compositing.md:329-330); SpecularMap (shaders.yaml partSlots)",
-            derived: "drawn by simpleblit, through the option's diffuse coverage as n; colorize_body_s is a boot's only "
-                + "specular: " + DERIVED + "surfaceDetails.js:60, bodyComposition.js:63)"
-        },
-        tn: {
-            families: [ "comp" ],
-            property: "NormalMap",
-            channels: { rg: "signed XY perturbation, (2 * value - 1) * strength / 2 (two-channel: A gives Y)" },
-            operation: "Twist",
-            plan: "add",
-            covered: false,
-            source: "twistnormalblit, two passes ONE/ONE ADD then REV_SUBTRACT, destination alpha kept "
-                + "(character-compositing.md:373, :397)"
-        },
-        mn: {
-            families: [ "comp" ],
-            property: "NormalMap",
-            channels: { rg: "normal XY, Z rebuilt", b: "coverage" },
-            operation: "MaskedNormal",
-            plan: "replace",
-            covered: false,
-            source: "maskednormalblit: XY = 2 * rg - 1, alpha = b * strength; SRC_ALPHA/INV_SRC_ALPHA, destination alpha "
-                + "kept (character-compositing.md:372, :396)"
-        },
-        m: {
-            families: [ "comp" ],
-            property: "CutMaskMap",
-            channels: { rgb: "black", a: "where the body is cut" },
-            operation: "Simple",
-            plan: "replace",
-            covered: false,
-            source: "black RGB, variable alpha, drawn through alpha onto a white target (character-compositing.md:341-348); "
-                + "CutMaskMap (shaders.yaml partSlots)",
-            derived: "the white target and a simpleblit: " + DERIVED + "bodyComposition.js:149, :335)"
-        }
-    };
+    static table = roles.table;
 
     /**
      * The garment map names (the MATERIAL parts with the body target), by the map they give: each map is the first
@@ -271,20 +170,7 @@ export class CjsCharacterTextureRoles
      * `robeam01_n` in `robef01`, `jacketmilf01_s` in `jacketmilf02`). An authored diffuse is colourised through a zone
      * map when the chain holds one, as today's `comp_body_d` is.
      */
-    static garment = {
-        /** The diffuse source: a colourise detail, or an authored diffuse. */
-        detail: [ "colorize_body_l", "comp_body_l", "comp_body_d", "_l", "colorize_body_d", "<part>_d" ],
-        /** The colourise detail's zone map. */
-        zone: [ "colorize_body_z" ],
-        /** The normal, drawn through the detail's coverage (`comp_body_mn`: a masked normal, through its own). */
-        normal: [ "comp_body_n", "<part>_n", "_n", "colorize_body_n", "<part>_body_n", "comp_body_mn", "*_n" ],
-        /** A twist normal, added over the normal. */
-        twist: [ "comp_body_tn", "_tn" ],
-        /** The specular, drawn through the detail's coverage. */
-        specular: [ "comp_body_s", "<part>_s", "_s", "colorize_body_s", "comb_body_s", "<part>_body_s", "*_s" ],
-        /** The body cut mask: the first folder's, then each dependant folder's (`maskPaths`). */
-        cutMask: [ "comp_body_m" ]
-    };
+    static garment = roles.garment;
 
     /**
      * A garment option's maps by the garment names (`garment`), with today's precedence: folder, then tier, then name.
