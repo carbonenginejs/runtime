@@ -359,8 +359,11 @@ export class CjsCharacterLibraryManager
         if (metadataNames.includes(name + "/metadata.yaml"))
         {
             part.metadata = await this.GetAvatarPartMetaData(name + "/metadata.yaml");
-            part.dependantModifiers = part.metadata.dependantModifiers.map(value => CjsCharacterLibraryManager.parseModifier(value));
-            part.occludesModifiers = part.metadata.occludesModifiers.map(value => CjsCharacterLibraryManager.parseModifier(value));
+            // The part's own copies of its metadata's modifiers, as the character format read them (a weight the file
+            // does not state stays null; CjsCharacterAppearanceResolver.dependantWeight resolves it).
+            const copy = modifier => Object.assign(new CjsCharacterModifier(), { path: modifier.path, weight: modifier.weight });
+            part.dependantModifiers = part.metadata.dependantModifiers.map(copy);
+            part.occludesModifiers = part.metadata.occludesModifiers.map(copy);
         }
         for (const kind of ["types", "colorVariations", "projectedDecals", "blackResources", "textures"])
         {
@@ -535,16 +538,18 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * A part's or dependant's `metadata.yaml` lists, decoded: the only place weights (`name###0.3`, `name#0.2`, an
-     * empty `name#`) are read, so the paper doll and every consumer take values, never strings to parse
-     * (character-structure-and-plugins: the library has stuff, the engine builds from the values it is given).
+     * A part's or dependant's `metadata.yaml` lists, resolved: the character format has read each entry as its path
+     * and stated weight (`CjsCharacterYamlFormat.decodeModifier`: `name###0.3`, `name#0.2`, an empty `name#`), so
+     * the paper doll and every consumer take values, never strings to parse (character-structure-and-plugins: the
+     * library has stuff, the engine builds from the values it is given).
      * `occludes` and `dependants` are the entries outside `utilityshapes/`, cut to their paths; `shapes` the utility
      * requests (`CjsCharacterAppearanceResolver.decodeUtilityShape`) and occlusions (`decodeUtilityOcclusion`). A
      * dependant's every `dependantModifiers` entry is a utility request (the tuck rule), and its occlusions protect no
      * owner. Every entry decodes or throws (operator, 2026-11-12: "all rules must be handled").
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python.
-     * @param {{ dependantModifiers: string[], occludesModifiers: string[] }} metadata The two lists as authored.
+     * @param {{ dependantModifiers: Array<{ path: string, weight: ?number }>, occludesModifiers: Array<{ path: string, weight: ?number }> }} metadata
+     *   The two lists, as the character format reads them.
      * @param {string} metadataPath The file they were read from, for errors.
      * @param {string} [dependant=""] The dependant's modifier path, or "" for a worn part.
      * @returns {{ occludes: string[], dependants: string[], shapes: { requests: object[], occlusions: object[] } }}
@@ -552,10 +557,10 @@ export class CjsCharacterLibraryManager
      */
     static decodeModifiers(metadata, metadataPath, dependant = "")
     {
-        const isUtility = entry => /^utilityshapes\//iu.test(entry);
-        const cut = entries => [ ...new Set(entries.filter(entry => !isUtility(entry)).map(entry => entry.split("#")[0])) ];
+        const isUtility = entry => /^utilityshapes\//iu.test(entry.path);
+        const cut = entries => [ ...new Set(entries.filter(entry => !isUtility(entry)).map(entry => entry.path)) ];
         const missing = (list, entry) => new Error("No paper doll rule for the " + (dependant ? dependant.split("/").slice(0, 2).join("/") + " " : "")
-            + list + " entry " + entry + " in " + metadataPath);
+            + list + " entry " + entry.path + (entry.weight === null ? "" : " (weight " + entry.weight + ")") + " in " + metadataPath);
         const requests = [], occlusions = [];
         for (const entry of dependant ? metadata.dependantModifiers : metadata.dependantModifiers.filter(isUtility))
         {
@@ -602,7 +607,7 @@ export class CjsCharacterLibraryManager
      * A part folder's metadata, read once: the first of the folders holding a `metadata.yaml`, decoded, for a consumer
      * that names its folders itself (hair, beards, accessories, the foundation, the body carriers). Its occludes,
      * dependants and utility shapes come from `decodeModifiers`; `dependantParts` are its dependants outside
-     * `utilityshapes/` with their weights (`parseModifier`: `archetypes/cdshape###1.0`), and its two scalar fields
+     * `utilityshapes/` with their weights (`CjsCharacterAppearanceResolver.dependantWeight`: `archetypes/cdshape###1.0` at 1.0, an entry stating none at 1), and its two scalar fields
      * are as the file states them (`numColorAreas` -1 and an empty source path where it states none). Null where no
      * folder holds one.
      *
@@ -611,7 +616,7 @@ export class CjsCharacterLibraryManager
      * @param {string[]} folders The folders' `res:` paths, most specific first, each with its trailing slash.
      * @returns {Promise<?{ metadataPath: string, occludes: string[], dependants: string[], dependantParts: Array<{ path: string, weight: number }>, shapes: { requests: object[], occlusions: object[] }, numColorAreas: number, alternativeTextureSourcePath: string }>}
      *   The decoded metadata, the caller's own copy.
-     * @throws {Error} For an entry no rule reads (`decodeModifiers`, `parseModifier`).
+     * @throws {Error} For an entry no rule reads (`decodeModifiers`).
      */
     FetchPartMetadata(folders)
     {
@@ -620,8 +625,8 @@ export class CjsCharacterLibraryManager
             const metadataPath = folders.map(folder => folder + "metadata.yaml").find(path => this._PaperDollFiles(path.slice(0, path.lastIndexOf("/") + 1)).includes(path));
             if (!metadataPath) return null;
             const metadata = await this.FetchAvatarPartMetaData(metadataPath);
-            const dependantParts = metadata.dependantModifiers.filter(entry => !/^utilityshapes\//iu.test(entry))
-                .map(entry => CjsCharacterLibraryManager.parseModifier(entry)).map(modifier => ({ path: modifier.path, weight: modifier.weight }));
+            const dependantParts = metadata.dependantModifiers.filter(entry => !/^utilityshapes\//iu.test(entry.path))
+                .map(entry => ({ path: entry.path, weight: CjsCharacterAppearanceResolver.dependantWeight(entry) }));
             return {
                 metadataPath, ...CjsCharacterLibraryManager.decodeModifiers(metadata, metadataPath), dependantParts,
                 numColorAreas: metadata.numColorAreas, alternativeTextureSourcePath: metadata.alternativeTextureSourcePath
@@ -1002,7 +1007,7 @@ export class CjsCharacterLibraryManager
             for (const path of paths)
             {
                 const metadata = await this.FetchAvatarPartMetaData(path);
-                if (metadata.dependantModifiers.some(value => value.split("#")[0] === archetype)) found.push(path.slice(heads.length, -"/metadata.yaml".length));
+                if (metadata.dependantModifiers.some(value => value.path === archetype)) found.push(path.slice(heads.length, -"/metadata.yaml".length));
             }
             if (found.length > 1) throw new Error("Archetype " + archetype + " has more than one head: " + found.join(", "));
             return found.length ? found[0].slice(found[0].lastIndexOf("_") + 1) : null;
@@ -2040,23 +2045,6 @@ export class CjsCharacterLibraryManager
 
     /** The registered name: the manager is never hydrated, so it is not a schema class (class-ownership.md § *Class-shape rules*). */
     static className = "CjsCharacterLibraryManager";
-
-    /**
-     * Splits the observed ###number suffix without normalizing the raw modifier path.
-     * @param {string} value Authored dependency or occlusion string.
-     * @returns {CjsCharacterModifier} Parsed path and finite weight; invalid suffixes reject.
-     */
-    static parseModifier(value)
-    {
-        if (typeof value !== "string" || !value) throw new TypeError("Character modifier must be a nonempty string.");
-        const match = value.match(/^(.+?)###([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)$/u);
-        if (!match && value.includes("#")) throw new TypeError(`Unsupported character modifier suffix: ${value}`);
-        const modifier = new CjsCharacterModifier();
-        modifier.path = match ? match[1] : value;
-        modifier.weight = match ? Number(match[2]) : 1;
-        if (!Number.isFinite(modifier.weight)) throw new TypeError(`Invalid modifier weight: ${value}`);
-        return modifier;
-    }
 }
 
 /**

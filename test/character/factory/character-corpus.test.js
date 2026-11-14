@@ -16,6 +16,7 @@ import { CjsCharacterFactory, CjsCharacterLibraryConfiguration, CjsCharacterLibr
 import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
 import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
+import { CjsCharacterYamlFormat } from "../../../npm/dist/resource/formats/character/index.js";
 import "../../support/frameLoop.js";
 import { clientResources } from "../../support/clientResources.js";
 
@@ -63,6 +64,49 @@ function FieldsOf(lists, key)
     if (typeof form === "string") return [ form ];
     if (Array.isArray(form)) return form;
     return [ form.list, ...form.pattern ];
+}
+
+/**
+ * Weights typed by hand in a form Python does not write (`###0.10`, `###1`): they decode to their numbers and write
+ * back as Python writes them (`###0.1`, `###1.0`), so only the number's text differs (the normalized gate). Each
+ * spelling met is collected here and reported.
+ * @type {Set<string>}
+ */
+const handTypedWeights = new Set();
+
+/** The one entry ending in a bare `#`: it states no weight and writes back without the `#`. */
+const KNOWN_BARE = "utilityshapes/pinchrightouterlowerhipsshape#";
+
+/** Occlusions written with a dependant's `###` (build 3693310): they write back with the occlusion's `#`. */
+const KNOWN_TRIPLE_OCCLUSIONS = [ "topunderwear###1" ];
+
+/**
+ * Checks a metadata file's modifier lists against its record's: each entry as written decodes to the record's entry
+ * (`CjsCharacterYamlFormat.decodeModifier`) and writes back as its own text (`joinModifier`), unless it is one of the
+ * known hand-typed forms. The record's lists are then set to the written strings for `Compare`.
+ * @returns {string[]} The failures.
+ */
+function CompareModifiers(label, raw, values)
+{
+    const failures = [];
+    for (const [ list, separator ] of Object.entries(CjsCharacterYamlFormat.modifierLists))
+    {
+        const written = raw?.[list];
+        if (!Array.isArray(written)) continue;
+        written.forEach((text, i) =>
+        {
+            const entry = values[list][i] && { path: values[list][i].path, weight: values[list][i].weight };
+            if (JSON.stringify(CjsCharacterYamlFormat.decodeModifier(text, separator, label)) !== JSON.stringify(entry)) failures.push(label + ": " + list + " " + text + " arrived as " + JSON.stringify(entry));
+            const joined = CjsCharacterYamlFormat.joinModifier(entry, separator);
+            const stated = entry && entry.weight !== null && text.startsWith(entry.path + separator) ? text.slice(entry.path.length + separator.length) : null;
+            const handTyped = stated !== null && Number(stated) === entry.weight;
+            if (joined !== text && handTyped) handTypedWeights.add(stated);
+            const known = text === KNOWN_BARE || KNOWN_TRIPLE_OCCLUSIONS.includes(text) || handTyped;
+            if (joined !== text && !known) failures.push(label + ": " + list + " " + text + " writes back as " + joined);
+        });
+        values[list] = written;
+    }
+    return failures;
 }
 
 /**
@@ -114,7 +158,10 @@ test("the character readers and the factory keep every field of a real build", {
     // metadata.yaml: weighted occlusions (`#2.0`) included, every list entry as written.
     const metadataEmpty = emptyOf("CjsAvatarPartMetaData");
     for (const path of Sample(files("/metadata.yaml"), METADATA))
-        failures.push(...Compare(path, "CjsAvatarPartMetaData", await Raw(path), CjsSchema.getValues(await library.FetchAvatarPartMetaData(path)), metadataEmpty));
+    {
+        const raw = await Raw(path), values = CjsSchema.getValues(await library.FetchAvatarPartMetaData(path));
+        failures.push(...CompareModifiers(path, raw, values), ...Compare(path, "CjsAvatarPartMetaData", raw, values, metadataEmpty));
+    }
 
     // .proj
     const decalEmpty = emptyOf("CjsProjectedDecal");
@@ -160,5 +207,6 @@ test("the character readers and the factory keep every field of a real build", {
         });
     }
 
+    t.diagnostic("hand-typed modifier weights (only their text differs): " + [ ...handTypedWeights ].sort().join(", "));
     assert.deepEqual(failures, []);
 });

@@ -1,15 +1,18 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../../npm/dist/blue/schema/CjsSchema.js";
-import { CjsYamlFormat } from "../../../npm/dist/resource/formats/yaml/index.js";
+import { CjsCharacterYamlFormat } from "../../../npm/dist/resource/formats/character/index.js";
 import { CjsAvatarPartMetaData, CjsCharacterLibraryConfiguration, CjsProjectedDecal, Tr2InteriorLightSource } from "../../../npm/dist/character/index.js";
 import { createCharacterYamlTagHandlers, readCharacterYamlObject } from "../../../npm/dist/character/formats/yaml.js";
 
 const prefix = "tag:yaml.org,2002:python/object:";
 
+/** Reads as the library does: through the character format, as plain values, the handlers building the records. */
 function Read(source)
 {
-    return CjsYamlFormat.readRaw(source, {
+    return CjsCharacterYamlFormat.readRaw(source, {
+        preservePythonTags: false,
+        intAsBigInt: false,
         tagPolicy: "handle",
         sourceName: "res:/test/character.yaml",
         tagHandlers: createCharacterYamlTagHandlers(CjsCharacterLibraryConfiguration.sourceLists)
@@ -34,11 +37,11 @@ test("one handler supports registry names and preserves YAML alias identity", ()
 {
     const handlers = createCharacterYamlTagHandlers(CjsCharacterLibraryConfiguration.sourceLists);
     assert.equal(handlers.get(prefix + "paperDoll.ProjectedDecal"), handlers.get(prefix + "paperDoll.AvatarPartMetaData"));
-    const source = "first: &part !!python/object:paperDoll.AvatarPartMetaData\n  dependantModifiers: [hair/style#0.5]\n  numColorAreas: 2\nsecond: *part\n";
+    const source = "first: &part !!python/object:paperDoll.AvatarPartMetaData\n  dependantModifiers: [hair/style###0.5]\n  numColorAreas: 2\nsecond: *part\n";
     const value = Read(source);
     assert.equal(Object.getPrototypeOf(value.first), CjsAvatarPartMetaData.prototype);
     assert.equal(value.first, value.second);
-    assert.deepEqual(value.first.dependantModifiers, [ "hair/style#0.5" ]);
+    assert.deepEqual(value.first.dependantModifiers.map(entry => ({ ...entry })), [ { path: "hair/style", weight: 0.5 } ]);
     assert.equal(value.first.numColorAreas, 2);
     assert.notEqual(Read(source).first, value.first);
 });

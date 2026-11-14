@@ -55,77 +55,58 @@ export class CjsCharacterAppearanceResolver
     }
 
     /**
-     * Decodes one authored `dependantModifiers` entry as a utility-shape
-     * request: `utilityshapes/<target>` at weight 1, or
-     * `utilityshapes/<target>###<number>` at that weight (zero and >1
-     * allowed, never clamped); a trailing `#` with no weight is the
-     * unweighted request. Any other `#` form, a non-numeric suffix and a
-     * path outside `utilityshapes/` are unresolved.
-     * @param {string} authoredValue The entry as authored.
-     * @param {number|null} [relationWeight=null] A typed relation's weight; it wins over the suffix.
-     * @param {string} [relationPath=""] A typed relation's modifier path; when not empty it wins over the authored path.
+     * A dependant modifier's weight: a typed relation's weight wins, then the weight its metadata states, and a
+     * modifier that states none is at 1. This is the one resolution of an unstated dependant weight
+     * (`CjsCharacterModifier.weight` is null for one); the character format only reads what the file says.
+     * @param {{ weight: ?number }} modifier The modifier, as the character format reads it.
+     * @param {?number} [relationWeight=null] A typed relation's weight.
+     * @returns {number}
+     */
+    static dependantWeight(modifier, relationWeight = null)
+    {
+        if (relationWeight !== null && relationWeight !== undefined) return relationWeight;
+        return modifier.weight === null || modifier.weight === undefined ? 1 : modifier.weight;
+    }
+
+    /**
+     * One `dependantModifiers` entry as a utility-shape request: its weight (`dependantWeight`: zero and >1 allowed,
+     * never clamped). A path outside `utilityshapes/` is unresolved. The character format has read the entry
+     * (`CjsCharacterYamlFormat.decodeModifier`: `utilityshapes/<target>###<number>`, or no weight).
+     * @param {{ path: string, weight: ?number }} modifier The entry, as the character format reads it.
+     * @param {number|null} [relationWeight=null] A typed relation's weight; it wins over the stated one.
+     * @param {string} [relationPath=""] A typed relation's modifier path; when not empty it wins over the entry's path.
      * @returns {{modifierPath: string, targetName: string, weight: number, explicitWeight: boolean}|null}
      *   The lower-case normalized path, the morph target (the path's last segment, as authored), and its weight; null when unresolved.
      */
-    static decodeUtilityShape(authoredValue, relationWeight = null, relationPath = "")
+    static decodeUtilityShape(modifier, relationWeight = null, relationPath = "")
     {
-        const authored = String(authoredValue);
-        const weighted = authored.match(/^(utilityshapes\/.+?)###([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)$/iu);
-        let base = authored;
-        let weight = relationWeight;
-        let explicitWeight = false;
-
-        if (weighted)
-        {
-            base = weighted[1];
-            const parsed = Number(weighted[2]);
-            if (!Number.isFinite(parsed)) return null;
-            weight = weight === null || weight === undefined ? parsed : weight;
-            explicitWeight = true;
-        }
-        else if (/^utilityshapes\/[^#]+#+$/iu.test(authored))
-        {
-            // A trailing `#` with no weight states none, so the entry is the unweighted request. The one such entry in the
-            // corpus is `outer/jacketmilf01`'s `utilityshapes/pinchrightouterlowerhipsshape#`.
-            base = authored.replace(/#+$/u, "");
-        }
-        else if (authored.includes("#"))
-        {
-            return null;
-        }
-
+        const base = modifier.path;
         const modifierPath = NormalizeUtilityPath(relationPath || base);
         if (!modifierPath) return null;
-        if (weight === null || weight === undefined) weight = 1;
+        const weight = CjsCharacterAppearanceResolver.dependantWeight(modifier, relationWeight);
         if (!Number.isFinite(weight)) return null;
-
         return {
             modifierPath,
             targetName: base.slice(base.lastIndexOf("/") + 1),
             weight,
-            explicitWeight
+            explicitWeight: modifier.weight !== null && modifier.weight !== undefined
         };
     }
 
     /**
-     * Decodes one authored `occludesModifiers` entry as a utility-shape
-     * occlusion. A weighted entry (`utilityshapes/pinchrighthipsshape#2.0`) sets
-     * the named morph to that weight while its item is worn (operator,
-     * 2026-11-12); an unweighted one suppresses it. Any other `#` form is
-     * unresolved.
-     * @param {string} authoredValue The entry as authored.
-     * @param {string} [relationPath=""] A typed relation's modifier path; when not empty it wins over the authored path.
+     * One `occludesModifiers` entry as a utility-shape occlusion. A weighted entry
+     * (`utilityshapes/pinchrighthipsshape#2.0`) sets the named morph to that weight while its item is worn (operator,
+     * 2026-11-12); one that states no weight suppresses it (weight null). The character format has read the entry
+     * (`CjsCharacterYamlFormat.decodeModifier`).
+     * @param {{ path: string, weight: ?number }} modifier The entry, as the character format reads it.
+     * @param {string} [relationPath=""] A typed relation's modifier path; when not empty it wins over the entry's path.
      * @returns {{modifierPath: string, targetName: string, weight: ?number}|null} The lower-case normalized path, the
-     *   morph's name as authored and the weight it sets (null for none); null when unresolved or not a utility shape.
+     *   morph's name as authored and the weight it sets (null for none); null when not a utility shape.
      */
-    static decodeUtilityOcclusion(authoredValue, relationPath = "")
+    static decodeUtilityOcclusion(modifier, relationPath = "")
     {
-        const authored = String(authoredValue);
-        const weighted = authored.match(/^([^#]+)#([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)$/u);
-        if (!weighted && authored.includes("#")) return null;
-        const base = weighted ? weighted[1] : authored;
-        const weight = weighted ? Number(weighted[2]) : null;
-        if (weight !== null && !Number.isFinite(weight)) return null;
+        const base = modifier.path;
+        const weight = modifier.weight === undefined ? null : modifier.weight;
         const modifierPath = NormalizeUtilityPath(relationPath || base);
         return modifierPath ? { modifierPath, targetName: base.slice(base.lastIndexOf("/") + 1), weight } : null;
     }

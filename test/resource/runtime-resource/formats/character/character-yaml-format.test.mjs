@@ -49,6 +49,25 @@ test("the character format writes as PyYAML dumped the file type", () =>
     assert.throws(() => CjsCharacterYamlFormat.write({}, { extension: ".yaml" }), /writes no \.yaml/);
 });
 
+test("a part's metadata modifiers read as { path, weight } and write back as their strings", () =>
+{
+    const text = "!!python/object:paperDoll.AvatarPartMetaData {dependantModifiers: [utilityshapes/a###0.05, archetypes/b###1.0, utilityshapes/c#, dependants/d],\n  occludesModifiers: [utilityshapes/e#2.0, hair]}\n";
+    const raw = CjsCharacterYamlFormat.readRaw(text);
+    assert.deepEqual(raw.$yamlValue.dependantModifiers, [ { path: "utilityshapes/a", weight: 0.05 }, { path: "archetypes/b", weight: 1 }, { path: "utilityshapes/c", weight: null }, { path: "dependants/d", weight: null } ]);
+    assert.deepEqual(raw.$yamlValue.occludesModifiers, [ { path: "utilityshapes/e", weight: 2 }, { path: "hair", weight: null } ]);
+    // The bare `#` of outer/jacketmilf01 states no weight and is not written back.
+    const written = CjsCharacterYamlFormat.write(raw, { extension: ".proj", lineBreak: "\n" });
+    assert.equal(written, "!!python/object:paperDoll.AvatarPartMetaData\ndependantModifiers: [utilityshapes/a###0.05, archetypes/b###1.0, utilityshapes/c,\n  dependants/d]\noccludesModifiers: [utilityshapes/e#2.0, hair]\n");
+    assert.deepEqual(CjsCharacterYamlFormat.readRaw(written), raw);
+    // A caller's handler for the metadata tag is given the decoded lists.
+    const handled = CjsCharacterYamlFormat.readRaw("!!python/object:paperDoll.AvatarPartMetaData {occludesModifiers: [x#0.5]}\n",
+        { tagPolicy: "handle", tagHandlers: { "!!python/object:paperDoll.AvatarPartMetaData": values => values } });
+    assert.deepEqual(handled, { occludesModifiers: [ { path: "x", weight: 0.5 } ] });
+    assert.deepEqual(CjsCharacterYamlFormat.decodeModifier("topunderwear###1", "#", "f"), { path: "topunderwear", weight: 1 });
+    for (const [ entry, separator ] of [ [ "x#0.5", "###" ], [ "utilityshapes/x###0.5", "#" ], [ "x#wat", "#" ], [ "x#2.0#1", "#" ] ])
+        assert.throws(() => CjsCharacterYamlFormat.decodeModifier(entry, separator, "f"), /^TypeError: f: no modifier form reads/u);
+});
+
 test("floats are written as Python's repr, with PyYAML's .0e rule", () =>
 {
     const write = (value, floatDigits = null) => CjsCharacterYamlFormat.write([ value ], { defaultFlowStyle: null, lineBreak: "\n", floatDigits });

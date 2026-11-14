@@ -123,7 +123,7 @@ test("GetPart joins exact records and paths without acquiring opaque resources",
     const again = await manager.GetPart(ROOT);
     assert.notEqual(again, part, "a copy per call");
     assert.deepEqual(again, part);
-    assert.equal(part.metadata.dependantModifiers[0], "utilityshapes/test###0.25");
+    assert.deepEqual({ ...part.metadata.dependantModifiers[0] }, { path: "utilityshapes/test", weight: 0.25 });
     assert.equal(part.dependantModifiers[0].weight, 0.25);
     assert.equal(part.dependantModifiers[0].path, "utilityshapes/test");
     assert.deepEqual(part.blackPaths, [ROOT + "/mesh.red"]);
@@ -133,7 +133,6 @@ test("GetPart joins exact records and paths without acquiring opaque resources",
     assert.ok(reads.every(path => !/\.(png|red)$/u.test(path)));
     await assert.rejects(manager.ResolveReference(ROOT + "/missing.color"), /Unresolved/);
     await assert.rejects(manager.GetPart("topmiddle/missing"), /Unresolved/);
-    assert.throws(() => CjsCharacterLibraryManager.parseModifier("utilityshapes/test###wat"), /suffix/);
 });
 
 test("FetchAvatarPartMetaData starts the lazy source and reads only that metadata file", async t =>
@@ -144,7 +143,7 @@ test("FetchAvatarPartMetaData starts the lazy source and reads only that metadat
     const again = await manager.FetchAvatarPartMetaData(ROOT + "/metadata.yaml");
     assert.notEqual(again, metadata, "a copy per call");
     assert.deepEqual(again, metadata);
-    assert.deepEqual(metadata.dependantModifiers, [ "utilityshapes/test###0.25" ]);
+    assert.deepEqual(metadata.dependantModifiers.map(value => ({ ...value })), [ { path: "utilityshapes/test", weight: 0.25 } ]);
     assert.equal(metadata.numColorAreas, -1);
     assert.deepEqual(reads, [ ROOT + "/metadata.yaml" ]);
 });

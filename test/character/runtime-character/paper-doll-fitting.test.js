@@ -1,8 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsCharacterAppearanceResolver, CjsPaperDollDefinition, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
+import { CjsCharacterYamlFormat } from "../../../npm/dist/resource/formats/character/index.js";
 
-const { decodeUtilityShape, decodeUtilityOcclusion } = CjsCharacterAppearanceResolver;
+/** One authored request or occlusion, read by the format, then by the resolver. */
+const decodeUtilityShape = text => CjsCharacterAppearanceResolver.decodeUtilityShape(CjsCharacterYamlFormat.decodeModifier(text, "###", "test"));
+const decodeUtilityOcclusion = text => CjsCharacterAppearanceResolver.decodeUtilityOcclusion(CjsCharacterYamlFormat.decodeModifier(text, "#", "test"));
 
 /** A worn item: its owner, its requests and its occlusions, each decoded and carrying the owner. */
 function Item(owner, requests = [], occlusions = [])

@@ -23,7 +23,7 @@ export function createPyYamlDocument(value, style)
         tag: "tag:yaml.org,2002:float",
         test: /^$/u,
         resolve: text => Number(text),
-        stringify: ({ value: item }) => PythonFloat(item, style.floatDigits)
+        stringify: ({ value: item }) => pythonFloat(item, style.floatDigits)
     };
     // Ahead of the core schema's tags, whose int tag would claim a whole float.
     const document = new Document(null, { customTags: tags => [ floatTag, ...tags ] });
@@ -211,7 +211,7 @@ function Key(key)
  * @param {?number} digits 17 for Python 2.6, null for 2.7.
  * @returns {string}
  */
-function PythonFloat(value, digits)
+export function pythonFloat(value, digits)
 {
     if (Number.isNaN(value)) return ".nan";
     if (!Number.isFinite(value)) return value > 0 ? ".inf" : "-.inf";

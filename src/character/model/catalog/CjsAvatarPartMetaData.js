@@ -6,7 +6,8 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
  * The name is observed as the YAML tag
  * `!!python/object:paperDoll.AvatarPartMetaData` in metadata.yaml content.
  *
- * `dependantModifiers` and `occludesModifiers` keep the raw authored strings.
+ * `dependantModifiers` and `occludesModifiers` hold each modifier as the character format reads it: its path and the
+ * weight the file states (`CjsCharacterModifier`).
  */
 @meta.define({ name: "CjsAvatarPartMetaData", aliases: [ "paperDoll.AvatarPartMetaData" ] })
 @meta.exposureChainTo(CjsCharacterRecord)
@@ -46,11 +47,11 @@ export class CjsAvatarPartMetaData extends CjsCharacterRecord
     numColorAreas = -1;
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("string")
+    @type.list("CjsCharacterModifier")
     dependantModifiers = [];
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("string")
+    @type.list("CjsCharacterModifier")
     occludesModifiers = [];
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

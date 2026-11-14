@@ -1,10 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsCharacterAppearanceResolver } from "../../../npm/dist/character/index.js";
+import { CjsCharacterYamlFormat } from "../../../npm/dist/resource/formats/character/index.js";
+
+/** A metadata entry as the character format reads it: a dependant (`###`) or an occlusion (`#`). */
+const dependant = text => CjsCharacterYamlFormat.decodeModifier(text, "###", "test dependantModifiers");
+const occlusion = text => CjsCharacterYamlFormat.decodeModifier(text, "#", "test occludesModifiers");
 
 test("decodes utility shapes and applies occlusion and weight conflicts without a library", () =>
 {
-    const decode = CjsCharacterAppearanceResolver.decodeUtilityShape;
+    const decode = (text, relationWeight) => CjsCharacterAppearanceResolver.decodeUtilityShape(dependant(text), relationWeight);
     assert.deepEqual(decode("utilityshapes/LooseChestShape"),
         { modifierPath: "utilityshapes/loosechestshape", targetName: "LooseChestShape", weight: 1, explicitWeight: false });
     assert.equal(decode("utilityshapes/pinchtuckshape###0.30").weight, 0.3);
@@ -12,13 +17,15 @@ test("decodes utility shapes and applies occlusion and weight conflicts without 
     // outer/jacketmilf01 authors a trailing `#` with no weight: the unweighted request.
     assert.deepEqual(decode("utilityshapes/pinchrightouterlowerhipsshape#"),
         { modifierPath: "utilityshapes/pinchrightouterlowerhipsshape", targetName: "pinchrightouterlowerhipsshape", weight: 1, explicitWeight: false });
-    assert.equal(decode("utilityshapes/pinch#shape"), null);
-    assert.equal(decode("utilityshapes/pinchtuckshape###x"), null);
+    // A malformed `#` form is the format's to reject now; the resolver only sees decoded entries.
+    assert.throws(() => decode("utilityshapes/pinch#shape"), /no modifier form reads/);
+    assert.throws(() => decode("utilityshapes/pinchtuckshape###x"), /no modifier form reads/);
     assert.equal(decode("dependants/drape/standard"), null);
-    assert.deepEqual(CjsCharacterAppearanceResolver.decodeUtilityOcclusion("utilityshapes/TuckTopShape"), { modifierPath: "utilityshapes/tucktopshape", targetName: "TuckTopShape", weight: null });
-    assert.deepEqual(CjsCharacterAppearanceResolver.decodeUtilityOcclusion("utilityshapes/pushJacketHighShape#-0.25"), { modifierPath: "utilityshapes/pushjackethighshape", targetName: "pushJacketHighShape", weight: -0.25 });
-    assert.equal(CjsCharacterAppearanceResolver.decodeUtilityOcclusion("utilityshapes/tucktopshape#wat"), null);
-    assert.equal(CjsCharacterAppearanceResolver.decodeUtilityOcclusion("utilityshapes/tucktopshape###0.5"), null);
+    const decodeOcclusion = text => CjsCharacterAppearanceResolver.decodeUtilityOcclusion(occlusion(text));
+    assert.deepEqual(decodeOcclusion("utilityshapes/TuckTopShape"), { modifierPath: "utilityshapes/tucktopshape", targetName: "TuckTopShape", weight: null });
+    assert.deepEqual(decodeOcclusion("utilityshapes/pushJacketHighShape#-0.25"), { modifierPath: "utilityshapes/pushjackethighshape", targetName: "pushJacketHighShape", weight: -0.25 });
+    assert.throws(() => decodeOcclusion("utilityshapes/tucktopshape#wat"), /no modifier form reads/);
+    assert.throws(() => decodeOcclusion("utilityshapes/tucktopshape###0.5"), /no modifier form reads/);
 
     const request = (owner, value) => ({ ...decode(value), owner });
     const groups = CjsCharacterAppearanceResolver.resolveUtilityShapes([
