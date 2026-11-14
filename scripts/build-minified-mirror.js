@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import { transformAsync } from "@babel/core";
 import { minifyOptions } from "./minify-options.js";
+import { UNSHIPPED_SOURCE_DIRS } from "./lib/unshipped-source.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dist = path.join(root, "npm/dist");
@@ -17,7 +18,7 @@ async function collect(directory)
     for (const entry of await fs.readdir(directory, { withFileTypes: true }))
     {
         const file = path.join(directory, entry.name);
-        if (entry.isDirectory()) result.push(...await collect(file));
+        if (entry.isDirectory()) { if (!UNSHIPPED_SOURCE_DIRS.has(entry.name)) result.push(...await collect(file)); }
         else if (file.endsWith(".js") && entry.name !== "carbonenginejs.min.js") result.push(file);
         else if (file.endsWith(".json")) assets.push(file);
     }
