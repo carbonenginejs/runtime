@@ -318,6 +318,7 @@ export function compileClassInfo(Constructor)
     if (!own.has(member.declaringClass)) continue;
     // Two rows under one name are both kept, as both are in Carbon's table.
     const row = varEntryOf(Constructor, member);
+    row.owner = ci;
     ci.memberTable.push(row);
     ci._declarations.set(row, member);
   }

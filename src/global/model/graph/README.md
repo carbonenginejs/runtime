@@ -20,7 +20,9 @@ A compiled member is a `VarEntry` row, listed in every table and never copied. T
 `global/consts`, and above `EDMASK` `GraphMemberFlags.BINARY` and `RUNTIMEONLY`, which are ours and which
 no value operation reads. A member takes a value through WRITE, PERSIST or RPERSIST, or when it has no
 access flags; READ alone refuses one.
-`edgeType` is always a list, the declared class first; empty is dynamic.
+`edgeType` is always a list, the declared class first; empty is dynamic. A definition's member may name
+`row`, a row the record already holds (Blue's own, from its member table): the graph fills its fields on
+that row and leaves `name`, `key`, `index`, `type`, `signed` and `owner` as its maker set them.
 
 A class with `ownValues` holds values that are not members, through `GetOwnValues`, `SetOwnValues`
 and `IsOwnValues`: its bags carry those names beside its members.

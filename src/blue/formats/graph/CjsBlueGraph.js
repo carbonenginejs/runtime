@@ -2,6 +2,7 @@
 // Blue supplies its classes, as definitions with their flags as data, and as a class library.
 // Disconnected: DictReader and DictWriter stay the live path until the one reviewed cutover.
 import * as graph from "../../../global/model/graph/index.js";
+import { ClassInfo } from "../../../global/model/graph/ClassInfo.js";
 import { CjsSchema } from "#schema";
 import { baseList, exposureChainTo, mappedInterfaces } from "../../compose/interface.js";
 import { getDeclaredEditFlags } from "../../schema/compileClassInfo.js";
@@ -48,15 +49,18 @@ export class CjsBlueGraph
   }
 
   /**
-   * Defines one class from its transported declarations.
+   * Defines one class from its transported declarations. A member Blue's table has a row for is
+   * that row, which the graph fills; a typed member with no exposure has none, and the graph makes it.
+   * A later recompile of the class makes new rows: define it again to share them.
    * @param {Function} ctor The class.
    * @param {string} name Its registered name.
    * @returns {object} Graph class info.
    */
   static define(ctor, name)
   {
-    const { fields } = IRootReaderBase.getDictionaryDeclarations(ctor);
+    const { fields, levels } = IRootReaderBase.getDictionaryDeclarations(ctor);
     const mapped = mappedInterfaces(ctor);
+    const rows = this._getRows(levels);
 
     return CjsGraph.define(ctor, {
       name,
@@ -73,8 +77,41 @@ export class CjsBlueGraph
       interfaces: Array.from(mapped, item => CjsSchema.getClassName(item)),
       bases: this._getBases(ctor),
       chainTo: this._getChainTo(ctor),
-      members: fields.map(field => this._getMember(field))
+      members: fields.map(field =>
+      {
+        const member = this._getMember(field);
+        const row = rows.get(field);
+        if (row !== undefined) member.row = row;
+        return member;
+      })
     });
+  }
+
+  /**
+   * The row Blue's member table holds for each declaration, by its level's class.
+   * @param {Array<{type: Function, members: object[], properties: object[]}>} levels The exposure levels, the class first.
+   * @returns {Map<object, object>} Declaration to row.
+   */
+  static _getRows(levels)
+  {
+    const rows = new Map();
+
+    for (const level of levels)
+    {
+      const table = ClassInfo.exposeToBlue(level.type).memberTable;
+
+      for (const declarations of [ level.members, level.properties ])
+      {
+        for (const field of declarations)
+        {
+          const key = field.key ?? field.name, index = field.index ?? -1;
+          const row = table.find(each => each.name === field.name && each.key === key && each.index === index);
+          if (row !== undefined) rows.set(field, row);
+        }
+      }
+    }
+
+    return rows;
   }
 
   /**

@@ -128,7 +128,8 @@ export class CjsGraph
     const info = existing ?? ClassInfo.of(ctor);
     if (existing?.declared) this._names.delete(existing.declared.name);
     info.declared = declared;
-    for (let i = 0; i < members.length; i++) members[i].owner = info;
+    // A row the record already held keeps the class that made it.
+    for (let i = 0; i < members.length; i++) if (members[i].owner === null) members[i].owner = info;
     if (!info.lifetimeExplicit)
     {
       info.lifetime = {
@@ -144,7 +145,9 @@ export class CjsGraph
   }
 
   /**
-   * Compiles one member definition to the flat object every walk reads.
+   * Compiles one member definition to the row every walk reads. A definition that names a `row`
+   * the record already holds has that row filled, not copied: its maker's name, key, index,
+   * VARTYPE and sign stay, and only the graph's own fields are written.
    * Modelled on: Be::VarEntry (blueexposure/include/BlueTypes.h:326-376).
    * @cjs One shape: the type's data copied flat, then name, flags and edge. JS keys replace offsets.
    */
@@ -158,18 +161,22 @@ export class CjsGraph
     const wrapped = member.wrapped === undefined ? null : GRAPH_WRAPPERS[member.wrapped];
     if (wrapped === undefined) throw new TypeError(`Unknown graph wrapper: ${member.wrapped}`);
 
-    const row = new VarEntry();
-    row.name = member.name;
-    row.key = member.key ?? member.name;
-    row.index = member.index ?? -1;
+    let row = member.row;
+    if (row === undefined)
+    {
+      row = new VarEntry();
+      row.name = member.name;
+      row.key = member.key ?? member.name;
+      row.index = member.index ?? -1;
+      row.type = (flags & GraphMemberFlags.BINARY) !== 0 ? VARTYPE.BINARYBLOCK : wrapped === null ? entry.storage : VARTYPE.IROOT;
+      row.signed = entry.signed === true;
+    }
     row.role = member.role ?? "attribute";
     row.kind = member.type ?? "invalid";
-    row.type = (flags & GraphMemberFlags.BINARY) !== 0 ? VARTYPE.BINARYBLOCK : wrapped === null ? entry.storage : VARTYPE.IROOT;
     row.handler = getGraphHandler(entry.handler);
     row.direct = entry.direct === true;
     row.length = wrapped === null ? member.length ?? entry.length ?? 0 : wrapped.elements.length;
     row.bits = entry.bits ?? 0;
-    row.signed = entry.signed === true;
     row.ctor = entry.ctor ?? null;
     row.check = entry.check ?? null;
     row.item = this._compileItem(member);
@@ -1363,7 +1370,7 @@ export class CjsGraph
     if (stored === null || value === null) return stored === value;
 
     if (options.validate && !member.handler.IsValidValue(value, member))
-      throw new TypeError(`Invalid value for graph member: ${member.owner.declared.name}.${member.name}`);
+      throw new TypeError(`Invalid value for graph member: ${member.owner.classId || member.owner.declared.name}.${member.name}`);
 
     if (member.edgeKind === null) return member.handler.IsUnchanged(stored, value, member);
     if (member.collection === "map") return member.handler.IsUnchanged(stored, value, member, options);

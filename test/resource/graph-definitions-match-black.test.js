@@ -52,6 +52,26 @@ function compiled(member)
   };
 }
 
+test("a persisted member the graph compiled is the readers' own row, not a copy", () =>
+{
+  const copies = [];
+  let shared = 0;
+
+  for (const { name, type } of getClassRegistrations())
+  {
+    const members = CjsGraph.getClassInfo(type).compiled.persistByName;
+
+    for (const [ member, entry ] of ClassInfo.exposeToBlue(type).entries)
+    {
+      if (members[member] === entry) shared++;
+      else copies.push(`${name}.${member}`);
+    }
+  }
+
+  assert.ok(shared > 4000, `shared ${shared}`);
+  assert.deepEqual(copies.slice(0, 40), [], `${copies.length} are copies`);
+});
+
 test("every persisted member compiles to what the readers' ClassInfo record says it is", () =>
 {
   const differences = [];
