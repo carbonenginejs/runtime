@@ -600,6 +600,39 @@ export class CjsPaperDollInstance
         return !ownOccludes.some(list => CjsPaperDollDefinition.occludes(list, path));
     }
 
+    /**
+     * The fitting of the worn items (garments, the shown body carriers, hair and accessories): every item is active
+     * unless the suppression walk suppressed its owner (a shown carrier is never occluded by an active item, so never
+     * suppressed). The active items' utility shapes resolve by `resolveUtilityShapes`: an occluded shape is dropped,
+     * and a conflict between weighted settings goes to the paper doll part in the higher layer (`GetLayer`); a body
+     * carrier has no layer. Differing weights left unresolved apply nothing.
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {import("./CjsPaperDollDefinition.js").CjsPaperDollDefinition} definition The settings.
+     * @param {Array<{ owner: string, requests: object[], occlusions: object[] }>} items The worn items, each with its
+     *   owner (a paper doll part or a carrier) and its decoded utility-shape requests and occlusions.
+     * @param {{ suppressed: string[], cyclic: string[] }} suppression The suppression walk (`GetSuppression`).
+     * @returns {{ weights: Object<string, number>, suppressed: string[], conflicts: string[], inactive: string[],
+     *   cyclic: string[] }} The morph weights by lower-case target name, the modifier paths with suppressed requests,
+     *   the paths in conflict, the suppressed items' owners and the walk's cyclic parts.
+     */
+    static fitting(definition, items, suppression)
+    {
+        const { suppressed, cyclic } = suppression;
+        const active = items.filter(item => !suppressed.includes(item.owner));
+        const layer = owner => CjsPaperDollDefinition.parts.includes(owner) ? definition.GetLayer(owner) : null;
+        const groups = CjsCharacterAppearanceResolver.resolveUtilityShapes(active.flatMap(item => item.requests), active.flatMap(item => item.occlusions), layer);
+        const weights = {};
+        for (const group of groups) if (!group.conflict) for (const request of group.retained) weights[request.targetName.toLowerCase()] = request.weight;
+        return {
+            weights,
+            suppressed: groups.filter(group => group.suppressed.length).map(group => group.modifierPath),
+            conflicts: groups.filter(group => group.conflict).map(group => group.modifierPath),
+            inactive: items.filter(item => suppressed.includes(item.owner)).map(item => item.owner),
+            cyclic
+        };
+    }
+
 
     /**
      * A target's ready capture: each part's settings (`CaptureTarget`), the suppression walk, and the ready lists the
