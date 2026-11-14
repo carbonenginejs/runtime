@@ -52,7 +52,7 @@ let wrapperCount = 0;
  * exposes, holds the values, and pushes writes down to the native owners. A UI
  * reads only the wrapper: its type info, its values and its notifications.
  * Ours, after ccpwgl's TnySpaceObject (our own code there); the client's
- * Python role (tny.md, operator 2026-11-07).
+ * Python role (tny.md).
  *
  * Every declared member is always present; null means the object does not
  * support it, writes to it are ignored and a UI does not draw it. Hull facts

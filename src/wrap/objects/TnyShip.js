@@ -16,7 +16,7 @@ const KILL_COUNTER_EFFECT = /decalcounterv5\.fx$/i;
  * ShipStates and skindr's ShipControls. `always` names the variable set even
  * when no controller declares it: the docker multi-effect drives a ship's
  * `IsWarping` and `isDocked` (res:/dx9/model/hangar/shared/docker/multieffect_docker_01a.black).
- * Warp and dock are offered on every ship (operator, 2026-11-10).
+ * Warp and dock are offered on every ship.
  */
 const SHIP_STATES = [
     { name: "warp", test: /warp/i, always: "IsWarping" },
