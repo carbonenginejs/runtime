@@ -2680,7 +2680,6 @@ export class BlueResMan
       this._resourceExtensionRoutes.set(resource, extensionRoute);
     }
     resource._request = { ...options, ...BlueResMan._getResourceLoaderOptions(options, options.source || this.source) };
-    if (options.values) CjsSchema.setValues(resource, options.values);
     // Carbon (BlueResMan.cpp:281-286): created, not yet Initialize()'d.
     if (notifications) notifications.OnResourceCreated(resource);
     resource.Initialize(path, ext);
