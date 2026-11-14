@@ -934,7 +934,9 @@ export class Tr2GrannyAnimation extends IRoot
    * @param {mat4} _modelTransform The owner's world transform.
    * @returns {void}
    */
-  PostPhysicsAnimation(_time, _modelTransform) {}
+  PostPhysicsAnimation(_time, _modelTransform)
+  {
+  }
 
   /**
    * Carbon GetAnimationTime (Tr2GrannyAnimation.h:237, cpp:2004-2011): while paused, the time pausing held; else
