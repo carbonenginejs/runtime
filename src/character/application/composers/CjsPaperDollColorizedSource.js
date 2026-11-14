@@ -135,7 +135,7 @@ export class CjsPaperDollColorizedSource
      */
     async Configure(definition)
     {
-        const build = this._build, library = blue.characterLibrary, component = definition[this.name], category = component.constructor.category;
+        const build = this._build, library = blue.characterLibrary, component = definition[this.name], category = CjsCharacterLibraryManager.partCategory(this.name);
         this._type = component.constructor;
         this._weighted = component.constructor.weighted === true;
         for (const style of await build.Ready(library.FetchOptions(build.content.sex, category)))
@@ -199,7 +199,7 @@ export class CjsPaperDollColorizedSource
      */
     async ConfigureCatalog(definition)
     {
-        const build = this._build, component = definition[this.name], category = component.constructor.category;
+        const build = this._build, component = definition[this.name], category = CjsCharacterLibraryManager.partCategory(this.name);
         const catalog = await CjsPaperDollMakeupCatalog.read(category.split("/").at(-1), build);
         this._type = component.constructor;
         this._weighted = component.constructor.weighted === true;

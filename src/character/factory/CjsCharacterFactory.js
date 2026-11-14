@@ -490,8 +490,9 @@ export class CjsCharacterFactory
     }
 
     /**
-     * Each paper doll part by the parts library category it reads: its own category, and the one library category below
-     * it that the library reads in full (has a maps rule). Two part classes name their category one folder up:
+     * Each paper doll part by the parts library category it reads: its own (`CjsCharacterLibraryManager.partCategory`),
+     * and the one library category below it that the library reads in full (has a maps rule). Two parts' categories are
+     * one folder up:
      * `tattoo` reads `tattoo/head` (`tattoo/armleft` has no maps rule), and `skintone` reads `skintone/basic`.
      * @returns {Map<string, string>}
      */
@@ -499,8 +500,8 @@ export class CjsCharacterFactory
     {
         if (CjsCharacterFactory._partsByCategoryCache === null)
         {
-            const definition = new CjsPaperDollDefinition(), parts = new Map();
-            for (const name of CjsPaperDollDefinition.parts) if (definition[name].constructor.category) parts.set(definition[name].constructor.category, name);
+            const parts = new Map();
+            for (const name of CjsPaperDollDefinition.parts) parts.set(CjsCharacterLibraryManager.partCategory(name), name);
             for (const [ category, rule ] of Object.entries(CjsCharacterLibraryManager.categories))
             {
                 const parent = category.slice(0, category.lastIndexOf("/"));

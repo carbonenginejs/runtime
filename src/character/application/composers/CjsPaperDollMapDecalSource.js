@@ -3,6 +3,7 @@ import { CjsPaperDollCompositor } from "../compositor/CjsPaperDollCompositor.js"
 import { CjsPaperDollDefinition } from "../CjsPaperDollDefinition.js";
 import { PaperDollBlend } from "../paperDollOrder.js";
 import { CjsCharacterTextureRoles } from "../../library/CjsCharacterTextureRoles.js";
+import { CjsCharacterLibraryManager } from "../../library/CjsCharacterLibraryManager.js";
 
 /**
  * The layer source of a map-decal part (`static blend = PaperDollBlend.DECAL`: aging, freckles, scarring, scars,
@@ -89,7 +90,7 @@ export class CjsPaperDollMapDecalSource
      */
     async Configure(definition)
     {
-        const build = this._build, library = blue.characterLibrary, component = definition[this.name], category = component.constructor.category;
+        const build = this._build, library = blue.characterLibrary, component = definition[this.name], category = CjsCharacterLibraryManager.partCategory(this.name);
         const options = await build.Ready(library.FetchOptions(build.content.sex, category));
         this._definitions = new Map(options.map(option => [ option.id, option ]));
         // An option's path is its part folder below the content root; occlusion matches against it.

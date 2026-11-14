@@ -243,7 +243,7 @@ export class CjsPaperDollInstance
             if (part.overridable || part.enabled || part.option === "") continue;
             const option = part.GetOptions().find(value => value.id === part.option);
             if (option === undefined) continue;
-            const target = { name, category: part.constructor.category, path: option.path ?? part.constructor.category };
+            const target = { name, category: CjsCharacterLibraryManager.partCategory(name), path: option.path ?? CjsCharacterLibraryManager.partCategory(name) };
             if (worn.some(by => CjsPaperDollInstance._Occludes(by, target))) continue;
             part.enabled = true;
             part.OnModified("enabled");
@@ -267,7 +267,7 @@ export class CjsPaperDollInstance
         }).map(name =>
         {
             const part = definition[name], option = part.GetOptions().find(value => value.id === part.option);
-            return { name, category: part.constructor.category, path: option.path ?? part.constructor.category, occludes: option.occludes ?? [] };
+            return { name, category: CjsCharacterLibraryManager.partCategory(name), path: option.path ?? CjsCharacterLibraryManager.partCategory(name), occludes: option.occludes ?? [] };
         });
     }
 

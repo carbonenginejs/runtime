@@ -5,6 +5,7 @@ import { CjsPaperDollDefinition } from "../CjsPaperDollDefinition.js";
 import { PaperDollBlend } from "../paperDollOrder.js";
 import { CjsPaperDollColorizedSource } from "./CjsPaperDollColorizedSource.js";
 import { CjsCharacterTextureRoles } from "../../library/CjsCharacterTextureRoles.js";
+import { CjsCharacterLibraryManager } from "../../library/CjsCharacterLibraryManager.js";
 
 /**
  * The layer source of a projected head part (`static blend` PROJECTION: head tattoos): each option's projection baked
@@ -108,7 +109,7 @@ export class CjsPaperDollProjectionSource
      */
     async Configure(definition)
     {
-        const build = this._build, library = blue.characterLibrary, component = definition[this.name], category = component.constructor.category;
+        const build = this._build, library = blue.characterLibrary, component = definition[this.name], category = CjsCharacterLibraryManager.partCategory(this.name);
         // The head tattoos are the tattoo category's head folder (the parts library's `tattoo/head`).
         const head = category + "/head", sex = build.content.sex, options = await build.Ready(library.FetchOptions(sex, head));
         for (const option of options)

@@ -393,6 +393,23 @@ export class CjsCharacterLibraryManager
     static categories = categoryDefaults.categories;
 
     /**
+     * The category a paper doll part reads (`factory/defaults/categories.json`, `parts`): the path below the sex's paper
+     * doll root of its options. The parts' own classes declare none; the library answers. The shipped defaults only for
+     * now: a library's generic override of the parts comes with the factory's categories (step 11 of the generic plan).
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {string} member A `CjsPaperDollDefinition.parts` member (`hair`, `topMiddle`).
+     * @returns {string} The category path (`hair`, `topmiddle`).
+     * @throws {Error} For a member the defaults do not list.
+     */
+    static partCategory(member)
+    {
+        const category = categoryDefaults.parts[member];
+        if (category === undefined) throw new Error("No paper doll part " + member);
+        return category;
+    }
+
+    /**
      * The paper doll content root of a sex, which every category path is relative to.
      * @param {"female"|"male"} sex The sex.
      * @returns {string} The root's `res:` path, with its trailing slash.

@@ -3,6 +3,7 @@ import { CjsPaperDollCompositor } from "../compositor/CjsPaperDollCompositor.js"
 import { CjsPaperDollDefinition } from "../CjsPaperDollDefinition.js";
 import { CjsPaperDollInstance } from "../CjsPaperDollInstance.js";
 import { PaperDollBlend, PaperDollTarget } from "../paperDollOrder.js";
+import { CjsCharacterLibraryManager } from "../../library/CjsCharacterLibraryManager.js";
 
 /**
  * The layer source of a garment (`static blend` MATERIAL with the body target: underwear, body augmentations, arms,
@@ -139,7 +140,7 @@ export class CjsPaperDollMaterialSource
         {
             // The recipe option takes the part folder and variation the component names now.
             const component = this._definition[this.name];
-            const target = await build.Ready(library.FetchRecipeOption(build.content.sex, component.constructor.category, { path: component.recipePath, variation: component.recipeVariation }));
+            const target = await build.Ready(library.FetchRecipeOption(build.content.sex, CjsCharacterLibraryManager.partCategory(this.name), { path: component.recipePath, variation: component.recipeVariation }));
             if (target === null) throw new Error("No " + this.name + " part folder " + component.recipePath);
             Object.assign(option, { option: target, base: target.folder, path: target.path, records: await build.Ready(library.FetchPalettes(target)), resolved: null, maps: null });
         }
