@@ -126,14 +126,6 @@ export class CjsAudioLibrary
         this.generatedAt = document.generatedAt ?? null;
     }
 
-    /** Hydrates imported, fetched, or freshly built audio-library values. */
-    static from(values)
-    {
-        return new this(values instanceof CjsAudioLibrary
-            ? values.GetValues()
-            : values);
-    }
-
     /** Loads plain or gzip-compressed JSON bytes, reading a path through blue.resMan unless a source is given. */
     static async load(source, options = {})
     {
@@ -160,15 +152,15 @@ export class CjsAudioLibrary
             });
         }
 
-        return this.from(values);
+        return new this(values);
     }
 
     /**
-     * Returns detached JSON-compatible values for persistence or transport:
-     * the required sections, then each optional section that is not null, in
-     * the builder's order.
+     * The library's data: its detached JSON-compatible document for persistence or transport, the required
+     * sections, then each optional section that is not null, in the builder's order. The constructor reads it.
+     * @returns {object} The document.
      */
-    GetValues()
+    GetData()
     {
         const values = {
             schema: this.schema,

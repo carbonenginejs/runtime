@@ -578,7 +578,7 @@ export class CjsAudioMan
             return false;
         }
 
-        this.InstallLibrary(library.GetValues());
+        this.InstallLibrary(library.GetData());
         return true;
     }
 

@@ -101,7 +101,7 @@ export class CjsAudioLibraryBuilder
     /** Hydrates the deterministic document produced by build(). */
     static buildLibrary(options = {})
     {
-        return CjsAudioLibrary.from(this.build(options));
+        return new CjsAudioLibrary(this.build(options));
     }
 
     /**
@@ -220,7 +220,7 @@ export class CjsAudioLibraryBuilder
                 })),
         });
 
-        return CjsAudioLibrary.from(values);
+        return new CjsAudioLibrary(values);
     }
 
     /** Normalizes audio rows from index text, a file index, or an iterable. */

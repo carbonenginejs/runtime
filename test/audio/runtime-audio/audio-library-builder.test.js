@@ -100,7 +100,7 @@ test("resource builder fetches FSD metadata through a caller-supplied reader", a
 
     assert.ok(library instanceof CjsAudioLibrary);
     assert.deepEqual(requested, [ metadataPath ]);
-    assert.deepEqual(library.GetValues(), {
+    assert.deepEqual(library.GetData(), {
         schema: "carbonenginejs.audioLibrary",
         schemaVersion: 2,
         metadata: {
@@ -112,8 +112,8 @@ test("resource builder fetches FSD metadata through a caller-supplied reader", a
         banks: {},
     });
     assert.deepEqual(
-        CjsAudioLibrary.from(library.GetValues()).GetValues(),
-        library.GetValues(),
+        new CjsAudioLibrary(library.GetData()).GetData(),
+        library.GetData(),
     );
 });
 
@@ -413,12 +413,12 @@ test("audio libraries load from plain or gzip JSON and detach exported values", 
             compressed.byteOffset + compressed.byteLength,
         );
     }, () => CjsAudioLibrary.load("res:/libraries/audio.json.gz"));
-    const detached = fromGzip.GetValues();
+    const detached = fromGzip.GetData();
 
     detached.metadata.Events.changed = {};
-    assert.deepEqual(fromPlain.GetValues(), values);
-    assert.deepEqual(fromGzip.GetValues(), values);
-    assert.deepEqual(fromResMan.GetValues(), values);
+    assert.deepEqual(fromPlain.GetData(), values);
+    assert.deepEqual(fromGzip.GetData(), values);
+    assert.deepEqual(fromResMan.GetData(), values);
 });
 
 function CreateEmptyAudioMetadata()
