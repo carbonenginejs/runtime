@@ -15,6 +15,21 @@ test("the YAML reader converts Python tuples and unicode unless asked to preserv
     assert.throws(() => CjsYamlFormat.readRaw(text, { preservePythonTags: "yes" }), /preservePythonTags/);
 });
 
+test("the generic YAML reader knows no character tag; the character format keeps them", async () =>
+{
+    const { readFileSync } = await import("node:fs");
+    const source = readFileSync(new URL("../../../../../src/resource/formats/yaml/core/CjsYamlReader.js", import.meta.url), "utf8");
+    assert.doesNotMatch(source, /paperDoll|python\/object/u);
+    const decal = "!!python/object:paperDoll.ProjectedDecal {label: arml}\n";
+    const metadata = "!!python/object:paperDoll.AvatarPartMetaData {lodLevel: 1}\n";
+    for (const text of [ decal, metadata ])
+    {
+        assert.throws(() => CjsYamlFormat.readRaw(text, { tagPolicy: "reject" }), /rejected by tagPolicy/);
+        assert.throws(() => CjsYamlFormat.readRaw(text, { tagPolicy: "handle" }), /no explicit handler/);
+    }
+    assert.deepEqual(CjsCharacterYamlFormat.readRaw(decal), { $yamlTag: "tag:yaml.org,2002:python/object:paperDoll.ProjectedDecal", $yamlValue: { label: "arml" } });
+});
+
 test("the character format reads losslessly: tags kept, ints apart from floats, shared nodes shared", () =>
 {
     const raw = CjsCharacterYamlFormat.readRaw("colors:\n- &id001 !!python/tuple [0.5, 0, 1.0]\n- *id001\n");

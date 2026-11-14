@@ -20,8 +20,6 @@ import {
 const TAG_PREFIX = "tag:yaml.org,2002:";
 const PYTHON_TUPLE = `${TAG_PREFIX}python/tuple`;
 const PYTHON_UNICODE = `${TAG_PREFIX}python/unicode`;
-const PYTHON_PROJECTED_DECAL = `${TAG_PREFIX}python/object:paperDoll.ProjectedDecal`;
-const PYTHON_PART_METADATA = `${TAG_PREFIX}python/object:paperDoll.AvatarPartMetaData`;
 
 const STANDARD_TAGS = new Set([
     "binary", "bool", "float", "int", "map", "merge", "null", "omap",
@@ -310,7 +308,7 @@ export class CjsYamlReader extends CjsReader
                 throw this.NodeError(node, `custom tag "${tag}" has no explicit handler`);
             }
 
-            if (this.options.tagPolicy === TAG_PRESERVE || tag === PYTHON_PROJECTED_DECAL || tag === PYTHON_PART_METADATA)
+            if (this.options.tagPolicy === TAG_PRESERVE)
             {
                 const wrapper = { [this.options.tagField]: tag };
                 memo.set(node, wrapper);
