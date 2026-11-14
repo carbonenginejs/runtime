@@ -65,9 +65,7 @@
   ],
   "EveChildInstancedMeshes": [
     "GetDebugOptions",
-    "OnPrepareResources",
     "ReleaseCachedData",
-    "ReleaseResources",
     "RenderDebugInfo"
   ],
   "EveChildMesh": [
@@ -79,11 +77,9 @@
     "GetOverlayEffects",
     "GetPerObjectDataSize",
     "IsMorphsBaked",
-    "OnPrepareResources",
     "PrepareMorphBuffers",
     "RegisterAudioGeometry",
     "ReleaseBvhVisualization",
-    "ReleaseResources",
     "RenderDebugInfo",
     "SetAnimationController",
     "SetBakedMorphTarget",
@@ -333,15 +329,11 @@
     "PyGetColorForOption"
   ],
   "Tr2DepthStencil": [
-    "GetSharedHandle",
-    "OnPrepareResources",
-    "ReleaseResources"
+    "GetSharedHandle"
   ],
   "Tr2Effect": [
     "AddLoddable",
-    "OnPrepareResources",
-    "RebuildSamplerOverrides",
-    "ReleaseResources"
+    "RebuildSamplerOverrides"
   ],
   "Tr2EffectStateManager": [
     "AssignFrom",
@@ -389,9 +381,7 @@
     "IsInitialized"
   ],
   "Tr2GpuBuffer": [
-    "GetFormat",
-    "OnPrepareResources",
-    "ReleaseResources"
+    "GetFormat"
   ],
   "Tr2GpuProfiler": [
     "Begin",
@@ -409,8 +399,6 @@
     "IsValid"
   ],
   "Tr2GpuStructuredBuffer": [
-    "OnPrepareResources",
-    "ReleaseResources",
     "py__init__"
   ],
   "Tr2GpuTimerAL": [
@@ -420,12 +408,10 @@
     "AddNotifyTarget",
     "CalculateSkinnedBoundingBoxFromTransform",
     "CalculateSkinnedBoundingSphere",
-    "Cleanup",
     "FindCMFAnimationByName",
     "FindGrannyAnimationByName",
     "GetAnimationChainCompleteTime",
     "GetAnimationChainCompleteTimeForLayer",
-    "GetAnimationTime",
     "GetGrannyModel",
     "GetMeshBindingIndices",
     "GetModel",
@@ -433,7 +419,6 @@
     "GetSkeleton",
     "GetWorldTransforms",
     "IsAnimationEnabled",
-    "LoadSecondaryResPath",
     "RemoveNotifyTarget",
     "RenderBones",
     "RenderDynamicBounds",
@@ -452,10 +437,6 @@
     "ReleaseCachedData",
     "WaitForAndBindAnimResources"
   ],
-  "Tr2GrannyTrack": [
-    "RebuildCachedData",
-    "ReleaseCachedData"
-  ],
   "Tr2InteriorPlaceable": [
     "AddReflectionMap",
     "CalculateBoundingBox",
@@ -472,15 +453,12 @@
     "SetScaling"
   ],
   "Tr2InteriorScene": [
-    "OnPrepareResources",
-    "ReleaseResources",
     "USE_MAIN_THREAD_RENDER_CONTEXT"
   ],
   "Tr2LightManager": [
     "GetRaytracingPipelineManager",
     "GetRaytracingShaderTableDesc",
-    "GetShadowMapAtlas",
-    "ResetVariableStore"
+    "GetShadowMapAtlas"
   ],
   "Tr2MainWindow": [
     "AdjustWindow",
@@ -667,8 +645,7 @@
     "UnregisterEffect"
   ],
   "Tr2RuntimeInstanceData": [
-    "CreateDeclaration",
-    "SetLayout"
+    "CreateDeclaration"
   ],
   "Tr2RuntimeTextureParameter": [
     "AddUsedTexture"
@@ -720,8 +697,6 @@
     "ClearBoneInfo",
     "FreeSkinningMatrices",
     "GetSkinningMatrixFrameDelay",
-    "PostPhysicsUpdate",
-    "PrePhysicsUpdate",
     "ResetSkinningMatrices",
     "SetPosition",
     "SetRotation",
@@ -771,12 +746,6 @@
     "Read",
     "Seek",
     "Write"
-  ],
-  "Tr2TextureArray": [
-    "CreateTexture",
-    "GetTexture",
-    "OnPrepareResources",
-    "ReleaseResources"
   ],
   "Tr2TransientTextureReference": [
     "SetTexture"
@@ -846,7 +815,6 @@
     "CreateLodFromGrannyMesh",
     "CreateMeshesFromCMFFile",
     "CreateMeshesFromGrannyFile",
-    "DetermineAreaBoundsAndVertCount",
     "ExtractAudioGeometry",
     "GetAreaCount",
     "GetAreaData",
@@ -856,9 +824,6 @@
     "GetGpuBuffer",
     "GetIntersectionPointNormalBoneColorFromScript",
     "GetIntersectionPointsLegacy",
-    "GetVertexComponentOffset",
-    "IsAreaMorphed",
-    "IsAreaSkinned",
     "OnPrepareResources",
     "ProcessMeshTriangles",
     "RebuildCachedData",
@@ -873,12 +838,6 @@
     "AddCapsule",
     "GetWorldTransform",
     "PyRender"
-  ],
-  "TriMatrix": [
-    "PyLookAtRH",
-    "PyMultiply",
-    "PyRotationAxis",
-    "PyRotationQuaternion"
   ],
   "TriRect": [
     "CopyRect",
@@ -901,10 +860,6 @@
     "push_back",
     "sort",
     "stable_sort"
-  ],
-  "TriRenderJob": [
-    "OnPrepareResources",
-    "ReleaseResources"
   ],
   "TriSettings": [
     "CCP_LOGERR"
