@@ -1002,16 +1002,20 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * The bloodline of an archetype: the bloodline head whose metadata depends on it, named by its folder's last
-     * word (`head/caldari_deteis`: `deteis`), as the underwear types name bloodlines. The archetype's own
-     * `types/<bloodline>.type` is not used: the male archetypes ship none, and two female ones are spelled apart
-     * from every other file (`deites`, `verokior`). Derived: no content record names an archetype's bloodline.
+     * An archetype's bloodline: the head whose metadata depends on the archetype (`head`, `head/caldari_deteis`),
+     * the bloodline that head names (`bloodline`, its folder's last word: `deteis`, as the underwear types name
+     * bloodlines) and the morph target the archetype drives (`morphTarget`, its code in capitals then `Shape`:
+     * `archetypes/cdshape` is `CDShape`). The archetype's own `types/<bloodline>.type` is not used: the male
+     * archetypes ship none, and two female ones are spelled apart from every other file (`deites`, `verokior`).
+     * Derived: no content record names an archetype's head, bloodline or morph; the two name rules are the code
+     * Graphene's foundation used, moved here behind this query.
      *
      * Ours, as `FetchOptions`.
      *
      * @param {"female"|"male"} sex The sex.
      * @param {string} archetype The archetype folder below the root (`archetypes/cdshape`).
-     * @returns {Promise<?string>} The bloodline, or null for an archetype no head depends on.
+     * @returns {Promise<?{ bloodline: string, head: string, morphTarget: string }>} The bloodline, or null for an
+     *   archetype no head depends on.
      * @throws {Error} For an archetype more than one head depends on.
      */
     FetchBloodline(sex, archetype)
@@ -1027,7 +1031,9 @@ export class CjsCharacterLibraryManager
                 if (metadata.dependantModifiers.some(value => value.path === archetype)) found.push(path.slice(heads.length, -"/metadata.yaml".length));
             }
             if (found.length > 1) throw new Error("Archetype " + archetype + " has more than one head: " + found.join(", "));
-            return found.length ? found[0].slice(found[0].lastIndexOf("_") + 1) : null;
+            if (!found.length) return null;
+            const code = archetype.slice(archetype.lastIndexOf("/") + 1, -"shape".length);
+            return { bloodline: found[0].slice(found[0].lastIndexOf("_") + 1), head: "head/" + found[0], morphTarget: code.toUpperCase() + "Shape" };
         });
     }
 

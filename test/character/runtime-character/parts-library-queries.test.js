@@ -150,7 +150,8 @@ test("palettes: an option's own, and a shared category's colors/", async t =>
 test("an archetype's bloodline is the head that depends on it; a recipe entry selects the option its type presets", async t =>
 {
     const { library } = fixture(t);
-    assert.equal(await library.FetchBloodline("female", "archetypes/cdshape"), "deteis", "the head's name, not the archetype type's spelling");
+    assert.deepEqual(await library.FetchBloodline("female", "archetypes/cdshape"), { bloodline: "deteis", head: "head/caldari_deteis", morphTarget: "CDShape" },
+        "the head's name, not the archetype type's spelling");
     assert.equal(await library.FetchBloodline("female", "archetypes/aashape"), null);
     const resolve = entry => library.ResolveRecipeEntry("female", entry);
     assert.deepEqual(await resolve({ path: "outer/coat01", variation: "v1", colorVariation: "black" }), { category: "outer", option: "coat01_black", path: "outer/coat01" });
