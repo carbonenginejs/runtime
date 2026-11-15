@@ -21,6 +21,7 @@ export { CjsCharacterDataMorphCorrectionMesh } from "./CjsCharacterDataMorphCorr
 export { CjsCharacterDataNamedValue } from "./CjsCharacterDataNamedValue.js";
 export { CjsCharacterDataParameter } from "./CjsCharacterDataParameter.js";
 export { CjsCharacterDataParameterFloat } from "./CjsCharacterDataParameterFloat.js";
+export { CjsCharacterDataPartGroup } from "./CjsCharacterDataPartGroup.js";
 export { CjsCharacterDataSex } from "./CjsCharacterDataSex.js";
 export { CjsCharacterDataShader } from "./CjsCharacterDataShader.js";
 export { CjsCharacterDataShaderRule } from "./CjsCharacterDataShaderRule.js";

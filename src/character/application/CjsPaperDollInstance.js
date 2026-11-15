@@ -1,5 +1,5 @@
-import { meta, type } from "#schema";
-import exclusivePartDefaults from "../factory/defaults/exclusiveParts.json" with { type: "json" };
+import { meta } from "#schema";
+import { blue } from "#blue";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { CjsPaperDollDefinition } from "./CjsPaperDollDefinition.js";
 import { CjsCharacterLibraryManager } from "../library/CjsCharacterLibraryManager.js";
@@ -41,16 +41,7 @@ export class CjsPaperDollInstance
 
     _applying = false;
 
-    /**
-     * The parts that cannot be worn together, each group its definition members (`exclusiveParts`): a paper doll rule
-     * with a default, the defaults file `factory/defaults/exclusiveParts.json`, until a host sets its own.
-     * @type {string[][]}
-     */
-    @meta.mapAttribute(meta.READWRITE)
-    @type.list({ kind: "list", itemType: "string" })
-    exclusive = exclusivePartDefaults.groups.map(group => [ ...group ]);
-
-    /** The part each `exclusive` group last wore, by group index (`exclusiveParts`). */
+    /** The part each exclusive group last wore, by group index (`exclusiveParts`). */
     _exclusiveWorn = new Map();
 
     /** The last update's suppression walk: the suppressed parts and the parts a cycle kept active. */
@@ -133,7 +124,7 @@ export class CjsPaperDollInstance
         // A geometry-only strength edit must not rebuild skin or cosmetic maps.
         const forced = definition.IsForced();
         const dirtyTargets = definition.GetDirtyTargets() | this._targetDirty;
-        CjsPaperDollInstance.exclusiveParts(definition, this._exclusiveWorn, this.exclusive);
+        CjsPaperDollInstance.exclusiveParts(definition, this._exclusiveWorn, blue.characterLibrary.GetExclusiveParts());
         for (const [ name, resolving ] of CjsPaperDollInstance.holdParts(definition))
             resolving.catch(error => this._bindings.error(name + " could not be held on: " + error.message));
         const suppression = this._suppression = CjsPaperDollInstance.suppress(definition);
@@ -202,8 +193,8 @@ export class CjsPaperDollInstance
      * the others are switched off. With no earlier state (a restored character wearing both), the later part in the
      * group stays.
      *
-     * Ours (no Carbon counterpart): the client's paper doll is Python. The instance holds the groups (`exclusive`,
-     * defaults file `exclusiveParts.json`); this applies them.
+     * Ours (no Carbon counterpart): the client's paper doll is Python. The library holds the groups
+     * (`CjsCharacterLibraryManager.GetExclusiveParts`); this applies them.
      * @param {import("./CjsPaperDollDefinition.js").CjsPaperDollDefinition} definition The settings.
      * @param {Map<number, ?string>} last The part each group wore at the previous call, by group index; updated.
      * @param {string[][]} groups The groups, each its definition members.

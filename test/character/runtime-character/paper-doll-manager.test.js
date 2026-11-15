@@ -1,7 +1,11 @@
 import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsPaperDoll, CjsPaperDollDefinition, CjsPaperDollInstance, CjsPaperDollManager } from "../../../npm/dist/character/index.js";
+import { CjsCharacterLibraryManager, CjsPaperDoll, CjsPaperDollDefinition, CjsPaperDollInstance, CjsPaperDollManager } from "../../../npm/dist/character/index.js";
+import { installBlueServices } from "../../../npm/dist/blue/blue.js";
+
+// The paper doll asks the installed library for its rules (the exclusive part groups).
+installBlueServices({ characterLibrary: new CjsCharacterLibraryManager() }, false);
 
 /** Records which dynamics a manager adds and removes. */
 function Scene()

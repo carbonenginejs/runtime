@@ -36,7 +36,7 @@ export default {
     // both moved from Graphene, derived). defaultColors: the colours of areas 1 to 3 for an option that takes no
     // palette; the lashes ship none, and are black (moved from Graphene's demo palette, derived). In the generic's own
     // shape: `categories`, a CjsCharacterDataCategory each, keyed by `name`, the category path. Which category each
-    // paper doll part reads is partCategories.json. Edit freely: the engine reads this file as data; a library's
+    // paper doll part reads is partCategories.json. Edit freely: the library reads this as data; a library's
     // generic categories override it by name.
     categories: [
         { name: "makeup/aging", options: "type", maps: "name", palettes: "own", areas: "none" },
@@ -318,7 +318,7 @@ export default {
     // character is skinned to; `defaultMorphs`, morph weights every character of the sex starts from, under any sculpt
     // (the eye-missing morphs at these weights seat the eyeball against the lids, which the shipped idle poses leave
     // proud of them; our setting: neither Carbon nor the client has default morph weights). Ours: the client's paper
-    // doll is Python. Edit freely: the engine reads this file as data. `genericHead`: the generic head's folder below
+    // doll is Python. Edit freely: the library reads this as data. `genericHead`: the generic head's folder below
     // the root. `body`: the nude body's folder below the root. `bodyFallbacks`: for each foundation texture
     // (`region.Channel`) an archetype does not ship, the folder below the root that supplies it. `eyeWetReference` and
     // `eyeWetMesh`, a workaround: the generic head's eye-wet mesh (`eyeWetMesh`) takes the effect of the matching area
@@ -601,5 +601,15 @@ export default {
             parameters: [ { name: "TransformUV0", value: [ 0, 0, 1, 1 ] }, { name: "DecalClip", value: [ 1, 0, 0, 0 ] } ],
             diffuseSize: [ 2048, 2048 ]
         }
+    ],
+
+    // The paper doll parts that cannot be worn together: each group lists definition members of which at most one is
+    // worn (on with an option). When two are, the one switched on last stays; a character restored wearing both keeps
+    // the later part in its group. Ours: the client's paper doll is Python and no metadata states it. The top and the
+    // over top: no shipped recipe wears both (63 recipes, build 3687575: 30 with a top, 6 with an over top, none with
+    // both), and both list dependants/drape, so wearing both brought two drapes whose shapes conflict, so they are not
+    // worn together. Edit freely: the library reads this as data.
+    exclusiveParts: [
+        { members: [ { str: "topMiddle" }, { str: "topOuter" } ] }
     ]
 };

@@ -1,7 +1,11 @@
 import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsPaperDollDefinition, CjsPaperDollInstance, PaperDollLayer, PaperDollTarget } from "../../../npm/dist/character/index.js";
+import { CjsCharacterLibraryManager, CjsPaperDollDefinition, CjsPaperDollInstance, PaperDollLayer, PaperDollTarget } from "../../../npm/dist/character/index.js";
+import { installBlueServices } from "../../../npm/dist/blue/blue.js";
+
+// The paper doll asks the installed library for its rules (the exclusive part groups).
+installBlueServices({ characterLibrary: new CjsCharacterLibraryManager() }, false);
 
 /** One instance per bindings object, so repeated updates keep their applied state. */
 const instances = new WeakMap();

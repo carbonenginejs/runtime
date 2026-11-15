@@ -8,6 +8,7 @@ import "./CjsCharacterDataNamedValue.js";
 import "./CjsCharacterDataParameter.js";
 import "./CjsCharacterDataMorphCorrection.js";
 import "./CjsCharacterDataMeshDependant.js";
+import "./CjsCharacterDataPartGroup.js";
 
 // Discovery: src/character/discovery/animationdata.yaml
 // Discovery: src/character/discovery/{animation_animinfo,animation_movementstates,animationoffsets,basefemalebindpose,basemalebindpose,basename,blendshapes,face,facetweaksettings,modifiernames,scultpinglimits,trif}.yaml
@@ -165,5 +166,13 @@ export class CjsCharacterGeneric
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterDataMeshDependant")
     meshDependants = [];
+
+    /**
+     * The paper doll parts that cannot be worn together, one group each. An installed library that holds groups replaces
+     * the shipped set whole (`factory/defaults/generic.js`). Empty: the defaults are in force.
+     */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterDataPartGroup")
+    exclusiveParts = [];
 
 }

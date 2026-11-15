@@ -129,6 +129,11 @@ export class CjsCharacterLibraryManager
 
     _morphCorrectionsGeneration = -1;
 
+    /** The exclusive part groups in force (`_ExclusiveParts`), and the install generation they were built for. */
+    _exclusiveParts = null;
+
+    _exclusivePartsGeneration = -1;
+
     /** The drawn dependant meshes in force (`_MeshDependants`), and the install generation they were built for. */
     _meshDependants = null;
 
@@ -287,6 +292,36 @@ export class CjsCharacterLibraryManager
         parts: bodyCarrierDefaults.parts, garmentDependants: bodyCarrierDefaults.garmentDependants, cutMaskClip: bodyCarrierDefaults.cutMaskClip,
         meshCopy: bodyCarrierDefaults.meshCopy, shells: bodyCarrierDefaults.shells, backingCutout: bodyCarrierDefaults.backingCutout
     });
+
+    /**
+     * The paper doll parts that cannot be worn together (`CjsPaperDollInstance.exclusiveParts` applies them): each group
+     * its definition members, in order (`_ExclusiveParts`).
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @returns {string[][]} The groups, the caller's own copy.
+     */
+    GetExclusiveParts()
+    {
+        return CjsCharacterLibraryManager.copy(this._ExclusiveParts());
+    }
+
+    /**
+     * The exclusive part groups in force, built once per install as `_Sexes` is: the installed library's generic groups
+     * when it holds any, else the shipped defaults (`factory/defaults/generic.js`, built into `CjsCharacterDataPartGroup`
+     * objects by the graph), one set, never mixed: groups have no name to replace one by.
+     * @returns {string[][]} The groups; not to be changed.
+     */
+    _ExclusiveParts()
+    {
+        if (this._exclusiveParts === null || this._exclusivePartsGeneration !== this._installGeneration)
+        {
+            const installed = this._library.generic.exclusiveParts;
+            const groups = installed.length ? installed : this._ShippedGeneric().exclusiveParts;
+            this._exclusiveParts = groups.map(group => group.members.map(member => member.str));
+            this._exclusivePartsGeneration = this._installGeneration;
+        }
+        return this._exclusiveParts;
+    }
 
     /**
      * The dependant meshes the paper doll draws with their owner's diffuse (`CjsPaperDollInstance.meshDependantStates`),
