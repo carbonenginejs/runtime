@@ -167,7 +167,7 @@ export class TriValueBinding extends INotify
   offset = vec4.create();
 
   /** m_copyValueCallable (BlueScriptCallback) [READWRITE, NOTIFY] */
-  @type.rawStruct("BlueScriptCallback")
+  @type.scriptCallback
   copyValueCallable = null;
 
   /** Runtime source state for the portable binding adapter. */

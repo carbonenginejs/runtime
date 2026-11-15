@@ -44,7 +44,7 @@ export class EveMissile extends EveSpaceObject2
   @type.boolean updateWarheads = true;
   @type.object.ref.weak("ITriTargetable") target = null;
   @type.float32 targetRadius = 0;
-  @type.rawStruct("BlueScriptCallback") explosionCallback = null;
+  @type.scriptCallback explosionCallback = null;
 
   _inheritedStartVelocity = vec3.create();
   _inheritedVelocity = vec3.create();

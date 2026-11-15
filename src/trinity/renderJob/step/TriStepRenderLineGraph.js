@@ -53,7 +53,7 @@ export class TriStepRenderLineGraph extends TriRenderStep
 
   /** m_scaleChangeCallback (BlueScriptCallback) [READWRITE]: the stored script callback, or null. */
   @be.mapAttribute(be.READWRITE)
-  @type.rawStruct("BlueScriptCallback")
+  @type.scriptCallback
   get scaleChangeCallback()
   {
     return this._scaleChangeCallback;

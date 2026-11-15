@@ -22,7 +22,7 @@ export class Tr2ManipulationTool extends IRoot
   selectedAxis = "";
 
   /** Carbon's move callback (BlueScriptCallback): a BlueScriptCallback, or null. */
-  @type.rawStruct("BlueScriptCallback")
+  @type.scriptCallback
   moveCallback = null;
 
   /** m_captured (bool) [READWRITE] */

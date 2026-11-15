@@ -124,7 +124,7 @@ export class TriDevice extends IRoot
 
   /** m_onDeviceRemoved (BlueScriptCallback) [READWRITE] */
   @be.mapAttribute(be.READWRITE)
-  @type.rawStruct("BlueScriptCallback")
+  @type.scriptCallback
   onDeviceRemoved = null;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */

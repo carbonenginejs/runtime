@@ -36,7 +36,7 @@ export class AudUIPlayer extends AudEmitter
   _callbackEvents = new Map();
 
   /** m_callback (BlueScriptCallback) [READWRITE]: the stored script callback, or null. */
-  @type.rawStruct("BlueScriptCallback")
+  @type.scriptCallback
   get eventSenderCallback()
   {
     return this._eventSenderCallback;

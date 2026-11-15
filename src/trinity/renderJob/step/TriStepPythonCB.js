@@ -20,7 +20,7 @@ export class TriStepPythonCB extends TriRenderStep
 {
 
   /** m_callback (BlueScriptCallback) */
-  @type.rawStruct("BlueScriptCallback")
+  @type.scriptCallback
   callback = null;
 
   /**

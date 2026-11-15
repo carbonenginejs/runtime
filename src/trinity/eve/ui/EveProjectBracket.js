@@ -281,11 +281,11 @@ export class EveProjectBracket extends IRoot
   ballTrackingScaling = 1;
 
   /** m_bracketUpdateCallback (BlueScriptCallback) [READWRITE] */
-  @type.rawStruct("BlueScriptCallback")
+  @type.scriptCallback
   bracketUpdateCallback = null;
 
   /** m_displayChangeCallback (BlueScriptCallback) [READWRITE] */
-  @type.rawStruct("BlueScriptCallback")
+  @type.scriptCallback
   displayChangeCallback = null;
 
   /** m_minDispRange (float) [READWRITE] */

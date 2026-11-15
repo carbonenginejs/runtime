@@ -126,7 +126,7 @@ export class SeekTarget extends IRoot
   firstSpawnAtRandomPlaces = false;
 
   /** m_onFirstDroneArrivedCallback (BlueScriptCallback) [READWRITE] */
-  @type.rawStruct("BlueScriptCallback")
+  @type.scriptCallback
   onFirstDroneArrivedCallback = null;
 
   /** m_totalRepairTime (float) [READWRITE] */
