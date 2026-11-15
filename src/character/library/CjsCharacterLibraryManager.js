@@ -443,12 +443,15 @@ export class CjsCharacterLibraryManager
      * content root every category path is relative to, with its trailing slash; `skeleton`, the master skeleton;
      * `defaultMorphs`, the morph weights every character of the sex starts from, by morph name: our setting, as neither
      * Carbon nor the client has default morph weights; `genericHead`, the generic head's folder below the root;
-     * `eyeWet`, where the generic head's eye-wet effect is borrowed from (`FetchEyeWet`).
+     * `body`, the nude body's folder below the root; `bodyFallbacks`, by foundation texture (`region.Channel`), the
+     * folder below the root that supplies it when an archetype ships none; `eyeWet`, where the generic head's eye-wet effect is
+     * borrowed from (`FetchEyeWet`).
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python.
      * @param {string} sex The sex.
      * @returns {{ root: string, skeleton: string, defaultMorphs: Object<string, number>, genericHead: string,
-     *   eyeWet: { reference: string, mesh: string } }} A copy the caller may change.
+     *   body: string, bodyFallbacks: Object<string, string>, eyeWet: { reference: string, mesh: string } }} A copy the
+     *   caller may change.
      * @throws {Error} For a sex the library does not know.
      */
     static sexFacts(sex)

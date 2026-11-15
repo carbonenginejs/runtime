@@ -118,7 +118,9 @@ test("options come from the index alone, one per .type, per underwear folder, or
     assert.throws(() => CjsCharacterLibraryManager.sexFacts("other"), /Unknown character sex/);
     assert.deepEqual(CjsCharacterLibraryManager.sexFacts("male"), { root: "res:/graphics/character/male/paperdoll/", skeleton: "res:/graphics/character/male/skeleton/masterskeletonmale.gr2",
         defaultMorphs: { LeftEyeMissingShape: 0.05, RightEyeMissingShape: 0.05 }, genericHead: "head/head_generic",
+        body: "topinner/torso_nude", bodyFallbacks: { "body.NormalMap": "head/head_generic", "body.SpecularMap": "head/head_generic" },
         eyeWet: { reference: "res:/graphics/character/unique/characterselect/deteismaleclothing/unique.black", mesh: "EyeWet_GeoShape" } });
+    assert.equal(CjsCharacterLibraryManager.sexFacts("female").body, "basenude");
     CjsCharacterLibraryManager.sexFacts("male").defaultMorphs.LeftEyeMissingShape = 1;
     assert.equal(CjsCharacterLibraryManager.sexFacts("male").defaultMorphs.LeftEyeMissingShape, 0.05, "the caller's own copy");
 });
