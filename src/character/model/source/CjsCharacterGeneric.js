@@ -9,6 +9,7 @@ import "./CjsCharacterDataParameter.js";
 import "./CjsCharacterDataMorphCorrection.js";
 import "./CjsCharacterDataMeshDependant.js";
 import "./CjsCharacterDataPartGroup.js";
+import "./CjsCharacterDataBodyCarrier.js";
 
 // Discovery: src/character/discovery/animationdata.yaml
 // Discovery: src/character/discovery/{animation_animinfo,animation_movementstates,animationoffsets,basefemalebindpose,basemalebindpose,basename,blendshapes,face,facetweaksettings,modifiernames,scultpinglimits,trif}.yaml
@@ -174,5 +175,64 @@ export class CjsCharacterGeneric
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterDataPartGroup")
     exclusiveParts = [];
+
+    /**
+     * The body carrier rules (`CjsCharacterLibraryManager.FetchBodyCarriers`): the members from here to
+     * `backingCutoutAlpha` are one set. An installed library that holds body carriers (`bodyCarriers` not empty)
+     * replaces the shipped set whole (`factory/defaults/generic.js`). Empty: the defaults are in force.
+     */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterDataBodyCarrier")
+    bodyCarriers = [];
+
+    /** The dependant categories whose models are body pieces a garment can ask for (sleeves, collar, hood). */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterDataString")
+    bodyCarrierGarmentDependants = [];
+
+    /** The resource a nude carrier area the composed cut mask clips holds (`CutMaskMap`). */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string
+    cutMaskClipResource = "";
+
+    /** The parameter whose value says how much the cut mask owns an area's alpha (`CutMaskInfluence`). */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string
+    cutMaskClipInfluence = "";
+
+    /** The influence above which an area is clipped. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.float32
+    cutMaskClipAbove = 0;
+
+    /** The parameter a clipped area has set to 1 (`DecalClip`). */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string
+    cutMaskClipParameter = "";
+
+    /** The share of a garment mesh's bind-pose vertices on a carrier mesh at or above which it is the carrier's copy. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.float64
+    meshCopyShare = 0;
+
+    /** The scale bind-pose positions are compared at (10000: to 0.1 mm). */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.float32
+    meshCopyPositionScale = 0;
+
+    /** Whether a nude carrier's cut-mask shells draw. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.boolean
+    shellsDraw = false;
+
+    /** The cutout colour parameter of a carrier's opaque and decal areas (`MaterialCutoutColor`). */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string
+    backingCutoutParameter = "";
+
+    /** The cutout weight those areas are set to, when theirs is above it. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.float32
+    backingCutoutAlpha = 0;
 
 }

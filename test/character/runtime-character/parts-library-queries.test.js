@@ -4,7 +4,6 @@ import { CjsCharacterDataNamedValue, CjsCharacterDataSex, CjsCharacterLibrary, C
 import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
 import "../../support/frameLoop.js";
-import bodyCarrierFile from "../../../npm/dist/character/factory/defaults/bodyCarriers.json.js";
 
 const ROOT = "res:/graphics/character/female/paperdoll/";
 const META = "!!python/object:paperDoll.AvatarPartMetaData\n";
@@ -244,7 +243,7 @@ test("the body carriers: the nude parts, the dependants they name, then the garm
     assert.deepEqual(torso.shapes.requests.map(request => request.weight), [ 0.5 ]);
     assert.deepEqual([ legs.occludes, legs.shapes ], [ [], { requests: [], occlusions: [] } ], "a carrier without metadata");
     assert.deepEqual(Object.keys(answer).sort(), [ "backingCutout", "carriers", "cutMaskClip", "meshCopy", "shells" ], "the carriers and the rules, nothing else");
-    const { description, parts, garmentDependants, ...rules } = bodyCarrierFile;
+    const { parts, garmentDependants, ...rules } = new CjsCharacterLibraryManager()._BodyCarriers();
     assert.deepEqual({ cutMaskClip: answer.cutMaskClip, meshCopy: answer.meshCopy, shells: answer.shells, backingCutout: answer.backingCutout }, rules);
     answer.carriers.length = 0;
     assert.equal((await library.FetchBodyCarriers("female")).carriers.length, 7, "the caller's own copy");

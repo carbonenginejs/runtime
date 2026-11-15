@@ -11,7 +11,6 @@ import { CjsCharacterPdpType } from "../formats/characterPdpType.js";
 import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsCharacterTextureRoles } from "./CjsCharacterTextureRoles.js";
-import bodyCarrierDefaults from "../factory/defaults/bodyCarriers.json" with { type: "json" };
 import genericDefaults from "../factory/defaults/generic.js";
 import partCategoryDefaults from "../factory/defaults/partCategories.json" with { type: "json" };
 import defaultFemalePaperDoll from "../factory/defaults/defaultFemalePaperDoll.json" with { type: "json" };
@@ -128,6 +127,11 @@ export class CjsCharacterLibraryManager
     _morphCorrections = null;
 
     _morphCorrectionsGeneration = -1;
+
+    /** The body carrier rules in force (`_BodyCarriers`), and the install generation they were built for. */
+    _bodyCarriers = null;
+
+    _bodyCarriersGeneration = -1;
 
     /** The exclusive part groups in force (`_ExclusiveParts`), and the install generation they were built for. */
     _exclusiveParts = null;
@@ -279,19 +283,40 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * The body carriers in force: the nude parts every character wears under its garments (each with the dependant
-     * categories it names as its own carriers), the dependant categories a garment's own body pieces come from
-     * (`garmentDependants`), which carrier areas the composed cut mask clips (`cutMaskClip`, applied by
-     * `CjsPaperDollInstance.cutMaskClipEffects`), and when a garment's mesh is its own copy of a carrier's
-     * (`meshCopy`: the vertex share and the position scale it is measured at), whether the cut-mask shells draw
-     * (`shells`), and the backing areas' cutout weight (`backingCutout`). Read from the defaults file
-     * `factory/defaults/bodyCarriers.json`, which only the library loads; no consumer overrides it yet.
-     * @type {{ parts: Array<{ path: string, dependants: string[] }>, garmentDependants: string[], cutMaskClip: { resource: string, influence: string, above: number, clip: string }, meshCopy: { share: number, positionScale: number }, shells: { draw: boolean }, backingCutout: { parameter: string, alpha: number } }}
+     * The body carrier rules in force, built once per install as `_Sexes` is: the nude parts every character wears under
+     * its garments (each with the dependant categories it names as its own carriers), the dependant categories a
+     * garment's own body pieces come from (`garmentDependants`), which carrier areas the composed cut mask clips
+     * (`cutMaskClip`, applied by `CjsPaperDollInstance.cutMaskClipEffects`), when a garment's mesh is its own copy of a
+     * carrier's (`meshCopy`: the vertex share and the position scale it is measured at), whether the cut-mask shells
+     * draw (`shells`), and the backing areas' cutout weight (`backingCutout`). The installed library's generic body
+     * carrier members when it holds carriers, else the shipped defaults (`factory/defaults/generic.js`, built by the
+     * graph); one set, never mixed. An installed set must be complete: its resource and parameter names, and a share
+     * and a position scale above 0.
+     * @returns {{ parts: Array<{ path: string, dependants: string[] }>, garmentDependants: string[], cutMaskClip: { resource: string, influence: string, above: number, clip: string }, meshCopy: { share: number, positionScale: number }, shells: { draw: boolean }, backingCutout: { parameter: string, alpha: number } }}
+     *   The rules; not to be changed.
+     * @throws {Error} For an installed set that holds carriers but lacks one of the other members.
      */
-    _bodyCarriers = CjsCharacterLibraryManager.copy({
-        parts: bodyCarrierDefaults.parts, garmentDependants: bodyCarrierDefaults.garmentDependants, cutMaskClip: bodyCarrierDefaults.cutMaskClip,
-        meshCopy: bodyCarrierDefaults.meshCopy, shells: bodyCarrierDefaults.shells, backingCutout: bodyCarrierDefaults.backingCutout
-    });
+    _BodyCarriers()
+    {
+        if (this._bodyCarriers === null || this._bodyCarriersGeneration !== this._installGeneration)
+        {
+            const installed = this._library.generic;
+            const generic = installed.bodyCarriers.length ? installed : this._ShippedGeneric();
+            if (!generic.cutMaskClipResource || !generic.cutMaskClipInfluence || !generic.cutMaskClipParameter || !generic.backingCutoutParameter
+                || !(generic.meshCopyShare > 0) || !(generic.meshCopyPositionScale > 0))
+                throw new Error("An installed library's body carriers need their cut mask, mesh copy and backing cutout rules too");
+            this._bodyCarriers = {
+                parts: generic.bodyCarriers.map(part => ({ path: part.path, dependants: part.dependants.map(entry => entry.str) })),
+                garmentDependants: generic.bodyCarrierGarmentDependants.map(entry => entry.str),
+                cutMaskClip: { resource: generic.cutMaskClipResource, influence: generic.cutMaskClipInfluence, above: generic.cutMaskClipAbove, clip: generic.cutMaskClipParameter },
+                meshCopy: { share: generic.meshCopyShare, positionScale: generic.meshCopyPositionScale },
+                shells: { draw: generic.shellsDraw },
+                backingCutout: { parameter: generic.backingCutoutParameter, alpha: generic.backingCutoutAlpha }
+            };
+            this._bodyCarriersGeneration = this._installGeneration;
+        }
+        return this._bodyCarriers;
+    }
 
     /**
      * The paper doll parts that cannot be worn together (`CjsPaperDollInstance.exclusiveParts` applies them): each group
@@ -353,7 +378,7 @@ export class CjsCharacterLibraryManager
 
     /**
      * One sex's body carriers, read once: each carrier with its model and decoded metadata, and the carrier rules in
-     * force (`_bodyCarriers`). The carriers, in order: the nude parts; the dependants each names in its own carrier
+     * force (`_BodyCarriers`). The carriers, in order: the nude parts; the dependants each names in its own carrier
      * categories (the torso's sleeves, from its metadata); then every other model folder in the garments' dependant
      * categories (`garmentDependants`), a garment's own body piece (`garment` true). A carrier's model is the first
      * `.black` directly in its folder other than a lower LOD (`_lodN`); its category is the dependant category the data
@@ -372,7 +397,7 @@ export class CjsCharacterLibraryManager
         return this._Query("bodyCarriers|" + sex, async () =>
         {
             const root = this.GetSexFacts(sex).root;
-            const { parts, garmentDependants, cutMaskClip, meshCopy, shells, backingCutout } = this._bodyCarriers;
+            const { parts, garmentDependants, cutMaskClip, meshCopy, shells, backingCutout } = CjsCharacterLibraryManager.copy(this._BodyCarriers());
             const isModel = name => name.endsWith(".black") && !/_lod\d+\.black$/u.test(name);
             // The dependant categories the data names; any other carrier's category is its first folder.
             const categories = [ ...parts.flatMap(part => part.dependants), ...garmentDependants ];

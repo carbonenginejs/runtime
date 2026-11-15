@@ -1,14 +1,14 @@
-// The body carriers are library data with a default (factory/defaults/bodyCarriers.json), and the paper doll applies the
+// The body carriers are library data with a default (the generic's body carrier members, shipped in
+// factory/defaults/generic.js), and the paper doll applies the
 // cut-clip rule from it (CjsPaperDollInstance.cutMaskClipEffects); no carrier list or clip rule lives in a consumer.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsCharacterLibraryManager, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
-import defaults from "../../../npm/dist/character/factory/defaults/bodyCarriers.json.js";
+import { CjsCharacterDataBodyCarrier, CjsCharacterLibrary, CjsCharacterLibraryManager, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
 
-/** The carriers of the defaults file, without its description. */
-const fileCarriers = () => { const { description, ...carriers } = structuredClone(defaults); return carriers; };
+/** The shipped body carrier rules, as the library builds them from the shipped generic. */
+const fileCarriers = () => structuredClone(new CjsCharacterLibraryManager()._BodyCarriers());
 
-test("the defaults file holds the body carriers, and the library has no public getter or setter for them", () =>
+test("the shipped generic holds the body carriers, and the library has no public getter or setter for them", () =>
 {
     const carriers = fileCarriers();
     assert.deepEqual(carriers.parts.map(part => part.path), [ "topinner/torso_nude", "bottominner/legs_nude", "hands/hands_nude", "feet/feet_nude" ]);
@@ -19,7 +19,21 @@ test("the defaults file holds the body carriers, and the library has no public g
     assert.deepEqual(carriers.shells, { draw: false });
     assert.deepEqual(carriers.backingCutout, { parameter: "MaterialCutoutColor", alpha: 0 });
     for (const name of [ "GetBodyCarriers", "SetBodyCarriers" ])
-        assert.equal(typeof CjsCharacterLibraryManager.prototype[name], "undefined", "no " + name + ": only the library loads the file");
+        assert.equal(typeof CjsCharacterLibraryManager.prototype[name], "undefined", "no " + name + ": only the library holds them");
+});
+
+test("an installed library that holds body carriers replaces the shipped set whole, and must give the rules too", () =>
+{
+    const installed = new CjsCharacterLibrary();
+    installed.generic.bodyCarriers.push(Object.assign(new CjsCharacterDataBodyCarrier(), { path: "custom/nude" }));
+    assert.throws(() => new CjsCharacterLibraryManager(installed)._BodyCarriers(), /body carriers need their cut mask, mesh copy and backing cutout rules too/);
+    Object.assign(installed.generic, { cutMaskClipResource: "Mask", cutMaskClipInfluence: "Influence", cutMaskClipAbove: .5, cutMaskClipParameter: "Clip",
+        meshCopyShare: .2, meshCopyPositionScale: 100, shellsDraw: true, backingCutoutParameter: "Cutout", backingCutoutAlpha: .25 });
+    assert.deepEqual(new CjsCharacterLibraryManager(installed)._BodyCarriers(), {
+        parts: [ { path: "custom/nude", dependants: [] } ], garmentDependants: [],
+        cutMaskClip: { resource: "Mask", influence: "Influence", above: .5, clip: "Clip" }, meshCopy: { share: .2, positionScale: 100 },
+        shells: { draw: true }, backingCutout: { parameter: "Cutout", alpha: .25 }
+    }, "not merged with the shipped nude parts or garment dependants");
 });
 
 test("the cut mask clips the areas holding the rule's mask whose influence is above the rule's threshold", () =>
