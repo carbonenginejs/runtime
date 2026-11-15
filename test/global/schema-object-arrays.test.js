@@ -111,6 +111,17 @@ test("the graph writes a set's storage as the schema's compile does, so the read
   assert.deepEqual({ vartype: row.type, collection: row.collection, edgeKind: row.edgeKind }, { vartype: VARTYPE.IROOT, collection: "set", edgeKind: "ref" });
 });
 
+test("an array whose item names its object type holds any object that way, in both compiles", () =>
+{
+  class AnyRefOwner { items = []; }
+  CjsSchema.define(AnyRefOwner, { name: "ObjectArrayAnyRefOwner", fields: {
+    items: [ type.array("rootRef"), CjsSchema.meta.mapAttribute(be.PERSIST) ]
+  } });
+  const row = ClassInfo.exposeToBlue(AnyRefOwner).entries.get("items");
+  assert.deepEqual({ vartype: row.type, collection: row.collection, edgeKind: row.edgeKind, edgeType: row.edgeType },
+    { vartype: VARTYPE.IROOT, collection: "array", edgeKind: "ref", edgeType: [] });
+});
+
 test("values build each embedded item as an instance of its class", () =>
 {
   const owner = new ObjectArrayOwner();

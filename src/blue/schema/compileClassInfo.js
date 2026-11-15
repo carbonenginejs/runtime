@@ -91,7 +91,9 @@ function heldClass(type)
 {
   const item = type.kind === "list" || type.kind === "array" || type.kind === "set" ? type.itemType : type.kind === "map" ? type.valueType : undefined;
   if (item === undefined) return type.className ?? null;
-  return typeof item === "string" || typeof item === "function" ? item : item?.className ?? null;
+  // A type name is no class: `type.array("rootRef")` holds any object, `type.array("uint32")` none.
+  if (typeof item === "string") return Object.hasOwn(GRAPH_TYPES, item) ? null : item;
+  return typeof item === "function" ? item : item?.className ?? null;
 }
 
 /**

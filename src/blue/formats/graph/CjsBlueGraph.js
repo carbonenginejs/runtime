@@ -238,11 +238,13 @@ export class CjsBlueGraph
     if (typeof field.key === "string" && field.key.startsWith("#")) return undefined;
 
     const kind = field.type?.kind;
+    // An item named by its object type (`type.array("rootRef")`) holds any object that way.
+    const declared = kind === "array" ? field.type.itemType : null;
+    const item = typeof declared === "string" && OBJECT_ITEMS.has(declared) ? { kind: declared } : declared;
+    if (typeof item === "object" && item !== null && OBJECT_ITEMS.has(item.kind)) return item.owned === false ? "refWeak" : KIND_EDGES[item.kind];
+
     const held = DeclaredClassName(field.type);
     if (kind === "array" && (!held || held === "unknown" || Object.hasOwn(GRAPH_TYPES, held))) return undefined;
-
-    const item = kind === "array" ? field.type.itemType : null;
-    if (typeof item === "object" && item !== null && OBJECT_ITEMS.has(item.kind)) return item.owned === false ? "refWeak" : KIND_EDGES[item.kind];
     return field.type?.owned === false ? "refWeak" : KIND_EDGES[kind];
   }
 
