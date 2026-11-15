@@ -27,6 +27,8 @@ const arrayType = name => name.charAt(0).toLowerCase() + name.slice(1);
 
 /** How each object kind holds its object. `type.object.ref.weak` is a rootRef on the edge `refWeak`. */
 const KIND_EDGES = { rootRef: "ref", rootWeak: "weak", root: "embed", rawStruct: "embed", list: "ref", array: "ref", structList: "embed" };
+/** The object types an array's item may be: `type.object.embed`, `ref` (and `ref.weak`) and `weak`. */
+const OBJECT_ITEMS = new Set([ "root", "rootRef", "rootWeak" ]);
 
 /**
  * Registers Blue's classes with the graph, from the same declarations the values path reads.
@@ -226,7 +228,8 @@ export class CjsBlueGraph
 
   /**
    * How a member holds its objects, or undefined for a value. A private field cannot be walked,
-   * and an array of plain values is not an object list.
+   * and an array of plain values is not an object list. An array whose item is an object type
+   * (`type.object.embed("X").array()`) holds each item as that type does.
    * @param {object} field Schema declaration.
    * @returns {string|undefined} An edge kind.
    */
@@ -238,6 +241,8 @@ export class CjsBlueGraph
     const held = DeclaredClassName(field.type);
     if (kind === "array" && (!held || held === "unknown" || Object.hasOwn(GRAPH_TYPES, held))) return undefined;
 
+    const item = kind === "array" ? field.type.itemType : null;
+    if (typeof item === "object" && item !== null && OBJECT_ITEMS.has(item.kind)) return item.owned === false ? "refWeak" : KIND_EDGES[item.kind];
     return field.type?.owned === false ? "refWeak" : KIND_EDGES[kind];
   }
 
@@ -251,7 +256,7 @@ export class CjsBlueGraph
    */
   static _getDeclaredTypes(type)
   {
-    const names = (type.accepts ?? [ DeclaredClassName(type) ]).map(name => typeof name === "function" ? CjsSchema.getClassName(name) : name);
+    const names = (type.accepts ?? type.itemType?.accepts ?? [ DeclaredClassName(type) ]).map(name => typeof name === "function" ? CjsSchema.getClassName(name) : name);
 
     return names.every(name => name && name !== "unknown") ? names : [];
   }

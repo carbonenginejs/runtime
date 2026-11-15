@@ -883,7 +883,7 @@ export class CjsSchema
         object: {
             embed: className => objectTypeDecorator("root", className),
             ref: Object.assign(className => objectTypeDecorator("rootRef", className), {
-                weak: className => fieldDecorator("type", { kind: "rootRef", ...objectTypeTarget(className), owned: false })
+                weak: className => objectTypeDecorator("rootRef", className, { owned: false })
             }),
             weak: className => objectTypeDecorator("rootWeak", className)
         },
@@ -1174,10 +1174,27 @@ export class CjsSchema
 }
 
 
-/** Both ownership vocabularies describe the same storage kind; no lifecycle policy is inferred. */
-function objectTypeDecorator(kind, className)
+/**
+ * An object type's decorator, which also offers `.array(length)`: a ported std::vector (or a fixed C array) of
+ * items held this way, `length` of them when given, any number when not. `type.object.embed("X").array()` is
+ * `std::vector<X>`, `type.object.ref("X").array()` a vector of counted pointers, `type.object.weak("X").array()` a
+ * vector of raw pointers. Both ownership vocabularies describe the same storage kind; no lifecycle policy is inferred.
+ *
+ * @param {string} kind The storage kind: `root`, `rootRef` or `rootWeak`.
+ * @param {string|Function|Array<string|Function>} className The class or classes it holds.
+ * @param {object} [extra] More of the type, such as `owned: false`.
+ * @returns {Function} The decorator, with `array(length)`.
+ */
+function objectTypeDecorator(kind, className, extra = undefined)
 {
-    return fieldDecorator("type", { kind, ...objectTypeTarget(className) });
+    const item = { kind, ...objectTypeTarget(className), ...extra };
+    const decorator = fieldDecorator("type", item);
+    decorator.array = (length, context) =>
+    {
+        if (context !== undefined) throw new TypeError("An object type's array is used without a call: write .array() or .array(length).");
+        return fieldDecorator("type", length === undefined ? { kind: "array", itemType: item } : { kind: "array", itemType: item, length: requireCount(length) });
+    };
+    return decorator;
 }
 
 /**

@@ -162,7 +162,7 @@ export function declaredMemberType(declared)
     }
     // A string item names a class, except `unknown` (`type.array("unknown")`), which has no VARTYPE.
     if (typeof itemType === "function" || (typeof itemType === "string" && itemType !== "unknown")) itemType = { kind: "rootRef" };
-    if (itemType?.kind === "rootRef" || itemType?.kind === "rootWeak")
+    if (itemType?.kind === "root" || itemType?.kind === "rootRef" || itemType?.kind === "rootWeak")
     {
       result.type = VARTYPE.IROOT;
       result.collection = kind;
