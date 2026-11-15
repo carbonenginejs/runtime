@@ -31,7 +31,7 @@ export class Tr2TextureArray extends IRoot
 {
 
     /** m_elements (std::vector<ImageIO::HostBitmap>) */
-    @type.object.embed.array("ImageIO::HostBitmap")
+    @type.object.embed.array("HostBitmap")
     elements = [];
 
     /** m_texture (Tr2TextureAL) */

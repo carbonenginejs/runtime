@@ -197,6 +197,7 @@ export function declaredMemberType(declared)
       result.type = VARTYPE.IROOT;
       result.collection = kind;
       result.iid = CONTAINER_IIDS[kind];
+      result.length = type.length ?? 0;
     }
   }
   return result;

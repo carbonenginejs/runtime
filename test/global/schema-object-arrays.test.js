@@ -10,6 +10,7 @@ import { CjsSchema, type } from "../../src/blue/schema/index.js";
 import { ClassInfo } from "../../src/global/model/graph/ClassInfo.js";
 import { CjsGraph } from "../../src/global/model/graph/index.js";
 import { VARTYPE } from "../../src/global/consts/blue.js";
+import * as compileClassInfoModule from "../../src/blue/schema/compileClassInfo.js";
 import { exposure as be } from "#be";
 
 // A ported std::vector of objects says how it holds each item, as the C++ element type does:
@@ -129,4 +130,20 @@ test("values build each embedded item as an instance of its class", () =>
   assert.equal(owner.embedded.length, 2);
   assert.ok(owner.embedded.every(item => item instanceof ObjectArrayItem));
   assert.deepEqual(owner.embedded.map(item => item.value), [ 4, 5 ]);
+});
+
+test("values build an embedded item that names no class as the declared item class", () =>
+{
+  const owner = new ObjectArrayOwner();
+  new DictReader().ReadInto(owner, { embedded: [ { value: 6 } ] }, null);
+  assert.equal(owner.embedded.length, 1);
+  assert.ok(owner.embedded[0] instanceof ObjectArrayItem);
+  assert.equal(owner.embedded[0].value, 6);
+});
+
+test("Blue's own row holds an object array's count, before the graph writes", () =>
+{
+  const { declaredMemberType } = compileClassInfoModule;
+  assert.equal(declaredMemberType(declared("fixed")).length, 3);
+  assert.equal(declaredMemberType(declared("embedded")).length, 0);
 });

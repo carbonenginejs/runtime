@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { mat4 } from "../../npm/dist/global/math/index.js";
+import { MeshDecalLodData } from "../../src/trinity/resources/geometry/MeshDecalLodData.js";
 import {
   BuildDecalGeometry,
   DecalWorldBounds,
@@ -132,8 +133,10 @@ test("every LOD gets a start index, and an uncovered one reads as zero primitive
   const built = BuildDecalGeometry(mesh, matrix, inverse);
 
   assert.equal(built.lods.length, 2);
-  assert.deepEqual(built.lods[0], { startIndex: 0, primitiveCount: 1 });
-  assert.deepEqual(built.lods[1], { startIndex: 3, primitiveCount: 0 });
+  // Each LOD is Carbon's MeshDecalLodData (EveSpaceObjectDecal.cpp:782-786).
+  assert.ok(built.lods.every(lod => lod.constructor === MeshDecalLodData));
+  assert.deepEqual({ ...built.lods[0] }, { startIndex: 0, primitiveCount: 1 });
+  assert.deepEqual({ ...built.lods[1] }, { startIndex: 3, primitiveCount: 0 });
 });
 
 test("the built index buffer is 32-bit whatever the source indexed at", () =>
@@ -171,7 +174,8 @@ test("the static path concatenates the SOF's own index lists", () =>
 
   const built = BuildStaticDecalGeometry(mesh, buffers);
 
-  assert.deepEqual(built.lods, [
+  assert.ok(built.lods.every(lod => lod.constructor === MeshDecalLodData));
+  assert.deepEqual(built.lods.map(lod => ({ ...lod })), [
     { startIndex: 0, primitiveCount: 1 },
     { startIndex: 3, primitiveCount: 2 },
     { startIndex: 9, primitiveCount: 1 }

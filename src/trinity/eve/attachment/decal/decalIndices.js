@@ -23,6 +23,7 @@
 // 4 even when the source mesh indexes at 16 bits, so a decal on a small mesh
 // still produces a wide buffer.
 import { mat4, tri3, vec3 } from "#math";
+import { MeshDecalLodData } from "../../../resources/geometry/MeshDecalLodData.js";
 
 
 /** Carbon's unit decal volume, before the decal matrix places it. */
@@ -203,7 +204,11 @@ export function BuildDecalGeometry(mesh, decalMatrix, inverseDecalMatrix)
         // a zero primitive count is what says "this LOD is not covered" -
         // exactly as Carbon records it, and the reason GetBatches tests the
         // count rather than the buffer.
-        lods.push({ startIndex: all.length, primitiveCount: selected.length / 3 });
+        // Carbon: MeshDecalLodData buffer, its m_startIndex and m_primitiveCount set (EveSpaceObjectDecal.cpp:782-786).
+        const lodData = new MeshDecalLodData();
+        lodData.startIndex = all.length;
+        lodData.primitiveCount = selected.length / 3;
+        lods.push(lodData);
 
         for (const index of selected) all.push(index);
     }
@@ -278,7 +283,11 @@ export function BuildStaticDecalGeometry(mesh, staticIndexBuffers)
 
         const buffer = buffers[originalIndex] ?? [];
 
-        lods.push({ startIndex: all.length, primitiveCount: Math.trunc(buffer.length / 3) });
+        // Carbon: MeshDecalLodData decalLod (EveSpaceObjectDecal.cpp:876-880).
+        const lodData = new MeshDecalLodData();
+        lodData.startIndex = all.length;
+        lodData.primitiveCount = Math.trunc(buffer.length / 3);
+        lods.push(lodData);
 
         for (const index of buffer) all.push(index);
 

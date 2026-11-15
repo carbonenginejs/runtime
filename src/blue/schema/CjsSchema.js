@@ -1194,7 +1194,7 @@ function objectTypeNamespace(kind, extra = undefined)
     const declare = className => objectTypeDecorator(kind, className, extra);
     declare.array = (className, length) =>
     {
-        if (length !== undefined && typeof length !== "number") throw new TypeError("An object type's array is used without a call: write .array(className) or .array(className, length).");
+        if (length !== undefined && typeof length !== "number") throw new TypeError(`An object type's array takes a class and a count: write .array(className) or .array(className, length), not a count of ${typeof length}.`);
         const itemType = { kind, ...objectTypeTarget(className), ...extra };
         return fieldDecorator("type", length === undefined ? { kind: "array", itemType } : { kind: "array", itemType, length: requireCount(length) });
     };
