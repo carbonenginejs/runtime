@@ -7,6 +7,8 @@ import { type } from "#schema";
 import { CcpTime } from "#blue";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { EveTacticalTrailsPostion } from "./EveTacticalTrailsPostion.js";
+import { EveTacticalTrailsTrackedObject } from "./EveTacticalTrailsTrackedObject.js";
 import { TriBatchType, RenderingMode } from "#consts/graphics";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
@@ -19,6 +21,22 @@ import { Tr2BufferDescriptionAL } from "../../../../trinityal/Tr2BufferAL/Tr2Buf
 import { Failed } from "../../../../trinityal/ALResult.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/Tr2RenderBatch.js";
+
+/**
+ * A kept control point: a Postion holding the position and the time, as Carbon's UpdateSyncronous pushes one
+ * (`object.positions.push_back( { position, now } )`).
+ *
+ * @param {ArrayLike<number>} position The ball's position.
+ * @param {number} time The time it was taken.
+ * @returns {EveTacticalTrailsPostion} The control point.
+ */
+function newPostion(position, time)
+{
+  const point = new EveTacticalTrailsPostion();
+  point.position.set(position);
+  point.time = time;
+  return point;
+}
 
 
 // Carbon's anonymous-namespace LineVertex (EveTacticalTrails.cpp:15-21):
@@ -72,8 +90,8 @@ export class EveTacticalTrails
   /** m_egoBallPosition (Vector3d): the double-precision origin every trail position is rebased against. */
   _egoBallPosition = new Float64Array(3); // alloc: Carbon Vector3d; no double-precision math type
 
-  /** m_trackedObjects: { ball: WeakRef (Carbon's BlueWeakRef) or null, positions: [ { position, time } ] }. */
-  @type.array("EveTacticalTrailTrackedObject")
+  /** m_trackedObjects: TrackedObject records (h:65), each ball held by a WeakRef (Carbon's BlueWeakRef). */
+  @type.object.embed.array("EveTacticalTrails::TrackedObject")
   trackedObjects = [];
 
   /** m_segmentCount (uint32_t) [READ] */
@@ -152,7 +170,10 @@ export class EveTacticalTrails
       console.warn("EveTacticalTrails::RegisterObject: Object already registered");
       return;
     }
-    this.trackedObjects.push({ ball: new WeakRef(object), positions: [] });
+    // Carbon: TrackedObject newObject; newObject.ball = object (cpp:91-96).
+    const newObject = new EveTacticalTrailsTrackedObject();
+    newObject.ball = new WeakRef(object);
+    this.trackedObjects.push(newObject);
   }
 
   /**
@@ -207,7 +228,7 @@ export class EveTacticalTrails
       const positions = object.positions;
       if (positions.length < 2)
       {
-        positions.push({ position: Float64Array.from(position), time: now }); // alloc: a kept control point
+        positions.push(newPostion(position, now)); // alloc: a kept control point
       }
       else
       {
@@ -219,7 +240,7 @@ export class EveTacticalTrails
           + (position[2] - p1[2]) * (p0[2] - p1[2]);
         if (distance > 1 || towards > 0 || vec3.distance(p1, p0) > 10000)
         {
-          positions.push({ position: Float64Array.from(position), time: now }); // alloc: a kept control point
+          positions.push(newPostion(position, now)); // alloc: a kept control point
         }
         else
         {
