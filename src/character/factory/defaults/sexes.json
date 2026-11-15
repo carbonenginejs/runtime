@@ -1,10 +1,15 @@
 {
-  "description": "Each character sex's resource facts, which only the library loads (CjsCharacterLibraryManager.sexFacts): `root`, the paper doll content root every category path is relative to; `skeleton`, the master skeleton the character is skinned to; `defaultMorphs`, morph weights every character of the sex starts from, under any sculpt (the eye-missing morphs at these weights seat the eyeball against the lids, which the shipped idle poses leave proud of them; our setting: neither Carbon nor the client has default morph weights). Ours: the client's paper doll is Python. Edit freely: the engine reads this file as data.",
+  "description": "Each character sex's resource facts, which only the library loads (CjsCharacterLibraryManager.sexFacts): `root`, the paper doll content root every category path is relative to; `skeleton`, the master skeleton the character is skinned to; `defaultMorphs`, morph weights every character of the sex starts from, under any sculpt (the eye-missing morphs at these weights seat the eyeball against the lids, which the shipped idle poses leave proud of them; our setting: neither Carbon nor the client has default morph weights). Ours: the client's paper doll is Python. Edit freely: the engine reads this file as data. `genericHead`: the generic head's folder below the root. `eyeWet`, a workaround: the generic head's eye-wet mesh (`mesh`) takes the effect of the matching area of a baked character-select model (`reference`; CjsCharacterLibraryManager.FetchEyeWet).",
   "female": {
     "root": "res:/graphics/character/female/paperdoll/",
     "skeleton": "res:/graphics/character/female/skeleton/masterskeletonfemale.gr2",
     "defaultMorphs": {
       "BothEyeMissingShape": 0.2
+    },
+    "genericHead": "head/head_generic",
+    "eyeWet": {
+      "reference": "res:/graphics/character/unique/characterselect/deteisfemaleclothing/unique.black",
+      "mesh": "EyeWet_GeoShape"
     }
   },
   "male": {
@@ -13,6 +18,11 @@
     "defaultMorphs": {
       "LeftEyeMissingShape": 0.05,
       "RightEyeMissingShape": 0.05
+    },
+    "genericHead": "head/head_generic",
+    "eyeWet": {
+      "reference": "res:/graphics/character/unique/characterselect/deteismaleclothing/unique.black",
+      "mesh": "EyeWet_GeoShape"
     }
   }
 }

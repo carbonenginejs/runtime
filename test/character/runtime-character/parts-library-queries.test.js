@@ -117,7 +117,8 @@ test("options come from the index alone, one per .type, per underwear folder, or
     await assert.rejects(library.FetchOptionMaps({ sex: "female", category: "bottominner", id: "long01" }), /No maps rule for the paper doll category bottominner/);
     assert.throws(() => CjsCharacterLibraryManager.sexFacts("other"), /Unknown character sex/);
     assert.deepEqual(CjsCharacterLibraryManager.sexFacts("male"), { root: "res:/graphics/character/male/paperdoll/", skeleton: "res:/graphics/character/male/skeleton/masterskeletonmale.gr2",
-        defaultMorphs: { LeftEyeMissingShape: 0.05, RightEyeMissingShape: 0.05 } });
+        defaultMorphs: { LeftEyeMissingShape: 0.05, RightEyeMissingShape: 0.05 }, genericHead: "head/head_generic",
+        eyeWet: { reference: "res:/graphics/character/unique/characterselect/deteismaleclothing/unique.black", mesh: "EyeWet_GeoShape" } });
     CjsCharacterLibraryManager.sexFacts("male").defaultMorphs.LeftEyeMissingShape = 1;
     assert.equal(CjsCharacterLibraryManager.sexFacts("male").defaultMorphs.LeftEyeMissingShape, 0.05, "the caller's own copy");
 });

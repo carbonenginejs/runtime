@@ -63,6 +63,11 @@ const defaultPaperDolls = { female: defaultFemalePaperDoll, male: defaultMalePap
  *   defaultColors: number[][], requiresModel: boolean, skipPatternedPalettes: boolean }} CjsCharacterCategoryRule
  */
 
+/**
+ * One area of the eye-wet borrow (`FetchEyeWet`): a model, a mesh by name, and an area by batch type and position.
+ * @typedef {{ model: string, mesh: string, batchType: number, area: number }} CjsCharacterEyeWetArea
+ */
+
 /** Installs, loads, and queries one combined hydrated character library. */
 export class CjsCharacterLibraryManager
 {
@@ -437,11 +442,13 @@ export class CjsCharacterLibraryManager
      * A sex's resource facts (`factory/defaults/sexes.json`, which only the library loads): `root`, the paper doll
      * content root every category path is relative to, with its trailing slash; `skeleton`, the master skeleton;
      * `defaultMorphs`, the morph weights every character of the sex starts from, by morph name: our setting, as neither
-     * Carbon nor the client has default morph weights.
+     * Carbon nor the client has default morph weights; `genericHead`, the generic head's folder below the root;
+     * `eyeWet`, where the generic head's eye-wet effect is borrowed from (`FetchEyeWet`).
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python.
      * @param {string} sex The sex.
-     * @returns {{ root: string, skeleton: string, defaultMorphs: Object<string, number> }} A copy the caller may change.
+     * @returns {{ root: string, skeleton: string, defaultMorphs: Object<string, number>, genericHead: string,
+     *   eyeWet: { reference: string, mesh: string } }} A copy the caller may change.
      * @throws {Error} For a sex the library does not know.
      */
     static sexFacts(sex)
@@ -1006,6 +1013,55 @@ export class CjsCharacterLibraryManager
                 meshes.push({ name: mesh.name, meshIndex: mesh.meshIndex, geometry: mesh.geometryResPath, areas });
             }
             return { model: path, meshes };
+        });
+    }
+
+    /**
+     * Where a sex's generic head takes its eye-wet effect from (`sexFacts` `eyeWet`): the generic head's eye-wet area
+     * (its model, by the folder rule of `FetchOptionAreas`, the mesh the data names and its first transparent area), and
+     * the area of the reference model whose effect it takes: the reference's one mesh of the same `meshIndex` on the
+     * generic head's geometry, its first transparent area. Read once. The head's areas are set up as a head part's
+     * (`FetchModelAreas`), so a head area whose shader has no generic data fails this query too.
+     *
+     * A workaround, not the client's: the generic head authors its eye-wet area with `SkinnedAvatarBRDF.fx`, and the
+     * effect a baked character-select model gives the same area is borrowed. Build 3698585: female mesh 8 takes
+     * `head5`'s `eyewetnessshader_dxt5n.fx`, male mesh 5 `head5`'s `eyewetnessshader.fx`.
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {string} sex The sex.
+     * @returns {Promise<{ head: CjsCharacterEyeWetArea, reference: CjsCharacterEyeWetArea }>} The two areas, the
+     *   caller's own copy.
+     * @throws {Error} For a reference that is not a `Tr2IntSkinnedObject`, a model without exactly one area the borrow
+     *   names, or a reference mesh whose name is not unique. `sexes.json` must give every sex an `eyeWet`.
+     */
+    FetchEyeWet(sex)
+    {
+        return this._Query("eyeWet|" + sex, async () =>
+        {
+            const { root, genericHead, eyeWet } = CjsCharacterLibraryManager.sexFacts(sex);
+            const TRANSPARENT = TriBatchType.TRIBATCHTYPE_TRANSPARENT;
+
+            // The generic head, as an option of its folder: its category is the folder's first.
+            const folder = root + genericHead + "/", category = genericHead.slice(0, genericHead.indexOf("/"));
+            const head = await this.FetchOptionAreas({ sex, category, typePath: null, folder, path: genericHead });
+            const named = head ? head.meshes.filter(mesh => mesh.name === eyeWet.mesh) : [];
+            const wet = named.length === 1 ? named[0] : undefined;
+            if (!wet || !wet.areas.some(area => area.batchType === TRANSPARENT)) throw new Error("No one eye-wet area " + eyeWet.mesh + " in " + folder);
+
+            // The reference's one mesh of that index on the same geometry, with an effect on its first transparent area.
+            const reference = await blue.resMan.LoadObject(eyeWet.reference, LOADOBJECT_INIT_FLAG.LDOBJ_DONT_INITIALIZE);
+            const className = CjsSchema.getClassName(reference.constructor);
+            if (className !== "Tr2IntSkinnedObject") throw new Error("The eye-wet reference " + eyeWet.reference + " is a " + className + ", not a Tr2IntSkinnedObject");
+            const geometry = normalizeResourcePath(wet.geometry);
+            const matching = reference.visualModel.meshes.filter(mesh => mesh.meshIndex === wet.meshIndex && normalizeResourcePath(mesh.geometryResPath) === geometry);
+            const area = matching.length === 1 ? matching[0].transparentAreas[0] : undefined;
+            if (!area || !area.effect) throw new Error("No one eye-wet area of meshIndex " + wet.meshIndex + " in " + eyeWet.reference);
+            if (reference.visualModel.meshes.filter(mesh => mesh.name === matching[0].name).length !== 1) throw new Error("The eye-wet mesh name " + matching[0].name + " is not unique in " + eyeWet.reference);
+
+            return {
+                head: { model: head.model, mesh: wet.name, batchType: TRANSPARENT, area: 0 },
+                reference: { model: eyeWet.reference, mesh: matching[0].name, batchType: TRANSPARENT, area: 0 }
+            };
         });
     }
 
