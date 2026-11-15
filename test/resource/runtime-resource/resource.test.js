@@ -8,6 +8,7 @@ import {
 } from "#utils/path";
 import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { ICacheable } from "../../../npm/dist/blue/index.js";
+import { LOADOBJECT_INIT_FLAG } from "../../../npm/dist/global/consts/blue.js";
 import * as runtimeResource from "../../../npm/dist/resource/index.js";
 import { CjsBlackFormat } from "../../../npm/dist/blue/formats/black/index.js";
 import { CjsRedFormat } from "../../../npm/dist/blue/formats/red/index.js";
@@ -328,7 +329,7 @@ test("BlueResMan exposes normalized resource paths to sources, formats and targe
   assert.equal(identifyContext.fileName, expected.fileName);
   assert.equal(identifyContext.url, expected.url);
 
-  await resMan.LoadObject("res:/character/folder/metadata", { ext: ".YAML" });
+  await resMan.LoadObject("res:/character/folder/metadata", LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE, { ext: ".YAML" });
   assert.equal(formatContext.resFilePath, "res:/character/folder/metadata");
   assert.equal(formatContext.fileName, "metadata");
   assert.equal(formatContext.ext, "yaml");

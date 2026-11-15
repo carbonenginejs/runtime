@@ -321,7 +321,7 @@ test("an implementation is installed into the holder, never captured from it", (
     // Only what it overrode answers; the rest still refuses, naming the class
     // that failed to honour the interface rather than the interface's file.
     assert.throws(() => blue.resMan.LoadObject("res:/x.red"),
-      /^Error: RecordingResMan does not implement IBlueResMan\.LoadObject\(path, init\)\.$/u);
+      /^Error: RecordingResMan does not implement IBlueResMan\.LoadObject\(path, init, options\)\.$/u);
   }
   finally { blue.resMan = previous; }
 });

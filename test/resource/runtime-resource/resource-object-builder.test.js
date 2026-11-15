@@ -1,4 +1,4 @@
-import { blue } from "../../../npm/dist/blue/index.js";
+import { blue, IRootReader } from "../../../npm/dist/blue/index.js";
 import assert from "node:assert/strict";
 import { test, beforeEach, afterEach } from "node:test";
 import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
@@ -11,6 +11,7 @@ import {
 } from "../../../npm/dist/resource/index.js";
 import { RegisterDataLoader } from "../../support/testDataRes.js";
 import { HoldFrameLoop } from "../../support/frameLoop.js";
+import { LOADOBJECT_INIT_FLAG } from "../../../npm/dist/global/consts/blue.js";
 
 // Carbon's LoadObject caches a builder and creates a new object per call
 // (BlueResMan.cpp:653-795). These pin that for routes that hydrate a Target.
@@ -147,7 +148,7 @@ test("RESOURCE-mode routes keep their shared outcome", async () =>
   assert.deepEqual(semantic.value.list, [1, 2]);
   assert.equal(resMan.GetResourcePayload(semantic), null);
   await assert.rejects(
-    resMan.LoadObject("res:/data/semantic.graph", { ex: "semantic" }),
+    resMan.LoadObject("res:/data/semantic.graph", LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE, { ex: "semantic" }),
     /is a resource, not an object/u
   );
 });
@@ -220,6 +221,57 @@ test("an object builder is parsed once and builds a new object for every caller"
   const payload = resMan.GetResourcePayload(objectLoad(resMan, path));
   assert.equal(typeof payload.CreateObject, "function");
   assert.notEqual(payload, first);
+});
+
+// A reader builder (IRootReader, as Carbon's BlackReader is): LoadObject sets its initialization from the caller's
+// Be::LOADOBJECT_INIT_FLAG before each build (BlueResMan.cpp:776-780).
+class InitRecordingReader
+{
+  _doInitialize = true;
+  SetDoInitialize(value) { this._doInitialize = value; }
+  CreateObject() { return { initialized: this._doInitialize }; }
+}
+CjsSchema.exposure.mapInterface(IRootReader)(InitRecordingReader);
+
+test("LoadObject's init flag sets a reader builder's initialization per call, each caller its own", async () =>
+{
+  const resMan = new BlueResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
+  blue.resMan = resMan;
+  resMan.RegisterObjectBuilder("reader", () => new InitRecordingReader());
+  const path = "res:/data/one.reader", { LDOBJ_INITIALIZE, LDOBJ_DONT_INITIALIZE } = LOADOBJECT_INIT_FLAG;
+  assert.deepEqual(await resMan.LoadObject(path), { initialized: true }, "Carbon's default initializes");
+  assert.deepEqual(await resMan.LoadObject(path, LDOBJ_DONT_INITIALIZE), { initialized: false });
+  assert.deepEqual(await resMan.LoadObject(path, LDOBJ_INITIALIZE), { initialized: true }, "the flag is the call's, not the cached reader's");
+  const joined = await Promise.all([
+    resMan.LoadObject("res:/data/join.reader", LDOBJ_DONT_INITIALIZE),
+    resMan.LoadObject("res:/data/join.reader"),
+    resMan.LoadObject("res:/data/join.reader", LDOBJ_DONT_INITIALIZE)
+  ]);
+  assert.deepEqual(joined.map(object => object.initialized), [ false, true, false ], "callers sharing one load each build with their own flag");
+});
+
+test("a builder that is not a reader builds as it is, whatever the flag", async () =>
+{
+  const { resMan, counter } = builderManager();
+  const object = await resMan.LoadObject("res:/data/plain.obj", LOADOBJECT_INIT_FLAG.LDOBJ_DONT_INITIALIZE);
+  assert.equal(object.read, 1);
+  assert.equal(counter.objects, 1);
+  // A builder with SetDoInitialize but no IRootReader in its interface table is not a reader either.
+  const calls = [];
+  const unmapped = new BlueResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
+  blue.resMan = unmapped;
+  unmapped.RegisterObjectBuilder("unmapped", () => ({ SetDoInitialize(value) { calls.push(value); }, CreateObject() { return {}; } }));
+  await unmapped.LoadObject("res:/data/one.unmapped", LOADOBJECT_INIT_FLAG.LDOBJ_DONT_INITIALIZE);
+  assert.deepEqual(calls, [], "only the interface table makes a builder a reader");
+});
+
+test("LoadObject__WChars passes its init flag on", async () =>
+{
+  const resMan = new BlueResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
+  blue.resMan = resMan;
+  resMan.RegisterObjectBuilder("reader", () => new InitRecordingReader());
+  const object = await resMan.LoadObject__WChars("res:/data/wide.reader", LOADOBJECT_INIT_FLAG.LDOBJ_DONT_INITIALIZE);
+  assert.deepEqual(object, { initialized: false });
 });
 
 test("callers joining one builder load each receive their own object", async () =>
@@ -397,8 +449,8 @@ test("explicit extension selects a cached builder for extensionless object names
   try
   {
     await assert.rejects(resMan.LoadObject("res:/plain-without-override"), /No resource factory/);
-    const first = await resMan.LoadObject("res:/extensionless", { ext: ".example" });
-    const second = await resMan.LoadObject("res:/extensionless", { ext: ".example" });
+    const first = await resMan.LoadObject("res:/extensionless", LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE, { ext: ".example" });
+    const second = await resMan.LoadObject("res:/extensionless", LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE, { ext: ".example" });
     assert.notEqual(first, second);
     assert.notEqual(first.values, second.values);
     first.values[0] = 99;

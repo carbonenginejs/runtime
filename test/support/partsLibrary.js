@@ -8,6 +8,7 @@
 import { CjsCharacterFactory, CjsCharacterLibraryManager } from "../../npm/dist/character/index.js";
 import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../npm/dist/blue/index.js";
 import { installBlueServices } from "../../npm/dist/blue/blue.js";
+import { CjsBlackFormat } from "../../npm/dist/blue/formats/black/index.js";
 import "./frameLoop.js";
 
 /** A `.color` file's text, with every colour the given grey. */
@@ -55,6 +56,8 @@ export function installPartsLibrary(t, root, files, { text = {}, overrides = {} 
         installBlueServices(previous, previous.running);
         resMan.Clear();
     });
+    // The object files the library builds through LoadObject, registered as the composition root does (core/configuration.js).
+    resMan.RegisterObjectBuilder("black", CjsBlackFormat.createBlackObjectBuilder);
     library.Initialize({ resMan });
     CjsCharacterFactory.registerObjectBuilders(resMan);
     return { library, paths, reads };

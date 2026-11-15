@@ -1,4 +1,5 @@
 import { normalizeResourcePath } from "#utils/path";
+import { LOADOBJECT_INIT_FLAG } from "#consts/blue";
 import { CjsCharacterLibraryConfiguration } from "./CjsCharacterLibraryConfiguration.js";
 import { CjsCharacterObjectBuilder } from "../formats/CjsCharacterObjectBuilder.js";
 import { CjsSchema } from "#schema";
@@ -235,7 +236,7 @@ export class CjsCharacterLibraryBuilder
         }
         else
         {
-            record = await this._resMan.LoadObject(path, CjsCharacterObjectBuilder.getLoadOptions(path));
+            record = await this._resMan.LoadObject(path, LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE, CjsCharacterObjectBuilder.getLoadOptions(path));
             if (!record) throw new Error(`Character source did not load: ${path}`);
             // The reader names the file shape it read (a shared family's file is either of two).
             actual = CjsCharacterLibraryConfiguration.kindOf(record._pdpType);

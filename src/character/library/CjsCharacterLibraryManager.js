@@ -17,12 +17,12 @@ import meshDependantDefaults from "../factory/defaults/meshDependants.json" with
 import categoryDefaults from "../factory/defaults/categories.json" with { type: "json" };
 import defaultFemalePaperDoll from "../factory/defaults/defaultFemalePaperDoll.json" with { type: "json" };
 import defaultMalePaperDoll from "../factory/defaults/defaultMalePaperDoll.json" with { type: "json" };
+import { LOADOBJECT_INIT_FLAG } from "#consts/blue";
 import sexDefaults from "../factory/defaults/sexes.json" with { type: "json" };
 import areaShaderDefaults from "../factory/defaults/areaShaders.json" with { type: "json" };
 import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCorrections.js";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { PaperDollPaletteKind } from "./characterPalettes.js";
-import { BlackReader } from "#blue/formats/black/BlackReader";
 import { CjsSchema } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 
@@ -927,8 +927,8 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * A model's meshes and their areas, read once from its `.black` through blue.resMan (the bytes; Carbon's
-     * `BlackReader` builds the objects with `SetDoInitialize(false)`, so nothing loads or binds). Per mesh: its name,
+     * A model's meshes and their areas, read once from its `.black` through blue.resMan, built without initializing
+     * (`LoadObject` with `LDOBJ_DONT_INITIALIZE`, BlueResMan.cpp:776-780: no object's Initialize runs, so here its effects and textures are not requested). Per mesh: its name,
      * its `meshIndex` (Carbon's `Tr2MeshBase` binds a mesh to its geometry by this index, `Tr2MeshBase.cpp:154`, and an
      * area by its index, :283; that is the Incarna-era engine, and whether today's client binds the same way is not
      * established) and its geometry; per area, in the order `Tr2MeshBase.GetAreas` lists them by batch type: its batch
@@ -953,12 +953,7 @@ export class CjsCharacterLibraryManager
     {
         return this._Query("model|" + category + "|" + path, async () =>
         {
-            const read = await blue.resMan.ReadResource(path);
-            const reader = new BlackReader();
-            reader.SetFileName(path);
-            if (!reader.ReadForCachingFromStream(read instanceof Uint8Array ? read : new Uint8Array(read))) throw new Error(path + ": " + reader.GetErrorMessage());
-            reader.SetDoInitialize(false);
-            const root = reader.CreateObject(), className = CjsSchema.getClassName(root.constructor);
+            const root = await blue.resMan.LoadObject(path, LOADOBJECT_INIT_FLAG.LDOBJ_DONT_INITIALIZE), className = CjsSchema.getClassName(root.constructor);
             // A beard's model is a bare effect, with no meshes.
             if (className === "Tr2Effect") return { model: path, meshes: [] };
             if (className !== "Tr2SkinnedModel") throw new Error("Unsupported character model " + className + ": " + path);

@@ -7,6 +7,7 @@ import {
 import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
 import "../../support/frameLoop.js";
+import { LOADOBJECT_INIT_FLAG } from "../../../npm/dist/global/consts/blue.js";
 
 const ROOT = "res:/graphics/character/female/paperdoll/topmiddle/shirtcf01";
 const CAMERA = "res:/graphics/character/global/paperdolllibrary/cameras/test.yaml";
@@ -90,7 +91,7 @@ test("lazy Blue reads load each record once on first need, preserve unrelated YA
     assert.equal((await manager.GetPostBaseNames(BASENAME)).value, "one two");
     assert.deepEqual(await resMan.LoadObject("res:/unrelated.yaml"), { fallback: true });
     // A character .yaml loads under its own ex; plain .yaml stays the generic reader (above).
-    const direct = await resMan.LoadObject(CAMERA, CjsCharacterObjectBuilder.getLoadOptions(CAMERA));
+    const direct = await resMan.LoadObject(CAMERA, LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE, CjsCharacterObjectBuilder.getLoadOptions(CAMERA));
     assert.notEqual(direct, a);
     assert.equal(direct._pdpType, CjsCharacterPdpType.CAMERA);
     await assert.rejects(manager.GetCamera("res:/missing.yaml"), /Unresolved/);

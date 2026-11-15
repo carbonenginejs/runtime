@@ -64,10 +64,11 @@ export class IBlueResMan extends IRoot
    *
    * @abstract
    * @param {string} _path Object file path.
-   * @param {*} [_init] Load options.
+   * @param {number} [_init] `Be::LOADOBJECT_INIT_FLAG` (`LOADOBJECT_INIT_FLAG`, `#consts/blue`).
+   * @param {object} [_options] Ours, after Carbon's: identity, source, format, loader and queue options.
    * @returns {*} The object.
    */
-  LoadObject(_path, _init) {}
+  LoadObject(_path, _init, _options) {}
 
   /**
    * `LoadObject( const wchar_t* name, Be::LOADOBJECT_INIT_FLAG init = Be::LDOBJ_INITIALIZE )`
@@ -75,10 +76,11 @@ export class IBlueResMan extends IRoot
    *
    * @abstract
    * @param {string} _path Object file path.
-   * @param {*} [_init] Load options, as `LoadObject`.
+   * @param {number} [_init] As `LoadObject`.
+   * @param {object} [_options] As `LoadObject`.
    * @returns {*} The object.
    */
-  LoadObject__WChars(_path, _init) {}
+  LoadObject__WChars(_path, _init, _options) {}
 
   /**
    * `SaveObject( IRoot* obj, const char* name )` - write an object to a blue or

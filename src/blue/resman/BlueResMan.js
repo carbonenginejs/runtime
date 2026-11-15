@@ -14,6 +14,8 @@ import { CjsSchema, meta } from "#schema";
 import { BlueResManQueue, IBlueResMan } from "../interfaces/IBlueResMan.js";
 import { IBlueEvents } from "../interfaces/IBlueEvents.js";
 import { IRoot } from "../exposure/IRoot.js";
+import { IRootReader } from "../format/IRootReader.js";
+import { LOADOBJECT_INIT_FLAG } from "#consts/blue";
 import { IBlueResource } from "../interfaces/IBlueResource.js";
 import * as CcpLog from "../../global/logging/ccpLog.js";
 import { hasOwnThen } from "#utils/object";
@@ -1449,37 +1451,42 @@ export class BlueResMan
    * `const wchar_t*` one (BlueResMan.h:83) is `LoadObject__WChars`, which
    * differs only in string encoding, which JavaScript strings do not have.
    *
-   * @adapted
    * @adapted Carbon's LoadObject yields its Stackless tasklet while it reads and builds
    * (`GetFileContentsWithYield`, `CreateObjectWithYield`, BlueResMan.cpp:753,785), so its caller
    * sees a plain return while the program keeps running. A browser cannot block on a read, and
    * `await` suspends only the function it is written in, so this returns a promise and every
    * caller that wants the object awaits it in turn; a caller cannot be made synchronous.
    *
+   * `init` is Carbon's: it controls whether `IInitialize::Initialize` is called on the built objects
+   * (IBlueResMan.h:98; BlueResMan.cpp:776-780). It belongs to this call: callers sharing one load each
+   * build with their own.
+   *
    * @param {string} path Carbon-style source resource path.
-   * @param {object} [options={}] Identity, source, format, loader, and queue options.
+   * @param {number} [init=LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE] Carbon's `Be::LOADOBJECT_INIT_FLAG`.
+   * @param {object} [options={}] Identity, source, format, loader, and queue options (ours, after Carbon's).
    * @returns {Promise<*>} In-flight, resident, or reconstructed object outcome.
    * @throws {TypeError|Error} If path, identity, source, format, or conversion configuration is invalid.
    */
-  LoadObject(path, options = {})
+  LoadObject(path, init = LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE, options = {})
   {
     BlueResMan.resManLoadObjectCalls++;
-    return this._LoadObject(path, options, true);
+    return this._LoadObject(path, options, true, init);
   }
 
   /**
    * `LoadObject( const wchar_t* name, ... )` (BlueResMan.cpp:653) -
    * `LoadObject` for a wide-character path.
    *
-   * @adapted
+   * @adapted Forwards to LoadObject, the reverse of Carbon's direction: a JavaScript string has no encoding.
    * @param {string} path Carbon-style source resource path.
+   * @param {number} [init=LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE] As `LoadObject`.
    * @param {object} [options={}] As `LoadObject`.
    * @returns {Promise<*>} As `LoadObject`.
    */
-  LoadObject__WChars(path, options = {})
+  LoadObject__WChars(path, init = LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE, options = {})
   {
     // Carbon (BlueResMan.cpp:547-551): the const char* overload widens and calls this one; a JS string is both.
-    return this.LoadObject(path, options);
+    return this.LoadObject(path, init, options);
   }
 
   /**
@@ -1490,15 +1497,16 @@ export class BlueResMan
    * @param {string} path Carbon-style resource path.
    * @param {object} options Source and reader options.
    * @param {boolean} build Whether to construct a fresh graph for this caller.
+   * @param {number} [init=LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE] This caller's `Be::LOADOBJECT_INIT_FLAG`.
    * @returns {Promise<*>} Fresh graph or the load result.
    */
-  async _LoadObject(path, options, build)
+  async _LoadObject(path, options, build, init = LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE)
   {
     const resource = this._GetLoadingObject(path, options);
     const result = await this.Ready(resource);
     if (!build) return result;
-    if (this._IsObjectBuilderResource(resource)) return this._QueueObjectBuild(resource);
-    return this._ObjectOutcome(resource, path);
+    if (this._IsObjectBuilderResource(resource)) return this._QueueObjectBuild(resource, init);
+    return this._ObjectOutcome(resource, path, init);
   }
 
   /**
@@ -1585,12 +1593,13 @@ export class BlueResMan
    *
    * @param {BlueAsyncRes} resource The loading object.
    * @param {string} path The requested path, for the message.
+   * @param {number} [init=LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE] The caller's `Be::LOADOBJECT_INIT_FLAG`.
    * @returns {*} The caller's object.
    * @throws {TypeError} When the load yielded plain values.
    */
-  _ObjectOutcome(resource, path)
+  _ObjectOutcome(resource, path, init = LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE)
   {
-    if (this._objectBuilders.has(resource)) return this._BuildObject(resource);
+    if (this._objectBuilders.has(resource)) return this._BuildObject(resource, init);
     return this._RefusePlainObject(path);
   }
 
@@ -1633,7 +1642,7 @@ export class BlueResMan
    */
   FetchObject(path, options = {})
   {
-    return this.LoadObject(path, options);
+    return this.LoadObject(path, LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE, options);
   }
 
   /**
@@ -1647,7 +1656,7 @@ export class BlueResMan
    */
   ReloadObject(path, options = {})
   {
-    return this.LoadObject(path, { ...options, reload: true });
+    return this.LoadObject(path, LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE, { ...options, reload: true });
   }
 
   /**
@@ -1955,9 +1964,10 @@ export class BlueResMan
    * stays queued, as Carbon's queues have no clear; it fails when it runs.
    *
    * @param {BlueAsyncRes} resource Resource whose payload is the builder.
+   * @param {number} [init=LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE] This caller's `Be::LOADOBJECT_INIT_FLAG`.
    * @returns {Promise<object>} This caller's new object.
    */
-  _QueueObjectBuild(resource)
+  _QueueObjectBuild(resource, init = LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE)
   {
     return new Promise((resolve, reject) =>
     {
@@ -1965,7 +1975,7 @@ export class BlueResMan
       {
         try
         {
-          resolve(this._BuildObject(builderResource));
+          resolve(this._BuildObject(builderResource, init));
         }
         catch (error)
         {
@@ -1982,12 +1992,14 @@ export class BlueResMan
    * @cjs
    * @implemented
    * @param {BlueAsyncRes} resource Resource whose lifecycle belongs to this manager.
+   * @param {number} [init=LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE] This caller's `Be::LOADOBJECT_INIT_FLAG`, applied to a
+   *   reader payload before it builds.
    * @returns {object} New object graph owned by this caller.
    */
-  _BuildObject(resource)
+  _BuildObject(resource, init = LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE)
   {
     const builder = this._objectBuilders.get(resource);
-    if (builder.Create) return builder.Create(this.GetResourcePayload(resource));
+    if (builder.Create) return builder.Create(this.GetResourcePayload(resource), init);
     return this._HydrateTarget(resource, builder.Target, this.GetResourcePayload(resource), builder.context);
   }
 
@@ -2041,7 +2053,7 @@ export class BlueResMan
    */
   async Prefetch(paths, options = {}) {
     const entries = Array.isArray(paths) ? paths : [paths];
-    return Promise.all(entries.map(path => this.LoadObject(path, options)));
+    return Promise.all(entries.map(path => this.LoadObject(path, LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE, options)));
   }
 
   /**
@@ -4386,13 +4398,19 @@ export class BlueResMan
   }
 
   /**
-   * Invoke Carbon's IBlueObjectBuilder operation with the default object marker.
-   * Shared by all internal handler records; no per-resource callback is allocated.
+   * BlueResMan.cpp:776-792: set a reader's initialization from the caller's flag, then build one object.
+   * `BlueCastPtr<IRootReader>` reads the builder's `MAP_INTERFACE` table, so this asks `QueryThisInterface`;
+   * a builder that is not a reader is built as it is. Shared by all internal handler records.
+   *
+   * @adapted No SetTimeSlice (:780): resMan has no loadObjectTimeSlice and a reader has nothing to yield to; a failed build throws from the builder, with its GetErrorMessage, in place of the log at :787-792.
    * @param {IBlueObjectBuilder} builder Parsed object-file builder.
+   * @param {number} [init=LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE] The caller's `Be::LOADOBJECT_INIT_FLAG`.
    * @returns {object} A new graph for one caller.
    */
-  static _createObjectFromBuilder(builder)
+  static _createObjectFromBuilder(builder, init = LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE)
   {
+    const reader = blueService.classes.QueryThisInterface(builder, IRootReader, builder.constructor, BEQI_SILENT);
+    if (reader !== null) reader.SetDoInitialize(init === LOADOBJECT_INIT_FLAG.LDOBJ_INITIALIZE);
     return builder.CreateObject(0);
   }
 }

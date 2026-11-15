@@ -140,3 +140,15 @@ export const VARTYPE = Object.freeze({
   VARTYPE_MAX: 37,
   VARTYPE_FORCELONG: 0xFFFFFFFF
 });
+
+// Source: blueexposure/include/BlueTypes.h:421-425 (Be::LOADOBJECT_INIT_FLAG)
+/**
+ * Whether `BlueResMan.LoadObject` initializes the object it builds: the reader's `SetDoInitialize`
+ * (BlueResMan.cpp:776-780).
+ *
+ * Carbon: Be::LOADOBJECT_INIT_FLAG (blueexposure/include/BlueTypes.h:421-425)
+ */
+export const LOADOBJECT_INIT_FLAG = Object.freeze({
+  LDOBJ_INITIALIZE: 0,
+  LDOBJ_DONT_INITIALIZE: 1
+});
