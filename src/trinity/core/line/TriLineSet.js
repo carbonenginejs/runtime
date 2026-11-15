@@ -8,6 +8,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { Topology } from "#consts/render-context";
 import { TriDebugResourceHelper } from "../TriDebugResourceHelper.js";
+import { TriDebugResourceHelperVertexPosColor } from "../TriDebugResourceHelperVertexPosColor.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 
@@ -44,8 +45,8 @@ export class TriLineSet extends IRoot
   @type.uint32
   defaultColor = 0xffffffff;
 
-  /** m_vertices: { position, color } records, the colour already swizzled. */
-  @type.array({ kind: "rawStruct", className: "TriDebugResourceHelper::VertexPosColor" })
+  /** m_vertices: VertexPosColor records (TriLineSet.h:57), the colour already swizzled. */
+  @type.object.embed.array("TriDebugResourceHelper::VertexPosColor")
   vertices = [];
 
   /** m_zEnable (bool) [READWRITE] */
@@ -77,10 +78,14 @@ export class TriLineSet extends IRoot
   Add(from, colorFrom, to, colorTo)
   {
     if (this.vertices.length + 2 > MAX_VERTICES) return;
-    this.vertices.push(
-      { position: vec3.clone(from), color: TriLineSet._SwizzleColor(colorFrom) },
-      { position: vec3.clone(to), color: TriLineSet._SwizzleColor(colorTo) }
-    );
+    // Carbon resizes by two and fills each VertexPosColor's m_pos and m_color (TriLineSet.cpp:49-66).
+    const vFrom = new TriDebugResourceHelperVertexPosColor();
+    vec3.copy(vFrom.pos, from);
+    vFrom.color = TriLineSet._SwizzleColor(colorFrom);
+    const vTo = new TriDebugResourceHelperVertexPosColor();
+    vec3.copy(vTo.pos, to);
+    vTo.color = TriLineSet._SwizzleColor(colorTo);
+    this.vertices.push(vFrom, vTo);
   }
 
   /**
@@ -334,9 +339,9 @@ export class TriLineSet extends IRoot
     for (let index = 0; index < this.vertices.length; index++)
     {
       const vertex = this.vertices[index], offset = index * 4;
-      floats[offset] = vertex.position[0];
-      floats[offset + 1] = vertex.position[1];
-      floats[offset + 2] = vertex.position[2];
+      floats[offset] = vertex.pos[0];
+      floats[offset + 1] = vertex.pos[1];
+      floats[offset + 2] = vertex.pos[2];
       words[offset + 3] = vertex.color;
     }
     return new Uint8Array(this._staging, 0, bytes); // alloc: the draw's byte view

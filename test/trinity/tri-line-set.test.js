@@ -31,15 +31,15 @@ test("AddCylinder builds Carbon's frame along end -> start, scaled by radius and
   lines.AddCylinder([ 0, 0, 10 ], [ 0, 0, 0 ], 2, 4, 0xffffffff);
   // z = (0, 0, 1), x = normalize(cross(+Y, z)) = (1, 0, 0), y = cross(z, x) = (0, 1, 0); five lines per segment.
   assert.equal(lines.vertices.length, 4 * 5 * 2);
-  near(lines.vertices[0].position, [ 2, 0, 0 ], "segment 0 base");
-  near(lines.vertices[1].position, [ 2, 0, 10 ], "segment 0 top");
-  near(lines.vertices[5].position, [ 0, 0, 10 ], "top to start");
-  near(lines.vertices[7].position, [ 0, 2, 0 ], "next base point, a quarter turn on");
-  near(lines.vertices[9].position, [ 0, 2, 10 ], "next top point");
+  near(lines.vertices[0].pos, [ 2, 0, 0 ], "segment 0 base");
+  near(lines.vertices[1].pos, [ 2, 0, 10 ], "segment 0 top");
+  near(lines.vertices[5].pos, [ 0, 0, 10 ], "top to start");
+  near(lines.vertices[7].pos, [ 0, 2, 0 ], "next base point, a quarter turn on");
+  near(lines.vertices[9].pos, [ 0, 2, 10 ], "next top point");
 
   const cone = new TriLineSet();
   cone.AddCone([ 0, 0, 10 ], [ 0, 0, 0 ], 2, 4, 0xffffffff);
-  near(cone.vertices[1].position, [ 0, 0, 10 ], "every side meets at the apex (start)");
+  near(cone.vertices[1].pos, [ 0, 0, 10 ], "every side meets at the apex (start)");
 });
 
 test("AddOrientedBox takes the unit box's corners through boxMatrix", () =>
@@ -47,12 +47,12 @@ test("AddOrientedBox takes the unit box's corners through boxMatrix", () =>
   const lines = new TriLineSet();
   lines.AddOrientedBox(mat4.fromRotationTranslationScale(mat4.create(), [ 0, 0, 0, 1 ], [ 5, 0, 0 ], [ 2, 3, 4 ]), 0xffffffff);
   assert.equal(lines.vertices.length, 24);
-  near(lines.vertices[0].position, [ 3, -3, -4 ], "min corner");
-  near(lines.vertices[1].position, [ 7, -3, -4 ], "minA");
+  near(lines.vertices[0].pos, [ 3, -3, -4 ], "min corner");
+  near(lines.vertices[1].pos, [ 7, -3, -4 ], "minA");
 
   const minMax = new TriLineSet();
   minMax.AddOrientedBox__MinMax(mat4.fromTranslation(mat4.create(), [ 1, 2, 3 ]), [ 0, 0, 0 ], [ 1, 1, 1 ], 0xffffffff);
-  near(minMax.vertices[0].position, [ 1, 2, 3 ], "AddBox's first edge, translated");
+  near(minMax.vertices[0].pos, [ 1, 2, 3 ], "AddBox's first edge, translated");
 });
 
 test("Render sets the world transform; SubmitGeometry draws a 16-byte VertexPosColor line list", (t) =>

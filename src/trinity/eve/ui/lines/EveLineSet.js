@@ -25,6 +25,7 @@ import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js"
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/Tr2RenderBatch.js";
+import { EveLineData } from "../../EveLineData.js";
 
 
 /** EveLineData (EveLineSet.h:22-28): position1, color1, position2, color2, two 28-byte vertices. */
@@ -62,8 +63,8 @@ const EVE_LINE_DATA_SIZE = EVE_LINE_DATA_FLOATS * 4;
 export class EveLineSet
 {
 
-  /** Carbon's pending CPU line records (m_lines). */
-  @type.array("EveLineData")
+  /** Carbon's pending CPU line records (m_lines: std::vector<EveLineData>, EveLineSet.h:109). */
+  @type.object.embed.array("EveLineData")
   lines = [];
 
   @type.uint32
@@ -307,12 +308,12 @@ export class EveLineSet
    */
   AddLine(position1, color1, position2, color2)
   {
-    this.lines.push({
-      position1: vec3.clone(position1),
-      color1: vec4.clone(color1),
-      position2: vec3.clone(position2),
-      color2: vec4.clone(color2)
-    });
+    const newLine = new EveLineData();
+    vec3.copy(newLine.position1, position1);
+    vec4.copy(newLine.color1, color1);
+    vec3.copy(newLine.position2, position2);
+    vec4.copy(newLine.color2, color2);
+    this.lines.push(newLine);
     return this.lines.length - 1;
   }
 
