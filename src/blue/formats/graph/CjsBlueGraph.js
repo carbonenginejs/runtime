@@ -62,12 +62,13 @@ export class CjsBlueGraph
     const rows = this._getRows(ctor, fields);
 
     // A Blue row whose member values do not carry (a live property, not persisted) still gets its type facts, so
-    // every row of the table is whole; it stays out of the graph's members.
-    const carried = new Set(rows.values()), all = this._getOwnDeclarations(ctor, false), allRows = this._getRows(ctor, all);
-    for (const field of all)
+    // every row of the table is whole; it stays out of the graph's members. Each row with the declaration it was
+    // compiled from, so two declarations with one name and key cannot share a row.
+    const info = ClassInfo.exposeToBlue(ctor), carried = new Set(rows.values());
+    for (const row of info.memberTable)
     {
-      const row = allRows.get(field);
-      if (row !== undefined && !carried.has(row)) CjsGraph.compileMember({ ...this._getMember(field), row });
+      const declaration = carried.has(row) ? undefined : info.declarationOf(row);
+      if (declaration !== undefined) CjsGraph.compileMember({ ...this._getMember(declaration), row });
     }
 
     return CjsGraph.define(ctor, {
@@ -101,11 +102,9 @@ export class CjsBlueGraph
    * Read from the declared schema, which resolves no enum: a class is defined when it is declared, and an enum
    * its members name may register after it.
    * @param {Function} ctor The class.
-   * @param {boolean} [transportedOnly=true] Values' view: leave out what values do not carry, and keep each name once.
-   *   False gives every own declaration, for filling rows.
    * @returns {object[]} Schema declarations.
    */
-  static _getOwnDeclarations(ctor, transportedOnly = true)
+  static _getOwnDeclarations(ctor)
   {
     const schema = CjsSchema.getDeclaredSchema(ctor);
     const own = new Set([ ctor ]);
@@ -119,7 +118,7 @@ export class CjsBlueGraph
     {
       for (const field of declarations)
       {
-        if (!own.has(field.declaringClass) || (transportedOnly && (names.has(field.name) || !isTransportedDeclaration(field)))) continue;
+        if (!own.has(field.declaringClass) || names.has(field.name) || !isTransportedDeclaration(field)) continue;
         names.add(field.name);
         fields.push(field);
       }
