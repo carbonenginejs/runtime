@@ -133,4 +133,13 @@ test("a subclass that declares a member's type again does not inherit its nullab
   const declared = name => CjsSchema.getDeclaredSchema(NullableRedeclared).members.find(member => member.name === name).type;
   assert.equal(declared("color1").nullable, undefined);
   assert.equal(declared("planes").length, undefined);
+
+  // A reference re-declared as a value keeps nothing of the reference.
+  class ReferenceBase { target = null; }
+  CjsSchema.decorateField(ReferenceBase, "target", type.object.ref("NullableBase"));
+  CjsSchema.meta.define("ReferenceBase")(ReferenceBase);
+  class ReferenceAsValue extends ReferenceBase { target = 0; }
+  CjsSchema.decorateField(ReferenceAsValue, "target", type.float32);
+  CjsSchema.meta.define("ReferenceAsValue")(ReferenceAsValue);
+  assert.deepEqual({ ...CjsSchema.getDeclaredSchema(ReferenceAsValue).members.find(member => member.name === "target").type }, { kind: "float32" });
 });

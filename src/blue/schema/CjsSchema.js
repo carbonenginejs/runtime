@@ -1638,7 +1638,7 @@ function valueTypeDecorator(kind)
     decorator.nullable = fieldDecorator("type", { kind, nullable: true });
     decorator.array = (length, context) =>
     {
-        if (context !== undefined) throw new TypeError(`type.${kind}.array is called: write type.${kind}.array() or type.${kind}.array(length).`);
+        if (context !== undefined) throw new TypeError(`type.${kind}.array is used without a call: write type.${kind}.array() or type.${kind}.array(length).`);
         return fieldDecorator("type", length === undefined ? { kind: "array", itemType: kind } : { kind: "array", itemType: kind, length: requireCount(length) });
     };
     return decorator;
@@ -3026,12 +3026,10 @@ function mergeMemberMetadata(target, source)
         // inherited value instead of overlaying it. What the row does not define (type, state) stays inherited.
         target[namespace] = source.mapsInherited && value !== null && typeof value === "object" && !Array.isArray(value)
             ? { ...value } : mergeNamespace(target[namespace], value);
-        // A new declared type replaces the facts that belong to a type: resource, ownership, nullability, wrapper and
-        // count. Edit-only overrides continue to inherit their original type and its markers.
-        if (namespace === "type" && value?.kind)
-        {
-            for (const fact of [ "runtimeOnly", "owned", "nullable", "wrapped", "length" ]) if (!Object.hasOwn(value, fact)) delete target[namespace][fact];
-        }
+        // A new declared type replaces the inherited one whole: its class, items, wrapper, count, nullability,
+        // ownership and resource facts all belong to the declaration. Edit-only overrides continue to inherit their
+        // original type and its markers.
+        if (namespace === "type" && value?.kind) target[namespace] = { ...value };
     }
     return target;
 }
