@@ -448,7 +448,7 @@ export class CjsCharacterLibraryManager
      * Ours, as `FetchOptions`.
      *
      * @param {string} sex The paper doll's sex (`female`).
-     * @returns {Promise<Array<{ path: string, owner: string, state: string, parameters: Object<string, number[]>, diffuseSize: number[], versions: Array<{ index: number, name: string, model: string }> }>>}
+     * @returns {Promise<Array<{ path: string, owner: string, state: string, parameters: Object<string, number[]>, diffuseSize: number[], category: string, versions: Array<{ index: number, name: string, model: string }> }>>}
      *   The entries (`model` the `.black` path, `name` its file name), the caller's own copy.
      * @throws {Error} For an entry whose models are not its folder's own and `v1`..`vN`.
      */
@@ -465,7 +465,10 @@ export class CjsCharacterLibraryManager
             }).sort((a, b) => a.index - b.index);
             if (!versions.length || versions.some((version, index) => version.index !== index))
                 throw new Error("Mesh dependant versions are not the folder and v1..vN: " + folder + " " + versions.map(version => version.model).join(", "));
-            return { ...entry, versions };
+            // The dependant category is the folder its own folder sits in (`dependants/drape` for `dependants/drape/standard`).
+            const parent = entry.path.lastIndexOf("/");
+            if (parent <= 0) throw new Error("A mesh dependant's path names no category: " + entry.path);
+            return { ...entry, category: entry.path.slice(0, parent), versions };
         }));
     }
 

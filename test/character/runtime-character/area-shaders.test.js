@@ -143,6 +143,21 @@ test("a new part resolves the same way from the values given for it, and from no
         "given values over the defaults, the placement over the given rect, the rule last");
 });
 
+test("the drape's decal areas sample the body atlas whole and clip as a decal, by the drape's rule", () =>
+{
+    const fresh = new CjsCharacterLibraryManager();
+    // The drape authors TransformUV0 [ 0, 0, 0.5, 1 ] and no DecalClip (build 3698585).
+    const drape = fresh._ResolveAreaValues("skinnedavatarbrdfdoublelinear.fx", "dependants/drape", TriBatchType.TRIBATCHTYPE_DECAL,
+        { textures: {}, parameters: { TransformUV0: [ 0, 0, 0.5, 1 ] } });
+    assert.deepEqual(drape.parameters, { TransformUV0: [ 0, 0, 1, 1 ], DecalClip: [ 1, 0, 0, 0 ] });
+    const top = fresh._ResolveAreaValues("skinnedavatarbrdfdoublelinear.fx", "topmiddle", TriBatchType.TRIBATCHTYPE_DECAL,
+        { textures: {}, parameters: { TransformUV0: [ 0, 0, 0.5, 1 ] } });
+    assert.equal(top.parameters.DecalClip, undefined, "the rule picks the drape's category only");
+    const outside = fresh._ResolveAreaValues("skinnedavatarbrdfdoublelinear.fx", "dependants/drape", TriBatchType.TRIBATCHTYPE_DECAL,
+        { textures: {}, parameters: { TransformUV0: [ 0.25, 0.25, 0.75, 0.75 ] } });
+    assert.deepEqual(outside.parameters.TransformUV0, [ 0, 0, 1, 1 ], "the whole atlas, whatever the authored rect");
+});
+
 test("a library's generic area shader replaces the shipped default of that shader", async t =>
 {
     const installed = library(t);

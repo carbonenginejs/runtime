@@ -255,8 +255,9 @@ test("the drawn dependant meshes: each entry with its folder's model and one per
     const { library, reads } = fixture(t);
     const [ drape, ...rest ] = await library.FetchMeshDependants("female");
     assert.deepEqual(rest, []);
-    const { versions, ...entry } = drape;
+    const { versions, category, ...entry } = drape;
     assert.deepEqual([ entry ], new CjsCharacterLibraryManager()._MeshDependants());
+    assert.equal(category, "dependants/drape", "the dependant category, the folder its own folder sits in");
     assert.deepEqual(versions.map(version => [ version.index, version.name, version.model.slice(ROOT.length) ]), [
         [ 0, "wide", "dependants/drape/standard/wide.black" ],
         [ 1, "tuck", "dependants/drape/standard/v1/tuck.black" ],

@@ -198,9 +198,11 @@ export default {
     // shells; none of the 25 garment models in those categories has such an area in build 3698585, and one that did
     // would clip too). A hair style ships no accessory-region maps, so its accessory-region areas (hair_bun_hp_02
     // glass helmet, the only one) sample the hair maps whole at their own UVs: TransformUV0 the identity, over the
-    // area placement. A value is four floats; a float parameter reads the first. In the generic's own shape:
-    // `areaShaders`, a CjsCharacterDataShader each, keyed by `shader`; a library's generic shader replaces the shipped
-    // one of its name. Edit freely: the library reads this file as data.
+    // area placement. The drape (a top's lower edge, `dependants/drape`, DoubleLinear decal areas in every model of build
+    // 3698585) samples the body atlas whole (TransformUV0 the identity) and clips as a decal (DecalClip 1; it authors
+    // none, and the compiled 0 drew the black below the hem). A value is four floats; a float parameter reads the first.
+    // In the generic's own shape: `areaShaders`, a CjsCharacterDataShader each, keyed by `shader`; a library's generic
+    // shader replaces the shipped one of its name. Edit freely: the library reads this file as data.
     areaShaders: [
         {
             shader: "skinnedavatarbrdf.fx",
@@ -265,6 +267,12 @@ export default {
                     batches: [ { str: "TRIBATCHTYPE_DECAL" }, { str: "TRIBATCHTYPE_TRANSPARENT" } ],
                     regions: [],
                     parameters: [ { name: "DecalClip", value: [ 1, 1, 1, 1 ] } ]
+                },
+                {
+                    categories: [ { str: "dependants/drape" } ],
+                    batches: [],
+                    regions: [],
+                    parameters: [ { name: "TransformUV0", value: [ 0, 0, 1, 1 ] }, { name: "DecalClip", value: [ 1, 0, 0, 0 ] } ]
                 }
             ]
         },
