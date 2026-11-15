@@ -81,6 +81,17 @@ test("each array's row is an object container with no Blue interface", () =>
   assert.equal(entries.get("fixed").length, 3);
 });
 
+test("the graph writes a set's storage as the schema's compile does, so the readers' set branch is reached", () =>
+{
+  class ObjectSetOwner { items = []; }
+  CjsSchema.define(ObjectSetOwner, { name: "ObjectSetOwner", fields: {
+    items: [ type.set("ObjectArrayItem"), CjsSchema.meta.mapAttribute(be.PERSIST) ]
+  } });
+  const row = ClassInfo.exposeToBlue(ObjectSetOwner).entries.get("items");
+  assert.equal(row, CjsGraph.getClassInfo(ObjectSetOwner).compiled.members.find(member => member.name === "items"));
+  assert.deepEqual({ vartype: row.type, collection: row.collection, edgeKind: row.edgeKind }, { vartype: VARTYPE.IROOT, collection: "set", edgeKind: "ref" });
+});
+
 test("values build each embedded item as an instance of its class", () =>
 {
   const owner = new ObjectArrayOwner();

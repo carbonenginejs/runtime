@@ -121,7 +121,7 @@ test("a name a class declares again is answered by its own row in every table, o
   assert.deepEqual(served, []);
 });
 
-// Before any recompile: the schema's compile writes the row again, over what the graph wrote.
+// The graph's compile runs after the schema's on every compile, so the row holds the graph's value.
 test("the graph's compile writes the storage the schema's compile wrote on every persisted row", () =>
 {
   const differences = [];

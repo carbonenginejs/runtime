@@ -22,7 +22,7 @@ const entry = (className, name) =>
 const layout = (className, name) => entry(className, name).structure;
 const offsets = structure => structure.fields.map(field => [ field.name, field.offset ]);
 
-test("declared kinds give Carbon's VARTYPE, a container's interface and its storage", () =>
+test("declared types give Carbon's VARTYPE, a container's interface and its storage", () =>
 {
   assert.equal(declaredMemberType({ kind: "root" }).type, VARTYPE.IROOT);
   assert.equal(declaredMemberType({ kind: "rootRef" }).type, VARTYPE.IROOTPTR);

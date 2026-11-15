@@ -329,7 +329,8 @@ export class IRootReaderBase
         const value = holder[key];
 
         // Carbon casts the member to IList, IBlueDict, then IBlueStructureList (IRootReader.cpp:160-187): the row's
-        // iid names the interface, and its collection says how JavaScript stores what has none.
+        // iid names the interface, so the three tests are exclusive and their order does not matter; its collection
+        // says how JavaScript stores what has none.
         if (entry.iid === "IBlueStructureList")
         {
             this.ReadStructureList(holder, key, entry);

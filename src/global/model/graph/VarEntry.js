@@ -225,7 +225,8 @@ export class VarEntry
   /**
    * How JavaScript stores a container member: "list" (a BlueList or a plain array, and a structure list's
    * records), "array" (a ported std::vector), "set", "map", or null. The schema's compile writes it, and the
-   * graph's writes the same value when it compiles the row.
+   * graph's compile writes it again when it compiles the row, which it does last. For every persisted row the two
+   * agree (graph-definitions-match-black.test.js).
    *
    * @cjs Carbon casts the live member to find out (IRootReader.cpp:160-187); a plain JavaScript array cannot be
    * cast, so the row says.

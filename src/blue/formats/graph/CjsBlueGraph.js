@@ -26,7 +26,7 @@ const { CjsGraph, GRAPH_TYPES, GraphMemberFlags } = graph;
 const arrayType = name => name.charAt(0).toLowerCase() + name.slice(1);
 
 /** How each object kind holds its object. `type.object.ref.weak` is a rootRef on the edge `refWeak`. */
-const KIND_EDGES = { rootRef: "ref", rootWeak: "weak", root: "embed", rawStruct: "embed", list: "ref", array: "ref", structList: "embed" };
+const KIND_EDGES = { rootRef: "ref", rootWeak: "weak", root: "embed", rawStruct: "embed", list: "ref", array: "ref", set: "ref", structList: "embed" };
 /** The object types an array's item may be: `type.object.embed`, `ref` (and `ref.weak`) and `weak`. */
 const OBJECT_ITEMS = new Set([ "root", "rootRef", "rootWeak" ]);
 
@@ -220,7 +220,7 @@ export class CjsBlueGraph
       options: kind === "path" || kind === "wpath" ? { accepts: field.type.accepts ?? [] } : undefined,
       edge: edge ? {
         kind: edge,
-        collection: kind === "structList" ? "list" : kind === "list" || kind === "array" ? kind : null,
+        collection: kind === "structList" ? "list" : kind === "list" || kind === "array" || kind === "set" ? kind : null,
         type: this._getDeclaredTypes(field.type)
       } : null
     };
