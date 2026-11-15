@@ -11,7 +11,7 @@ import {
 /**
  * The document sections a schema-v2 audio library may leave out, in the order
  * the builder writes them. A section the document did not hold is `null` on
- * the instance and absent from GetValues.
+ * the instance and absent from GetData.
  */
 const OPTIONAL_SECTIONS = [
     "eventMedia",
