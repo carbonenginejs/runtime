@@ -1,8 +1,8 @@
 /**
  * The engine that applies morph corrections: rules given as data, never held here. A correction is a setting with a
  * default, applied on top of the shipped morph data in memory; the shipped files are never changed.
- * The rules in force come from the character library (`CjsCharacterLibraryManager._morphCorrections`), read from
- * the defaults file `factory/defaults/morphCorrections.json`, which only the library loads.
+ * The rules in force come from the character library (`CjsCharacterLibraryManager._MorphCorrections`): the shipped
+ * generic's (`factory/defaults/generic.js`) with an installed library's generic over them.
  *
  * A rule names a model (resource path, compared without case), a morph target (a name pattern), and per mesh either
  * `mirror` (regions in which a vertex's offset blends towards its mirror partner's, mirrored across x; a region is a
@@ -24,7 +24,7 @@ export class CjsCharacterMorphCorrections
      * @param {string} path The model's resource path.
      * @param {number} meshIndex The mesh.
      * @param {number} morphIndex The morph target.
-     * @param {Record<string, object>} corrections The rules in force, by id (`CjsCharacterLibraryManager._morphCorrections`).
+     * @param {Record<string, object>} corrections The rules in force, by name (`CjsCharacterLibraryManager._MorphCorrections`).
      * @returns {?{ position: Float32Array, normal: ?Float32Array, changed: number }} New offsets, or null when none applies.
      */
     static offsetsFor(source, path, meshIndex, morphIndex, corrections)

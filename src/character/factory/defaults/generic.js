@@ -540,5 +540,46 @@ export default {
         { name: "specular", value: "<part>_body_s" },
         { name: "specular", value: "*_s" },
         { name: "cutMask", value: "comp_body_m" }
+    ],
+
+    // Corrections of shipped morph data, applied on top in memory: a correction is a setting with a default, and the
+    // shipped files are never changed. Each entry: the model (resource path, compared without case), the morph target
+    // (a name pattern), and per mesh either mirror (regions: a sphere center/inner/outer in metres, or right:
+    // true, inner/outer from the midline, the character's right is -x) or carry (the mirrored mesh it rides). Evidence: the
+    // male head_generic.gr2 fatShape is asymmetric: right nostril and left upper lid; the right half of the lower
+    // teeth, tongue and upper teeth moves down up to 3.0, 2.9 and 1.7 mm against 0.3 to 0.5 mm on the left
+    // (2026-11-13). Each correction's tuning: mirrorTolerance (metres a mirror partner may sit from the mirrored
+    // position), seamPrecision (the position key that joins a vertex's UV-seam copies), cell (metres, the mirror search
+    // grid), carrySmoothing (metres of skin a riding mesh averages over).
+    morphCorrections: [
+        {
+            name: "male-head-weight-face",
+            model: "res:/graphics/character/male/paperdoll/head/head_generic/head_generic.gr2",
+            morph: "^fatShape",
+            mirrorTolerance: 0.0005, seamPrecision: 1000000, cell: 0.0005, carrySmoothing: 0.005,
+            meshes: [
+                { name: "meshShape", mirror: [
+                    { name: "right nostril", center: [ -0.016, 1.728, 0.13 ], inner: 0.012, outer: 0.022 },
+                    { name: "left upper lid", center: [ 0.0375, 1.771, 0.12 ], inner: 0.006, outer: 0.014 } ] },
+                { name: "Eyelashes_GeoShape", carry: "meshShape" },
+                { name: "EyeWet_GeoShape", carry: "meshShape" },
+                { name: "EyeShadow_GeoShape", carry: "meshShape" },
+                { name: "Tearducts_GeoShape", carry: "meshShape" }
+            ]
+        },
+        {
+            name: "male-head-weight-mouth",
+            model: "res:/graphics/character/male/paperdoll/head/head_generic/head_generic.gr2",
+            morph: "^fatShape",
+            mirrorTolerance: 0.0005, seamPrecision: 1000000, cell: 0.0005, carrySmoothing: 0.005,
+            meshes: [
+                { name: "TeethLower_GeoShape", mirror: [
+                    { name: "right half of the mouth", right: true, inner: 0.004, outer: 0.0005 } ] },
+                { name: "Tongue_GeoShape", mirror: [
+                    { name: "right half of the mouth", right: true, inner: 0.004, outer: 0.0005 } ] },
+                { name: "TeethUpper_GeoShape", mirror: [
+                    { name: "right half of the mouth", right: true, inner: 0.004, outer: 0.0005 } ] }
+            ]
+        }
     ]
 };

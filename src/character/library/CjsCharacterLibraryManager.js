@@ -11,7 +11,6 @@ import { CjsCharacterPdpType } from "../formats/characterPdpType.js";
 import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsCharacterTextureRoles } from "./CjsCharacterTextureRoles.js";
-import morphCorrectionDefaults from "../factory/defaults/morphCorrections.json" with { type: "json" };
 import bodyCarrierDefaults from "../factory/defaults/bodyCarriers.json" with { type: "json" };
 import meshDependantDefaults from "../factory/defaults/meshDependants.json" with { type: "json" };
 import genericDefaults from "../factory/defaults/generic.js";
@@ -126,6 +125,11 @@ export class CjsCharacterLibraryManager
 
     _sexesGeneration = -1;
 
+    /** The morph corrections in force (`_MorphCorrections`), and the install generation they were built for. */
+    _morphCorrections = null;
+
+    _morphCorrectionsGeneration = -1;
+
     /** The shipped generic (`_ShippedGeneric`), built once. */
     _shippedGeneric = null;
 
@@ -207,13 +211,45 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * The morph corrections in force, by id: rules the morph bake applies on top of the shipped data
-     * (`CjsCharacterMorphCorrections`), read from the defaults file `factory/defaults/morphCorrections.json`, which
-     * only the library loads (character-structure-and-plugins: a correction is a setting with a default). No consumer
-     * overrides them yet; an override comes with the generic when one does.
-     * @type {Record<string, object>}
+     * The morph corrections in force, by name, built once per install as `_Sexes` is: the shipped defaults
+     * (`factory/defaults/generic.js`, built into `CjsCharacterDataMorphCorrection` objects by the graph), each
+     * replaced whole by the installed library's generic correction of the same name (character-structure-and-plugins:
+     * a correction is a setting with a default). Each is in the form `CjsCharacterMorphCorrections` reads: its meshes
+     * by name, a mirrored mesh's regions (a right-half region's `inner` and `outer` under `right`), and its tuning
+     * under `parameters`. A correction must give every tuning number above 0, and each mesh a carry or a region, or
+     * the engine would compute nothing (`NaN` offsets, or no partner found) without saying so.
+     * @returns {Record<string, object>} The corrections; not to be changed.
+     * @throws {Error} For a correction with a tuning number not above 0, or a mesh with neither carry nor regions.
      */
-    _morphCorrections = { ...morphCorrectionDefaults.corrections };
+    _MorphCorrections()
+    {
+        if (this._morphCorrections === null || this._morphCorrectionsGeneration !== this._installGeneration)
+        {
+            const region = entry => entry.right
+                ? { name: entry.name, right: { inner: entry.inner, outer: entry.outer } }
+                : { name: entry.name, center: Array.from(entry.center), inner: entry.inner, outer: entry.outer };
+            const compile = correction =>
+            {
+                const { mirrorTolerance, seamPrecision, cell, carrySmoothing } = correction;
+                if (!(mirrorTolerance > 0 && seamPrecision > 0 && cell > 0 && carrySmoothing > 0))
+                    throw new Error("Morph correction " + correction.name + " needs every tuning number above 0");
+                for (const mesh of correction.meshes)
+                {
+                    if (mesh.carry === "" && mesh.mirror.length === 0) throw new Error("Morph correction " + correction.name + " gives mesh " + mesh.name + " neither a carry nor a region");
+                }
+                return {
+                    model: correction.model, morph: correction.morph,
+                    meshes: Object.fromEntries(correction.meshes.map(mesh => [ mesh.name, mesh.carry !== "" ? { carry: mesh.carry } : { mirror: mesh.mirror.map(region) } ])),
+                    parameters: { mirrorTolerance, seamPrecision, cell, carrySmoothing }
+                };
+            };
+            const corrections = {};
+            for (const correction of [ ...this._ShippedGeneric().morphCorrections, ...this._library.generic.morphCorrections ]) corrections[correction.name] = compile(correction);
+            this._morphCorrections = corrections;
+            this._morphCorrectionsGeneration = this._installGeneration;
+        }
+        return this._morphCorrections;
+    }
 
     /**
      * One mesh's morph offsets as the library hands them out: the shipped offsets with the corrections in force
@@ -230,7 +266,7 @@ export class CjsCharacterLibraryManager
      */
     GetCorrectedMorphOffsets(source, path, meshIndex, morphIndex)
     {
-        return CjsCharacterMorphCorrections.offsetsFor(source, path, meshIndex, morphIndex, this._morphCorrections);
+        return CjsCharacterMorphCorrections.offsetsFor(source, path, meshIndex, morphIndex, this._MorphCorrections());
     }
 
     /**

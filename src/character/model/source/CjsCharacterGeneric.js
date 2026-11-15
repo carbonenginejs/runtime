@@ -6,6 +6,7 @@ import "./CjsCharacterDataTextureRole.js";
 import "./CjsCharacterDataString.js";
 import "./CjsCharacterDataNamedValue.js";
 import "./CjsCharacterDataParameter.js";
+import "./CjsCharacterDataMorphCorrection.js";
 
 // Discovery: src/character/discovery/animationdata.yaml
 // Discovery: src/character/discovery/{animation_animinfo,animation_movementstates,animationoffsets,basefemalebindpose,basemalebindpose,basename,blendshapes,face,facetweaksettings,modifiernames,scultpinglimits,trif}.yaml
@@ -147,5 +148,13 @@ export class CjsCharacterGeneric
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterDataNamedValue")
     textureGarmentMaps = [];
+
+    /**
+     * Morph corrections, one per `name`, each replacing the shipped default of that name (`factory/defaults/generic.js`).
+     * Empty: the defaults are in force.
+     */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterDataMorphCorrection")
+    morphCorrections = [];
 
 }
