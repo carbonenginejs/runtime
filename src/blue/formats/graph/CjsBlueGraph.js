@@ -61,6 +61,15 @@ export class CjsBlueGraph
     const fields = this._getOwnDeclarations(ctor);
     const rows = this._getRows(ctor, fields);
 
+    // A Blue row whose member values do not carry (a live property, not persisted) still gets its type facts, so
+    // every row of the table is whole; it stays out of the graph's members.
+    const carried = new Set(rows.values()), all = this._getOwnDeclarations(ctor, false), allRows = this._getRows(ctor, all);
+    for (const field of all)
+    {
+      const row = allRows.get(field);
+      if (row !== undefined && !carried.has(row)) CjsGraph.compileMember({ ...this._getMember(field), row });
+    }
+
     return CjsGraph.define(ctor, {
       name,
       initialize: mapped.has(IInitialize),
@@ -92,9 +101,10 @@ export class CjsBlueGraph
    * Read from the declared schema, which resolves no enum: a class is defined when it is declared, and an enum
    * its members name may register after it.
    * @param {Function} ctor The class.
+   * @param {boolean} [transportedOnly=true] Whether to leave out what values do not carry.
    * @returns {object[]} Schema declarations.
    */
-  static _getOwnDeclarations(ctor)
+  static _getOwnDeclarations(ctor, transportedOnly = true)
   {
     const schema = CjsSchema.getDeclaredSchema(ctor);
     const own = new Set([ ctor ]);
@@ -108,7 +118,7 @@ export class CjsBlueGraph
     {
       for (const field of declarations)
       {
-        if (!own.has(field.declaringClass) || names.has(field.name) || !isTransportedDeclaration(field)) continue;
+        if (!own.has(field.declaringClass) || names.has(field.name) || (transportedOnly && !isTransportedDeclaration(field))) continue;
         names.add(field.name);
         fields.push(field);
       }
