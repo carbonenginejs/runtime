@@ -169,7 +169,7 @@ export class Tr2VolumetricsRenderer
   @type.float64Array
   _fogNoiseMovement = new Float64Array(3); // alloc: Carbon Vector3d; no double-precision math type
 
-  @type.array("vec4")
+  @type.vec4.array(2)
   _planets = [ vec4.fromValues(0, 0, 0, -1), vec4.fromValues(0, 0, 0, -1) ];
 
   @type.float32

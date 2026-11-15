@@ -53,7 +53,7 @@ export function PlaneDotNormal(plane, v)
 export class TriFrustum
 {
   /** m_planes[PLANE_COUNT] - normalized world-space planes (a, b, c, d). */
-  @type.array("vec4")
+  @type.vec4.array(6)
   planes = [
     vec4.create(),
     vec4.create(),

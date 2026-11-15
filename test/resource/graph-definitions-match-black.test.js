@@ -35,8 +35,8 @@ function expected(entry)
 /** Where a reader would put a graph-declared member's value, from the row's own facts. */
 function destinationOf(member)
 {
-  // A member persisted as a Blue math wrapper names it in iid.
-  if (member.iid !== null && Object.hasOwn(BLUE_MATH_WRAPPERS, member.iid)) return "wrapper";
+  // A value member persisted as a Blue math wrapper names it in iid; an embedded wrapper object has an edge.
+  if (member.edgeKind === null && member.iid !== null && Object.hasOwn(BLUE_MATH_WRAPPERS, member.iid)) return "wrapper";
   if (member.collection === "array" || member.collection === "set") return member.collection;
   if (member.edgeKind === null) return member.kind === "values" ? "list" : member.kind === "valuesMap" ? "dict" : null;
   if (member.collection === "map") return "dict";

@@ -111,7 +111,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   @type.list("EveChildBulletStormInstance")
   instances = [];
 
-  @type.array("vec4")
+  @type.vec4.array()
   targetBlobs = [];
 
   @type.mat4

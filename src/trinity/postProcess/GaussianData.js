@@ -47,7 +47,7 @@ export class GaussianData
    * order. Weights are normalized; offsets use normalized texture coordinates.
    * @type {Array<Float32Array|Float64Array|number[]>}
    */
-  @type.array("vec4")
+  @type.vec4.array(MAX_FILTER_STEPS / 2)
   weightOffset = Array.from({ length: MAX_FILTER_STEPS / 2 }, () => vec4.create());
 
   /**

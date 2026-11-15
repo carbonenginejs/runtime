@@ -75,6 +75,8 @@ test("a declared count is a positive integer", () =>
 {
   assert.throws(() => type.float32Array(0), /positive integer/);
   assert.throws(() => type.vec3.array(1.5), /positive integer/);
+  // `@type.vec3.array` without the call would run as the field's decorator and replace its initializer.
+  assert.throws(() => type.vec3.array(undefined, { kind: "field", name: "x" }), /write type\.vec3\.array\(\)/);
 });
 
 test("a nullable value member carries GraphMemberFlags.NULLABLE; a plain one does not", () =>

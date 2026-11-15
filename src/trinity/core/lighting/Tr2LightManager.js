@@ -155,10 +155,10 @@ export class Tr2LightManager
   _records = [];
 
   // Carbon m_volumetricLights / m_shadowCastingLights: indices into _records.
-  @type.array("uint32")
+  @type.uint32.array()
   _volumetricLights = [];
 
-  @type.array("uint32")
+  @type.uint32.array()
   _shadowCastingLights = [];
 
   // Carbon m_frustum, by reference (SetFrustum copies by value in C++; the

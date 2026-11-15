@@ -149,7 +149,7 @@ export class Tr2CurveLineSet
   lines = [];
 
   /** Reusable invalid line slots, matching Carbon's stable ID behavior. */
-  @type.array("uint32")
+  @type.uint32.array()
   emptyLineID = [];
 
   /** Number of straight segments represented by the last submission. */

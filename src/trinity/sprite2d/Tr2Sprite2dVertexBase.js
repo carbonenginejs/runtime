@@ -40,7 +40,7 @@ export class Tr2Sprite2dVertexBase
    * Native texCoord (Vector2[2]).
    * @type {Float32Array[]}
    */
-  @type.array("vec2")
+  @type.vec2.array(2)
   texCoord = [vec2.create(), vec2.create()];
 
 }

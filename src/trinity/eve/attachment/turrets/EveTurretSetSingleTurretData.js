@@ -75,7 +75,7 @@ export class EveTurretSetSingleTurretData
    * worldTransforms (std::vector<Matrix>). EveTurretSet.InitializeAnimation
    * replaces it with the sequencer's own animation transforms.
    */
-  @type.array("mat4")
+  @type.mat4.array()
   worldTransforms = [];
 
   /** rtMesh (std::unique_ptr<Tr2RaytracingMesh>) */

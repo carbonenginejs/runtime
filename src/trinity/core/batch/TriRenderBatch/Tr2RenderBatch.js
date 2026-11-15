@@ -598,7 +598,7 @@ CjsSchema.decorateField(Tr2RenderBatch, "pickingData", type.uint32);
 CjsSchema.decorateField(Tr2RenderBatch, "depth", type.uint32);
 CjsSchema.decorateField(Tr2RenderBatch, "priority", type.uint32);
 CjsSchema.decorateField(Tr2RenderBatch, "groupCount", type.uint32);
-CjsSchema.decorateField(Tr2RenderBatch, "stride", type.array("uint32"));
+CjsSchema.decorateField(Tr2RenderBatch, "stride", type.uint32.array(2));
 CjsSchema.decorateField(Tr2RenderBatch, "renderingMode", type.int32);
 CjsSchema.decorateField(Tr2RenderBatch, "topology", type.int32);
 CjsSchema.decorateField(Tr2RenderBatch, "material", type.object.weak("Tr2Material"));

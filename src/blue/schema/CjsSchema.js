@@ -1636,7 +1636,11 @@ function valueTypeDecorator(kind)
 {
     const decorator = fieldDecorator("type", { kind });
     decorator.nullable = fieldDecorator("type", { kind, nullable: true });
-    decorator.array = length => fieldDecorator("type", length === undefined ? { kind: "array", itemType: kind } : { kind: "array", itemType: kind, length: requireCount(length) });
+    decorator.array = (length, context) =>
+    {
+        if (context !== undefined) throw new TypeError(`type.${kind}.array is called: write type.${kind}.array() or type.${kind}.array(length).`);
+        return fieldDecorator("type", length === undefined ? { kind: "array", itemType: kind } : { kind: "array", itemType: kind, length: requireCount(length) });
+    };
     return decorator;
 }
 
