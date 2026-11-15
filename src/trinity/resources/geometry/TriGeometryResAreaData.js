@@ -55,7 +55,7 @@ CjsSchema.decorateField(TriGeometryResAreaData, "firstIndex", type.int32);
 CjsSchema.decorateField(TriGeometryResAreaData, "primitiveCount", type.int32);
 CjsSchema.decorateField(TriGeometryResAreaData, "minBounds", type.vec3);
 CjsSchema.decorateField(TriGeometryResAreaData, "maxBounds", type.vec3);
-CjsSchema.decorateField(TriGeometryResAreaData, "jointBindings", type.array("int"));
+CjsSchema.decorateField(TriGeometryResAreaData, "jointBindings", type.int32.array());
 CjsSchema.decorateField(TriGeometryResAreaData, "staticBlas", type.rawStruct("Tr2RtBottomLevelAccelerationStructureAL"));
 CjsSchema.decorateField(TriGeometryResAreaData, "isSkinned", type.boolean);
 CjsSchema.decorateField(TriGeometryResAreaData, "isMorphed", type.boolean);

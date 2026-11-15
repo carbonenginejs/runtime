@@ -52,11 +52,11 @@ export class Tr2OcclusionBuffer
   buffer = null;
 
   /** m_free (std::vector<uint32_t>): free slot bases, handed out from the back. */
-  @type.array("uint32_t")
+  @type.uint32.array()
   free = [];
 
   /** m_clear (std::vector<uint32_t>): slots waiting for the Clear compute. */
-  @type.array("uint32_t")
+  @type.uint32.array()
   clear = [];
 
   /** m_size (uint32_t): the buffer's element count; 0 until the first slot. */

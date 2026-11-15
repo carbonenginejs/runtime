@@ -75,7 +75,7 @@ export class CjsTexturePipelineStepArray
 CjsSchema.meta.define(CjsTexturePipelineStepArray, {
   name: "CjsTexturePipelineStepArray",
   fields: {
-    paths: [ meta.mapAttribute(meta.PERSIST), type.list("string") ]
+    paths: [ meta.mapAttribute(meta.PERSIST), type.string.array() ]
   },
   methods: {
     GetResourceDependencies: [],

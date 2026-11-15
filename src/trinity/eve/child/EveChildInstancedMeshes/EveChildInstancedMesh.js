@@ -44,7 +44,7 @@ export class EveChildInstancedMesh
 
   /** Carbon's one-to-one modular ownership tag array for instances. */
   @meta.mapAttribute(meta.PERSIST)
-  @type.array("uint32")
+  @type.uint32.array()
   partTags = [];
 
   @meta.mapAttribute(meta.PERSIST)

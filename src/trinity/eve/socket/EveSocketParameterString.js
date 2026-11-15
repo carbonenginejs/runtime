@@ -40,7 +40,7 @@ export class EveSocketParameterString extends IEveSocketParameter
   externalParameters = new BlueList(Tr2ExternalParameter, { className: "Tr2ExternalParameter" });
 
   /** m_defaults (std::vector<std::string>) */
-  @type.array("std::string")
+  @type.string.array()
   defaults = [];
 
   /** Returns the name an external parameter has to match before it can bind here. */

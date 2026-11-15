@@ -131,7 +131,7 @@ CjsSchema.meta.define(CjsTexturePipelineStepResize, {
   fields: {
     width: [ meta.mapAttribute(meta.PERSIST), type.uint32 ],
     height: [ meta.mapAttribute(meta.PERSIST), type.uint32 ],
-    paths: [ meta.mapAttribute(meta.PERSIST), type.list("string") ]
+    paths: [ meta.mapAttribute(meta.PERSIST), type.string.array() ]
   },
   methods: {
     GetResourceDependencies: [],

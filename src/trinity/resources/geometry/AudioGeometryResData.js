@@ -28,8 +28,8 @@ export class AudioGeometryResData
 }
 
 CjsSchema.decorateField(AudioGeometryResData, "id", type.uint64);
-CjsSchema.decorateField(AudioGeometryResData, "vertices", type.array("Vector3"));
-CjsSchema.decorateField(AudioGeometryResData, "indices", type.array("uint32_t"));
+CjsSchema.decorateField(AudioGeometryResData, "vertices", type.vec3.array());
+CjsSchema.decorateField(AudioGeometryResData, "indices", type.uint32.array());
 CjsSchema.decorateField(AudioGeometryResData, "minBounds", type.vec3);
 CjsSchema.decorateField(AudioGeometryResData, "maxBounds", type.vec3);
 CjsSchema.decorateField(AudioGeometryResData, "s_nextId", type.rawStruct("static std::atomic<uint64_t>"));

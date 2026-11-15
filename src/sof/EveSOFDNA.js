@@ -81,7 +81,7 @@ export class EveSOFDNA extends IRoot
   @type.array("EveSOFDataMgr::HullData")
   customHullData = [];
 
-  @type.array("std::string")
+  @type.string.array()
   hullNames = [];
 
   @type.string

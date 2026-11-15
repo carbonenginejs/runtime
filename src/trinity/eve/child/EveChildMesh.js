@@ -338,7 +338,7 @@ export class EveChildMesh extends EveChildTransform
   origin = 0;
 
   @meta.mapAttribute(meta.PERSIST)
-  @type.array("mat4")
+  @type.mat4.array()
   instanceTransforms = [];
 
   @meta.mapAttribute(meta.PERSIST)

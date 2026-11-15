@@ -79,7 +79,7 @@ export class Tr2RaycastGeometryRes extends BlueAsyncRes
 
 
 
-CjsSchema.decorateField(Tr2RaycastGeometryRes, "lodIndices", type.array("int32_t"));
+CjsSchema.decorateField(Tr2RaycastGeometryRes, "lodIndices", type.int32.array());
 CjsSchema.decorateField(Tr2RaycastGeometryRes, "bvh", type.rawStruct("BVH::BoundingVolumeHierarchy"));
 CjsSchema.exposure.define("Tr2RaycastGeometryRes")(Tr2RaycastGeometryRes);
 // Carbon: Tr2RaycastGeometryRes::ExposeToBlue (trinity/trinity/Resources/TriGeometryRes_Blue.cpp:33).
