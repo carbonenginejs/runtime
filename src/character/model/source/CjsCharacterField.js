@@ -16,10 +16,10 @@ export class CjsCharacterField
     @type.list("string")
     Attributes = [];
 
-    /** Authored 3-component numeric tuple. Plain number storage avoids float32 rounding; source length is 3. */
+    /** Authored 3-component numeric tuple. Kept at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("float64")
-    MarkerPosition = [0, 0, 0];
+    @type.vec3d
+    MarkerPosition = new Float64Array(3);
 
     /** Integer triangle keys mapped to three integer vertex indices. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

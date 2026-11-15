@@ -14,14 +14,14 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterPosition extends CjsCharacterRecord
 {
 
-    /** Authored four-component rotation tuple. Plain number storage avoids float32 rounding; source length is 4. */
+    /** The placement's rotation quaternion, at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("float64")
-    rotation = [0, 0, 0, 0];
+    @type.vec4d
+    rotation = new Float64Array(4);
 
-    /** Authored 3-component numeric tuple. Plain number storage avoids float32 rounding; source length is 3. */
+    /** The placement's translation, at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("float64")
-    translation = [0, 0, 0];
+    @type.vec3d
+    translation = new Float64Array(3);
 
 }

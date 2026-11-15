@@ -33,14 +33,14 @@ export class CjsCharacterPreset extends CjsCharacterRecord
     @type.path(".prs")
     path = "";
 
-    /** Authored 4-component numeric tuple. Plain number storage avoids float32 rounding; source length is 4. */
+    /** The preset's rotation quaternion, at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("float64")
-    rotation = [0, 0, 0, 0];
+    @type.vec4d
+    rotation = new Float64Array(4);
 
-    /** Authored 3-component numeric tuple. Plain number storage avoids float32 rounding; source length is 3. */
+    /** The preset's translation, at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("float64")
-    translation = [0, 0, 0];
+    @type.vec3d
+    translation = new Float64Array(3);
 
 }

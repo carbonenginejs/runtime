@@ -34,7 +34,7 @@ test("content inspection separates camera/post layouts without decoding other re
     const scalar = Builder('lut: ""\nlut_influence: 0\nlut_path: ""\n', "posts").CreateObject();
     assert.equal(Object.getPrototypeOf(vector), CjsCharacterPost.prototype);
     assert.equal(Object.getPrototypeOf(scalar), CjsCharacterPost.prototype, "one class for both layouts");
-    assert.deepEqual([ scalar.lut, scalar.lut_influence, scalar._pdpType, vector._pdpType ], [ false, [ 0, 0, 0, 0 ], CjsCharacterPdpType.POST_SCALAR, CjsCharacterPdpType.POST ]);
+    assert.deepEqual([ scalar.lut, scalar.lut_influence, scalar._pdpType, vector._pdpType ], [ false, Float64Array.of(0, 0, 0, 0), CjsCharacterPdpType.POST_SCALAR, CjsCharacterPdpType.POST ]);
     assert.throws(() => Builder('lut: x\nlut_influence: 0\nlut_path: ""\n', "posts").CreateObject(), /unread/u);
     assert.equal(vector.lut_path, "res:/test/lut.dds");
     assert.throws(() => Builder("lut: true\nlut_influence: 1\n", "posts").CreateObject(), /Unrecognized/);
@@ -138,6 +138,6 @@ test("GetPost answers a post in either layout; ListPostNames lists both", async 
     } });
     library._StartLazySource();
     assert.equal((await library.GetPost(vector)).lut_path, "res:/test/lut.dds");
-    assert.deepEqual((await library.GetPost(scalar)).lut_influence, [ 0, 0, 0, 0 ]);
+    assert.deepEqual((await library.GetPost(scalar)).lut_influence, Float64Array.of(0, 0, 0, 0));
     assert.deepEqual(await library.ListPostNames(), [ vector, scalar ]);
 });

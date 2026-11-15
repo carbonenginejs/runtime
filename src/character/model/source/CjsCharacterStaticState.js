@@ -21,10 +21,10 @@ export class CjsCharacterStaticState
     @type.float64
     speed = 0;
 
-    /** Authored 3-component numeric tuple. Plain number storage avoids float32 rounding; source length is 3. */
+    /** Authored 3-component numeric tuple. Kept at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("float64")
-    heading = [0, 0, 0];
+    @type.vec3d
+    heading = new Float64Array(3);
 
     /** Authored numeric value, retained at JavaScript number precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

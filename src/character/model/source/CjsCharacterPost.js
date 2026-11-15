@@ -21,10 +21,10 @@ export class CjsCharacterPost extends CjsCharacterRecord
     @type.boolean
     lut = false;
 
-    /** Authored 4-component numeric tuple. Plain number storage avoids float32 rounding; source length is 4. */
+    /** Authored 4-component numeric tuple. Kept at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("float64")
-    lut_influence = [0, 0, 0, 0];
+    @type.vec4d
+    lut_influence = new Float64Array(4);
 
     /** Authored resource reference; resolution never replaces this string. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

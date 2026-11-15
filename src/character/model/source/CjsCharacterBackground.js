@@ -19,10 +19,10 @@ export class CjsCharacterBackground extends CjsCharacterRecord
     @type.float64
     aspect_ratio = 0;
 
-    /** Authored two-component offset tuple. Plain number storage avoids float32 rounding; source length is 2. */
+    /** Authored two-component offset tuple. Kept at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("float64")
-    offset = [0, 0];
+    @type.vec2d
+    offset = new Float64Array(2);
 
     /** Authored resource reference; resolution never replaces this string. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
