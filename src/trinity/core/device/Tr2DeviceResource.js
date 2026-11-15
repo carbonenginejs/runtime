@@ -16,8 +16,11 @@ import { Tr2DeviceResourceState } from "./deviceResourceState.js";
 
 export class Tr2DeviceResource
 {
-  /** @cjs Infrastructure lives until explicit teardown, never idle purge. */
-  _neverPurge = true;
+  /**
+   * @cjs When set, the idle sweep skips this resource and it lives until explicit teardown. Only shared Trinity
+   * infrastructure sets it, never scene content; everything else expires when idle.
+   */
+  _neverPurge = false;
 
 
   /**
