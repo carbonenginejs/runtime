@@ -41,9 +41,9 @@ export class Tr2TextureReference extends ITr2TextureProvider
   texture = new Tr2TextureAL();
 
   /**
-   * Native event storage declaration; the existing JS listeners carry subscriptions.
+   * The texture-change event, held by value (Tr2TextureReference.h:41); its listeners carry the subscriptions.
    * Carbon's OnTextureChangeEvent is an alias of Tr2Event<> (ITr2TextureProvider.h:14), so the class is Tr2Event.
-   * @type {object|null}
+   * @type {Tr2Event}
    */
   @type.object.embed("Tr2Event")
   onTextureChange = new Tr2Event();

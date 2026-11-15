@@ -109,7 +109,7 @@ test("texture reference exposes native mutable storage and Tr2Event broadcasts",
   value.Destroy();
 });
 
-test("opaque texture and event state stay outside Blue resources and persisted copies", () =>
+test("a texture reference yields no Blue resources and copies no texture or listeners", () =>
 {
   const reference = new Tr2TextureReference();
   // The texture is a plain field, never walked; the event is an embedded Tr2Event, which is not a resource.

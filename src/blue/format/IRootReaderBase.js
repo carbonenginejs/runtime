@@ -184,7 +184,9 @@ export class IRootReaderBase
    * An embedded object member (`HandlePropertyIRoot`, IRootReader.cpp:195-221):
    * read into the member's existing object. Adapted: a root member that holds
    * nothing yet is given a new object of its declared class, since a JavaScript
-   * member is not storage the object already owns.
+   * member is not storage the object already owns. A member that holds nothing
+   * and reads null stays empty: an owning pointer (Carbon's `std::unique_ptr`)
+   * may be null, and the values writer writes that null.
    *
    * @adapted
    * @returns {boolean} Whether the member changed.
@@ -196,6 +198,7 @@ export class IRootReaderBase
     {
       return this.ReadIRoot(current, field);
     }
+    if (this._currentSource === null && (current === null || current === undefined)) return false;
 
     const created = this.ReadIRootClass(field);
     IRootReaderBase.writeDictionaryValue(instance, field, created);
