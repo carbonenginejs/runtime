@@ -30,53 +30,51 @@ import { IEveSmartLightGroupAttributeModifier } from "./attributeModifiers/IEveS
  * Carbon's EveSmartLightBaseGroup secondary base is flattened because
  * JavaScript has single inheritance.
  */
-@be.define("EveSmartLightMesh")
+@be.define({
+  name: "EveSmartLightMesh",
+  inherit: [ EveSmartLightBaseGroup ],
+  // EveSmartLightMesh_Blue.cpp:12-43, in Carbon's order.
+  interfaces: [ EveChildInstanceMeshRenderer, IEveSmartLightGroup, ITr2Renderable, IInitialize, INotify, IEveShadowCaster ],
+  members: [
+    [ be.ATTR, "name", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "display", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "mesh", be.READWRITE | be.PERSIST | be.NOTIFY ],
+    [ be.ATTR, "castShadows", be.READWRITE | be.PERSIST ],
+    [ be.ATTR_CHOOSER, "rotationConstraint", be.READWRITE | be.PERSIST | be.ENUM, "trinity.EveChildInstanceMeshRenderer.RotationalConstraints" ],
+    [ be.ATTR, "staticOffsetTranslation", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "staticOffsetRotation", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "staticOffsetScale", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "shaderParamColorName", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "useFactionColor", be.READWRITE | be.PERSIST ],
+    [ be.ATTR_CHOOSER, "factionColor", be.READWRITE | be.PERSIST | be.NOTIFY | be.ENUM, "trinity.SOFDataFactionColorChooser.ColorType" ],
+    [ be.ATTR, "customColor", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "minScreenSize", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "currentScreenSize", be.READ ],
+    [ be.ATTR, "attributeModifiers", be.READ | be.PERSIST | be.NOTIFY ],
+    [ be.METHOD, "RefreshStaticGeometry", be.WRAP ]
+  ]
+})
 @meta.hideInherited([
   "partTag",
   "distribution"
 ])
-@be.inherit(EveSmartLightBaseGroup)
-@be.mapInterface(EveChildInstanceMeshRenderer)
-@be.mapInterface(IEveSmartLightGroup)
-@be.mapInterface(ITr2Renderable)
-@be.mapInterface(IInitialize)
-@be.mapInterface(INotify)
-@be.mapInterface(IEveShadowCaster)
-@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
-@be.mapAttribute(be.READWRITE | be.PERSIST, "display")
-@be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY, "mesh")
-@be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.ENUM, "trinity.EveChildInstanceMeshRenderer.RotationalConstraints", "rotationConstraint")
-@be.mapAttribute(be.READWRITE | be.PERSIST, "staticOffsetTranslation")
-@be.mapAttribute(be.READWRITE | be.PERSIST, "staticOffsetRotation")
-@be.mapAttribute(be.READWRITE | be.PERSIST, "staticOffsetScale")
-@be.mapAttribute(be.READWRITE | be.PERSIST, "minScreenSize")
-@be.mapAttribute(be.READ, "currentScreenSize")
 export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 {
-  @be.mapAttribute(be.READWRITE | be.PERSIST)
-
   @type.string
   shaderParamColorName = "";
 
   // Flattened EveSmartLightBaseGroup secondary base.
 
   /** Carbon: MAP_ATTRIBUTE_WITH_CHOOSER (trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightMesh_Blue.cpp:35); chooser EveSOFDataFactionColorSetTypeChooser (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10). */
-  @be.mapAttributeWithChooser(be.READWRITE | be.PERSIST | be.NOTIFY | be.ENUM, "trinity.SOFDataFactionColorChooser.ColorType")
   @type.int32
   factionColor = -1;
-
-  @be.mapAttribute(be.READWRITE | be.PERSIST)
 
   @type.boolean
   useFactionColor = false;
 
-  @be.mapAttribute(be.READ | be.PERSIST | be.NOTIFY)
-
 
   @type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = new BlueList(IEveSmartLightGroupAttributeModifier);
-
-  @be.mapAttribute(be.READWRITE | be.PERSIST)
 
   @type.color
   customColor = color.createLinear();
@@ -98,7 +96,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * (EveSmartLightMesh_Blue.cpp:25). Ours: the storage is the inherited
    * castShadow member, so the row is an attribute over this accessor pair.
    */
-  @be.mapAttribute(be.READWRITE | be.PERSIST)
 
   @type.boolean
   get castShadows()
@@ -355,7 +352,6 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
    * @adapted The inherited Carbon method is exposed on this derived Blue class; JS also arms
    *   the derived distribution path's explicit deferred-work latch.
    */
-  @be.mapMethodAndWrap()
   RefreshStaticGeometry()
   {
     super.RefreshStaticGeometry();

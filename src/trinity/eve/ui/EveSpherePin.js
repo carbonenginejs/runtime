@@ -34,140 +34,140 @@ import { TriCurveSet } from "../../curves/TriCurveSet.js";
 const treeMap = new WeakMap();
 
 /** A UI sphere pin: authored SRT placement plus the pin constant record. */
-@be.define("EveSpherePin")
-@be.inherit(IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify, Tr2DeviceResource)
-@be.mapInterface(IInitialize)
-@be.mapInterface(ITr2Renderable)
-@be.mapInterface(IEveTransform)
-@be.mapInterface(IEveSpaceObject2)
-@be.mapInterface(ITr2Pickable)
-@be.mapInterface(INotify)
+@be.define({
+  name: "EveSpherePin",
+  inherit: [ IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify, Tr2DeviceResource ],
+  // EveSpherePin_Blue.cpp:10-46, in Carbon's order.
+  interfaces: [ IInitialize, ITr2Renderable, IEveTransform, IEveSpaceObject2, ITr2Pickable, INotify ],
+  members: [
+    [ be.ATTR, "name", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "pinEffect", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "pickEffect", be.READ ],
+    [ be.ATTR, "curveSets", be.READ | be.PERSIST ],
+    [ be.ATTR, "geometryResPath", be.READWRITE | be.NOTIFY | be.PERSIST ],
+    [ be.ATTR, "pinEffectResPath", be.READWRITE | be.NOTIFY | be.PERSIST ],
+    [ be.ATTR, "sortValueMultiplier", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "translation", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "rotation", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "scaling", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "display", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "enablePicking", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "uvAtlasScaleOffset", be.READWRITE | be.NOTIFY | be.PERSIST ],
+    [ be.ATTR, "centerNormal", be.READWRITE | be.NOTIFY | be.PERSIST ],
+    [ be.ATTR, "pinRadius", be.READWRITE | be.NOTIFY | be.PERSIST ],
+    [ be.ATTR, "pinMaxRadius", be.READWRITE | be.NOTIFY | be.PERSIST ],
+    [ be.ATTR, "pinRotation", be.READWRITE | be.NOTIFY | be.PERSIST ],
+    [ be.ATTR, "pinColor", be.READWRITE | be.NOTIFY | be.PERSIST ],
+    [ be.ATTR, "color", be.READWRITE | be.NOTIFY | be.PERSIST, "pinColor" ],
+    [ be.ATTR, "pinAlphaThreshold", be.READWRITE | be.NOTIFY | be.PERSIST ],
+    [ be.ATTR, "primitiveCount", be.READ ]
+  ]
+})
 export class EveSpherePin
 {
 
   /** m_primitiveCount (int) [READ] */
-  @be.mapAttribute(be.READ)
   @type.int32
   primitiveCount = 0;
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.PERSIST)
 
   @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.PERSIST)
 
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.PERSIST)
 
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.PERSIST)
 
   @type.boolean
   display = true;
 
   /** m_enablePicking (bool) [READWRITE, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.PERSIST)
 
   @type.boolean
   enablePicking = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.PERSIST)
 
   @type.string
   name = "";
 
   /** m_pinColor (Color) [READWRITE, NOTIFY, PERSIST]; "color" is its second name (EveSpherePin_Blue.cpp:42-43). */
-  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
-  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST, "color")
   @type.color
   pinColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @be.mapAttribute(be.READ | be.PERSIST)
 
   @type.list("TriCurveSet")
   curveSets = new BlueList(TriCurveSet, { className: "TriCurveSet" });
 
   /** m_sortValueMultiplier (float) [READWRITE, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.PERSIST)
 
   @type.float32
   sortValueMultiplier = 1;
 
   /** m_centerNormal (Vector3) [READWRITE, NOTIFY, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
 
   @type.vec3
   centerNormal = vec3.fromValues(0, 0, 1);
 
   /** m_pinMaxRadius (float) [READWRITE, NOTIFY, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
 
   @type.float32
   pinMaxRadius = 0.2;
 
   /** m_pinRadius (float) [READWRITE, NOTIFY, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
 
   @type.float32
   pinRadius = 0.2;
 
   /** m_pinEffectResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
 
   @type.path("Tr2EffectRes")
   pinEffectResPath = "";
 
   /** m_geomResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
 
   @type.path("TriGeometryRes")
   geometryResPath = "";
 
   /** m_pinRotation (float) [READWRITE, NOTIFY, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
 
   @type.float32
   pinRotation = 0;
 
   /** m_pinAlphaThreshold (float) [READWRITE, NOTIFY, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
 
   @type.float32
   pinAlphaThreshold = 0;
 
   /** m_uvAtlasScaleOffset (Vector4) [READWRITE, NOTIFY, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.NOTIFY | be.PERSIST)
 
 
   @type.vec4
   uvAtlasScaleOffset = vec4.fromValues(1, 1, 0, 0);
 
   /** m_pinEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.PERSIST)
 
   @type.object.ref("Tr2Effect")
   pinEffect = null;
 
   /** m_pickEffect (Tr2EffectPtr) [READ] */
-  @be.mapAttribute(be.READ)
   @type.object.ref("Tr2Effect")
   pickEffect = null;
 

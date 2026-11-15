@@ -10,46 +10,47 @@ import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttri
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
 
 /** EveSmartLightAttributeModifierControllerVariableListener (eve/smartLights/attributeModifiers) - generated from schema shapeHash 8438774e.... */
-@be.define("EveSmartLightAttributeModifierControllerVariableListener")
-@be.inherit(IInitialize)
-@be.mapInterface(EveSmartLightAttributeModifierBucket)
-@be.mapInterface(IEveSmartLightGroupAttributeModifier)
-@be.mapInterface(EveSmartLightBaseAttributeModifier)
-@be.mapInterface(IInitialize)
-@be.mapInterface(INotify)
-@be.mapAttribute(be.READ | be.PERSIST | be.NOTIFY, "attributeModifiers")
-@be.mapAttribute(be.READWRITE | be.PERSIST, "name")
-@be.mapAttribute(be.READWRITE | be.PERSIST, "attributeMultiplier")
-@be.mapAttribute(be.READ, "active")
-@be.mapAttribute(be.READWRITE | be.PERSIST, "crossFadeDuration")
-@be.mapAttribute(be.READWRITE | be.PERSIST, "crossFadeIntensity")
-@be.mapAttribute(be.READ, "activationValue")
-@be.mapAttribute(be.READ, "finalAttributeMultiplier")
+@be.define({
+  name: "EveSmartLightAttributeModifierControllerVariableListener",
+  inherit: [ IInitialize ],
+  // EveSmartLightAttributeModifierControllerVariableListener_Blue.cpp:11-34, in Carbon's order.
+  interfaces: [ EveSmartLightAttributeModifierBucket, IEveSmartLightGroupAttributeModifier, EveSmartLightBaseAttributeModifier, IInitialize, INotify ],
+  members: [
+    [ be.ATTR, "attributeModifiers", be.READ | be.PERSIST | be.NOTIFY ],
+    [ be.ATTR, "name", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "variableName", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "value", be.READWRITE | be.PERSIST | be.NOTIFY ],
+    [ be.ATTR, "defaultValue", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "invertReceivedValue", be.READWRITE | be.PERSIST | be.NOTIFY ],
+    [ be.ATTR, "attributeMultiplier", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "active", be.READ ],
+    [ be.ATTR, "crossFadeDuration", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "crossFadeIntensity", be.READWRITE | be.PERSIST ],
+    [ be.ATTR, "activationValue", be.READ ],
+    [ be.ATTR, "finalAttributeMultiplier", be.READ ]
+  ]
+})
 export class EveSmartLightAttributeModifierControllerVariableListener extends EveSmartLightAttributeModifierBucket
 {
 
   /** m_variableName (std::string) [READWRITE, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.PERSIST)
 
   @type.string
   variableName = "";
 
   /** m_value (float) [READWRITE, PERSIST, NOTIFY] */
-  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
   @type.float32
   value = 0;
 
   /** m_invertReceivedValue (bool) [READWRITE, PERSIST, NOTIFY] */
-  @be.mapAttribute(be.READWRITE | be.PERSIST | be.NOTIFY)
 
 
   @type.boolean
   invertReceivedValue = false;
 
   /** m_defaultValue (float) [READWRITE, PERSIST] */
-  @be.mapAttribute(be.READWRITE | be.PERSIST)
 
   @type.float32
   defaultValue = 0;
