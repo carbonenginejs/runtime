@@ -22,7 +22,7 @@ export class MeshDecalData
    */
   inverseDecalMatrix = mat4.create();
 
-  /** m_indexBuffer (Tr2SuballocatedBuffer::Allocation) */
+  /** m_indexBuffer (Tr2SuballocatedBuffer::Allocation, held by value, TriGeometryRes.h:136) */
   indexBuffer = null;
 
   /** m_lodMask (uint32_t) */
@@ -34,7 +34,7 @@ export class MeshDecalData
 }
 
 CjsSchema.decorateField(MeshDecalData, "inverseDecalMatrix", type.mat4);
-CjsSchema.decorateField(MeshDecalData, "indexBuffer", type.rawStruct("Tr2SuballocatedBuffer::Allocation"));
+CjsSchema.decorateField(MeshDecalData, "indexBuffer", type.object.embed("Tr2SuballocatedBufferAllocation"));
 CjsSchema.decorateField(MeshDecalData, "lodMask", type.uint32);
 CjsSchema.decorateField(MeshDecalData, "lods", type.array("MeshDecalLodData"));
 CjsSchema.meta.carbon("MeshDecalData")(MeshDecalData);
