@@ -38,7 +38,7 @@ test("FetchType names each .type tuple's slots as Graphene's readYaml read them"
     for (const { path, value } of expected.types)
     {
         const record = await library.FetchType(path);
-        assert.deepEqual([ record.partPath, record.variation, record.colorVariant, record.bloodlineIDs ], [ ...value.slice(0, 3), value[3] ?? [] ], path);
+        assert.deepEqual([ record.partPath, record.variation, record.colorVariant, Array.from(record.bloodlineIDs) ], [ ...value.slice(0, 3), value[3] ?? [] ], path);
     }
 });
 

@@ -74,9 +74,9 @@ test("a .type tuple's slots read into named fields; a shorter tuple keeps the de
 {
     const full = Builder("!!python/tuple [tattoo/head/example, v1, ink, [5, 6]]", "types").CreateObject();
     assert.equal(Object.getPrototypeOf(full), CjsCharacterType.prototype);
-    assert.deepEqual([ full.partPath, full.variation, full.colorVariant, full.bloodlineIDs ], [ "tattoo/head/example", "v1", "ink", [ 5, 6 ] ]);
+    assert.deepEqual([ full.partPath, full.variation, full.colorVariant, full.bloodlineIDs ], [ "tattoo/head/example", "v1", "ink", Int32Array.of(5, 6) ]);
     const short = Builder("!!python/tuple [hair/bob, '', '']", "types").CreateObject();
-    assert.deepEqual([ short.partPath, short.colorVariant, short.bloodlineIDs ], [ "hair/bob", "", [] ]);
+    assert.deepEqual([ short.partPath, short.colorVariant, short.bloodlineIDs ], [ "hair/bob", "", new Int32Array(0) ]);
     assert.throws(() => Builder("[a, b, c, [], extra]", "types").CreateObject(), /has 5 items/u);
 });
 

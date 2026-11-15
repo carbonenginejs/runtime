@@ -4,17 +4,16 @@ import { meta, type } from "#schema";
 // Resource pattern: res:/animation/*
 
 /**
- * One input-to-state mapping.
- * Storage defaults initialize empty records; they are not inferred authored defaults.
+ * One input-to-state mapping. Its default input [ 0, 0, 0 ] is a storage default, not an inferred authored one.
  */
 @meta.define("CjsCharacterKeymap")
 export class CjsCharacterKeymap
 {
 
-    /** Three authored integer input components. */
+    /** Three authored integer input components (each -1, 0 or 1). */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("int32")
-    input = [];
+    @type.int32Array(3)
+    input = new Int32Array(3);
 
     /** Authored state name, resolved separately. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

@@ -20,7 +20,7 @@ export class CjsCharacterModifier
      * that suppresses).
      */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.float64
+    @type.float64.nullable
     weight = null;
 
 }

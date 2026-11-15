@@ -12,9 +12,9 @@ export class CjsCharacterNamedValue extends CjsCharacterRecord
     @type.string
     name = "";
 
-    /** Named primitive value or opaque resource path. */
+    /** The file's own resource path (its `name`); the path-only kinds hold nothing else. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.unknown
-    value = null;
+    @type.path
+    value = "";
 
 }

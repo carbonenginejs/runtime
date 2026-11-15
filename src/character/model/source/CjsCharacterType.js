@@ -44,7 +44,7 @@ export class CjsCharacterType extends CjsCharacterRecord
      * exclude is not stated.
      */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("int32")
-    bloodlineIDs = [];
+    @type.int32Array
+    bloodlineIDs = new Int32Array(0);
 
 }

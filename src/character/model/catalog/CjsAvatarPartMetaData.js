@@ -55,7 +55,7 @@ export class CjsAvatarPartMetaData extends CjsCharacterRecord
     occludesModifiers = [];
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.int32
+    @type.int32.nullable
     soundTag = null;
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
@@ -71,7 +71,7 @@ export class CjsAvatarPartMetaData extends CjsCharacterRecord
     swapSocks = false;
 
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.boolean
+    @type.boolean.nullable
     wap = null;
 
 }
