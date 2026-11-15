@@ -462,10 +462,7 @@ export class CjsCharacterLibraryManager
             }).sort((a, b) => a.index - b.index);
             if (!versions.length || versions.some((version, index) => version.index !== index))
                 throw new Error("Mesh dependant versions are not the folder and v1..vN: " + folder + " " + versions.map(version => version.model).join(", "));
-            // The dependant category is the folder its own folder sits in (`dependants/drape` for `dependants/drape/standard`).
-            const parent = entry.path.lastIndexOf("/");
-            if (parent <= 0) throw new Error("A mesh dependant's path names no category: " + entry.path);
-            return { ...entry, category: entry.path.slice(0, parent), versions };
+            return { ...entry, category: CjsCharacterLibraryManager.partPathCategory(entry.path), versions };
         }));
     }
 
@@ -562,6 +559,23 @@ export class CjsCharacterLibraryManager
         const category = partCategoryDefaults.parts[member];
         if (category === undefined) throw new Error("No paper doll part " + member);
         return category;
+    }
+
+    /**
+     * The category a part folder sits in, the library's area rules picking by it (`FetchModelAreas`): the folder its own
+     * folder sits in (`dependants/drape` for `dependants/drape/standard`, `head` for `head/head_generic`,
+     * `accessories/browbase` for a brow carrier).
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @param {string} partPath The part's folder below the sex's paper doll root, without a trailing slash.
+     * @returns {string} The category path.
+     * @throws {Error} For a part path with no folder above its own.
+     */
+    static partPathCategory(partPath)
+    {
+        const parent = partPath.lastIndexOf("/");
+        if (parent <= 0) throw new Error("A part's path names no category: " + partPath);
+        return partPath.slice(0, parent);
     }
 
     /**
@@ -1188,7 +1202,7 @@ export class CjsCharacterLibraryManager
             const TRANSPARENT = TriBatchType.TRIBATCHTYPE_TRANSPARENT;
 
             // The generic head, as an option of its folder: its category is the folder's first.
-            const folder = root + genericHead + "/", category = genericHead.slice(0, genericHead.indexOf("/"));
+            const folder = root + genericHead + "/", category = CjsCharacterLibraryManager.partPathCategory(genericHead);
             const head = await this.FetchOptionAreas({ sex, category, typePath: null, folder, path: genericHead });
             const named = head ? head.meshes.filter(mesh => mesh.name === eyeWetMesh) : [];
             const wet = named.length === 1 ? named[0] : undefined;

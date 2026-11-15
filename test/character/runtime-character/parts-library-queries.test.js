@@ -291,6 +291,13 @@ test("the sex facts: the shipped defaults, each replaced whole by an installed g
     assert.deepEqual([ reread.bodyFallbacks, reread.eyeWetMesh ], [ { "body.NormalMap": "custom/normal" }, "Custom_GeoShape" ], "and reads back");
 });
 
+test("a part folder's category is the folder it sits in", () =>
+{
+    assert.equal(CjsCharacterLibraryManager.partPathCategory("head/head_generic"), "head");
+    assert.equal(CjsCharacterLibraryManager.partPathCategory("accessories/browbase/browbase_01"), "accessories/browbase");
+    assert.throws(() => CjsCharacterLibraryManager.partPathCategory("head_generic"), /A part's path names no category: head_generic/u);
+});
+
 test("the bloodline name rules are the generic's: the shipped defaults, an installed value replacing its default", async t =>
 {
     const { library } = fixture(t);
