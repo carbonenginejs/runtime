@@ -32,16 +32,6 @@ export class CjsCharacterPart extends CjsCharacterRecord
     @type.map("CjsProjectedDecal")
     projectedDecals = new Map();
 
-    /** Original Black/red resource references. */
-    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("string")
-    blackPaths = [];
-
-    /** Original texture paths; no selected channels. */
-    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("string")
-    texturePaths = [];
-
     /** Parsed dependencies beside the raw metadata strings. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterModifier")

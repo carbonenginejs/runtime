@@ -115,7 +115,7 @@ test("listing a path-named kind reads the index only and keeps stored names", as
     assert.deepEqual(reads.sort(), [CAMERA, SEQUENCE].sort());
 });
 
-test("GetPart joins exact records and paths without acquiring opaque resources", async t =>
+test("GetPart joins exact records without acquiring opaque resources", async t =>
 {
     const { builder, reads } = fixture(t);
     await builder.Build({ lazy: true });
@@ -127,8 +127,6 @@ test("GetPart joins exact records and paths without acquiring opaque resources",
     assert.deepEqual({ ...part.metadata.dependantModifiers[0] }, { path: "utilityshapes/test", weight: 0.25 });
     assert.equal(part.dependantModifiers[0].weight, 0.25);
     assert.equal(part.dependantModifiers[0].path, "utilityshapes/test");
-    assert.deepEqual(part.blackPaths, [ROOT + "/mesh.red"]);
-    assert.deepEqual(part.texturePaths, [ROOT + "/diffuse.png"]);
     assert.ok(part.types.has("shirt"));
     assert.deepEqual(await manager.ResolveTypeColor(ROOT + "/types/shirt.type"), part.colorVariations.get("default"));
     assert.ok(reads.every(path => !/\.(png|red)$/u.test(path)));

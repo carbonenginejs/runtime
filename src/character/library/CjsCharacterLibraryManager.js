@@ -373,7 +373,7 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * Joins original data and opaque paths for one exact part; never selects material or texture variants.
+     * Joins the original records of one exact part; never selects material or texture variants.
      * A relative part name is accepted only if the indexed suffix is unique.
      * @param {string} partPath Canonical part folder or unique paperdoll-relative path.
      * @returns {Promise<CjsCharacterPart>} The caller's own copy of the cached join.
@@ -418,19 +418,14 @@ export class CjsCharacterLibraryManager
             part.dependantModifiers = part.metadata.dependantModifiers.map(copy);
             part.occludesModifiers = part.metadata.occludesModifiers.map(copy);
         }
-        for (const kind of ["types", "colorVariations", "projectedDecals", "blackResources", "textures"])
+        for (const kind of ["types", "colorVariations", "projectedDecals"])
         {
             const paths = this._sourceBuilder ? this._sourceBuilder.ListSourceNames(kind) : this._library.ListKindNames(kind);
             for (const path of paths.filter(value => value.startsWith(name + "/")))
             {
-                if (kind === "blackResources") part.blackPaths.push(path);
-                else if (kind === "textures") part.texturePaths.push(path);
-                else
-                {
-                    const local = path.slice(name.length + 1).replace(/^types\//u, "").replace(/\.[^/.]+$/u, "");
-                    if (part[kind].has(local)) throw new Error(`Duplicate ${kind} name in ${name}: ${local}`);
-                    part[kind].set(local, await this.GetKindRecord(kind, path));
-                }
+                const local = path.slice(name.length + 1).replace(/^types\//u, "").replace(/\.[^/.]+$/u, "");
+                if (part[kind].has(local)) throw new Error(`Duplicate ${kind} name in ${name}: ${local}`);
+                part[kind].set(local, await this.GetKindRecord(kind, path));
             }
         }
         if (generation !== this._installGeneration) throw new Error("Character library was replaced during a part join.");
