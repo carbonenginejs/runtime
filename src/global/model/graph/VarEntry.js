@@ -75,7 +75,8 @@ export class VarEntry
   origin = null;
 
   /**
-   * `mIID`: the interface or class a reference member holds, by registered name, or null.
+   * `mIID`: the interface or class a reference member holds, or the Blue math wrapper a wrapped member is
+   * persisted as, by registered name, or null.
    *
    * @implemented
    */

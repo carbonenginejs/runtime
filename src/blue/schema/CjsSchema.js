@@ -17,6 +17,7 @@ import { composeValuesDecorator, createValuesTransport } from "../compose/values
 import { isExportableField, isTransportedDeclaration, isWritableField } from "../compose/fieldFlags.js";
 import { blueEnums, CjsBlueEnumRegistry } from "../enums/CjsBlueEnumRegistry.js";
 import { EDITFLAGS } from "../../global/consts/blue.js";
+import { getWrapperLayout } from "../../global/model/graph/blueMathWrappers.js";
 import { TriSettingNames } from "../../global/consts/trinity.js";
 import { CjsUnusedMethodError } from "../../global/utils/errors/CjsUnusedMethodError.js";
 import { unregisterClass, getRegisteredConstructor, getClassRegistrationRevision, ClassRegistrarNullFactory } from "../exposure/classes/registry.js";
@@ -1625,13 +1626,18 @@ function createComponentsNamespace()
  * TriMatrix/TriVector/TriQuaternion/TriColor object; readers decode its elements
  * into the plain value, e.g. `@type.mat4.wrapped("TriMatrix")`.
  *
- * @param {string} kind The value kind.
- * @returns {Function} The decorator, with `wrapped(className)`.
+ * @param {string} kind The value type.
+ * @returns {Function} The decorator, with `wrapped(className)`, which throws when the class is not a Blue math
+ *   wrapper or does not hold this value type.
  */
 function wrappableTypeDecorator(kind)
 {
     const decorator = fieldDecorator("type", { kind });
-    decorator.wrapped = className => fieldDecorator("type", { kind, wrapped: className });
+    decorator.wrapped = className =>
+    {
+        if (!getWrapperLayout(className).types.includes(kind)) throw new TypeError(`${className} does not hold ${kind}.`);
+        return fieldDecorator("type", { kind, wrapped: className });
+    };
     return decorator;
 }
 

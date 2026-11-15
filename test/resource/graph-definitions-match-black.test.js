@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { GraphMemberFlags, GraphOperation, VARTYPE } from "../../npm/dist/global/model/graph/index.js";
 import { EDITFLAGS } from "../../npm/dist/global/consts/blue.js";
+import { BLUE_MATH_WRAPPERS } from "../../npm/dist/global/model/graph/blueMathWrappers.js";
 import { blue } from "../../npm/dist/blue/index.js";
 import { CjsBlueGraph } from "../../npm/dist/blue/formats/graph/index.js";
 import { CjsGraph } from "../../npm/dist/global/model/graph/index.js";
@@ -34,8 +35,8 @@ function expected(entry)
 /** Where a reader would put a graph-declared member's value, from the row's own facts. */
 function destinationOf(member)
 {
-  // A value member with a class iid holds that class's elements: a Blue math wrapper.
-  if (member.edgeKind === null && member.iid !== null) return "wrapper";
+  // A member persisted as a Blue math wrapper names it in iid.
+  if (member.iid !== null && Object.hasOwn(BLUE_MATH_WRAPPERS, member.iid)) return "wrapper";
   if (member.collection === "array" || member.collection === "set") return member.collection;
   if (member.edgeKind === null) return member.kind === "values" ? "list" : member.kind === "valuesMap" ? "dict" : null;
   if (member.collection === "map") return "dict";

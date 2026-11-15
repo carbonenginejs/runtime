@@ -18,7 +18,6 @@ import { getRegisteredConstructor, registerClass } from "../exposure/classes/reg
 import { ClassInfo } from "../../global/model/graph/ClassInfo.js";
 import { BLACK_DESTINATION, VarEntry } from "../../global/model/graph/VarEntry.js";
 import { GRAPH_TYPES } from "../../global/model/graph/graphTypes.js";
-import { getWrapperLayout } from "../../global/model/graph/blueMathWrappers.js";
 import { blueEnums } from "../enums/CjsBlueEnumRegistry.js";
 
 /** The schema, from `installClassInfoCompile`. @type {typeof import("./CjsSchema.js").CjsSchema} */
@@ -111,8 +110,7 @@ export function declaredMemberType(declared)
   {
     result.type = VARTYPE.IROOT;
     result.destination = BLACK_DESTINATION.WRAPPER;
-    // Carbon's member is a P-class of the wrapper, whose IID is the wrapper's (GetBlueIID, BlueTypeTraits.h:392-411).
-    if (!getWrapperLayout(type.wrapped).types.includes(type.kind)) throw new TypeError(`${type.wrapped} does not hold ${type.kind}.`);
+    // Carbon's member is a P-class of the wrapper, whose IID is the wrapper's (GetBlueIID, BlueTypeTraits.h:391-411).
     result.iid = type.wrapped;
     // The count of the value the member holds, which the graph writes too.
     result.length = Object.hasOwn(GRAPH_TYPES, type.kind) ? GRAPH_TYPES[type.kind].length ?? 0 : 0;
@@ -490,7 +488,7 @@ export function structureLayout(itemClass)
     return {
       name: field.name, key: declaration.key, index: declaration.index ?? -1, type: type.type, notify: false, isProperty: false,
       signed: type.signed, length: type.length, iids: [], destination: type.destination, keepsNulls: false,
-      wrapperClass: null, wrapperKind: null, structure: null, offset: field.offset
+      structure: null, offset: field.offset
     };
   });
   return { size: definition.size, boundaries: definition.boundaries ?? [], Item, fields, definition };
