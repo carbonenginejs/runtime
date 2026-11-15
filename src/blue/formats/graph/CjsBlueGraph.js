@@ -8,7 +8,7 @@ import { CjsSchema } from "#schema";
 import { getRegisteredClassName } from "../../compose/className.js";
 import { isTransportedDeclaration } from "../../compose/fieldFlags.js";
 import { baseList, exposureChainTo, mappedInterfaces } from "../../compose/interface.js";
-import { declaredTypes, getDeclaredEditFlags, installGraphDefine } from "../../schema/compileClassInfo.js";
+import { declaredMemberType, getDeclaredEditFlags, installGraphDefine } from "../../schema/compileClassInfo.js";
 import { ICustomPersist } from "../../exposure/ICustomPersist.js";
 import { IInitialize } from "../../exposure/IInitialize.js";
 import { IList } from "../../exposure/IList.js";
@@ -18,17 +18,8 @@ import { getClassRegistrations } from "../../exposure/classes/registry.js";
 import { IBlueObjectProxy } from "../../interfaces/IBlueObjectProxy.js";
 import { BeObjectMetadata } from "../../services/BlueObjectMetadata.js";
 import { IRootReaderBase } from "../../format/IRootReaderBase.js";
-import { DeclaredClassName } from "../../format/IRootWriter.js";
 
-const { CjsGraph, GRAPH_TYPES, GraphMemberFlags } = graph;
-
-/** The element class of a typed array, as its name in the graph's type table. */
-const arrayType = name => name.charAt(0).toLowerCase() + name.slice(1);
-
-/** How each object kind holds its object. `type.object.ref.weak` is a rootRef on the edge `refWeak`. */
-const KIND_EDGES = { rootRef: "ref", rootWeak: "weak", root: "embed", rawStruct: "embed", list: "ref", array: "ref", set: "ref", structList: "embed" };
-/** The object types an array's item may be: `type.object.embed`, `ref` (and `ref.weak`) and `weak`. */
-const OBJECT_ITEMS = new Set([ "root", "rootRef", "rootWeak" ]);
+const { CjsGraph, GraphMemberFlags } = graph;
 
 /**
  * Registers Blue's classes with the graph, from the same declarations the values path reads.
@@ -191,74 +182,15 @@ export class CjsBlueGraph
   }
 
   /**
-   * One graph member. A kind the type table does not name stays Invalid, which throws when used.
+   * One graph member: its name and flags, and its type facts from the schema's one translation of a declared type
+   * (declaredMemberType), so the graph writes what the schema's compile wrote. A type the table does not name stays
+   * Invalid, which throws when used.
    * @param {object} field Schema declaration.
    * @returns {object} Graph member.
    */
   static _getMember(field)
   {
-    const kind = field.type?.kind;
-    const map = this._getMapType(field.type);
-    if (map !== undefined) return this._getMapMember(field, map);
-
-    if (kind === "map")
-    {
-      const item = this._getItem(field.type.valueType);
-      if (item !== undefined) return { ...this._getFlags(field), type: "valuesMap", item };
-    }
-
-    const item = this._getValuesItem(field.type);
-    if (item !== null) return { ...this._getFlags(field), type: "values", item, collection: kind, length: field.type.length };
-
-    const edge = this._getEdgeKind(field);
-    const name = kind === "typedArray" ? arrayType(field.type.arrayType) : kind === "array" ? "list" : kind;
-
-    return {
-      ...this._getFlags(field),
-      type: Object.hasOwn(GRAPH_TYPES, name) && (edge || (name !== "map" && name !== "list")) ? name : undefined,
-      length: field.type?.length,
-      options: kind === "path" || kind === "wpath" ? { accepts: field.type.accepts ?? [] } : undefined,
-      edge: edge ? {
-        kind: edge,
-        collection: kind === "structList" ? "list" : kind === "list" || kind === "array" || kind === "set" ? kind : null,
-        type: this._getDeclaredTypes(field.type)
-      } : null
-    };
-  }
-
-  /**
-   * How a member holds its objects, or undefined for a value. A private field cannot be walked,
-   * and an array of plain values is not an object list. An array whose item is an object type
-   * (`type.object.embed("X").array()`) holds each item as that type does.
-   * @param {object} field Schema declaration.
-   * @returns {string|undefined} An edge kind.
-   */
-  static _getEdgeKind(field)
-  {
-    if (typeof field.key === "string" && field.key.startsWith("#")) return undefined;
-
-    const kind = field.type?.kind;
-    // An item named by its object type (`type.array("rootRef")`) holds any object that way.
-    const declared = kind === "array" ? field.type.itemType : null;
-    const item = typeof declared === "string" && OBJECT_ITEMS.has(declared) ? { kind: declared } : declared;
-    if (typeof item === "object" && item !== null && OBJECT_ITEMS.has(item.kind)) return item.owned === false ? "refWeak" : KIND_EDGES[item.kind];
-
-    const held = DeclaredClassName(field.type);
-    if (kind === "array" && (!held || held === "unknown" || Object.hasOwn(GRAPH_TYPES, held))) return undefined;
-    return field.type?.owned === false ? "refWeak" : KIND_EDGES[kind];
-  }
-
-  /**
-   * The classes a member may hold, the declared one first, as declared: whether each is defined is
-   * the graph's question when the member is used, so a class may be defined before the ones it names.
-   * A member that declares no class is dynamic; "unknown" is `type.unknown`, the item name of a list
-   * declared to hold anything.
-   * @param {object} type Schema type.
-   * @returns {string[]} Class names.
-   */
-  static _getDeclaredTypes(type)
-  {
-    return declaredTypes(type);
+    return { ...this._getFlags(field), ...declaredMemberType(field.type, field.key).graph };
   }
 
   /**
@@ -275,38 +207,6 @@ export class CjsBlueGraph
         | (field.type?.binary === true ? GraphMemberFlags.BINARY : 0)
         | (field.type?.runtimeOnly === true ? GraphMemberFlags.RUNTIMEONLY : 0)
         | (field.type?.nullable === true ? GraphMemberFlags.NULLABLE : 0)
-    };
-  }
-
-  /**
-   * The declared class of a Map of objects, or undefined when the member is not one. A Map of
-   * anything else stays Invalid.
-   * @param {object|undefined} type Schema type.
-   * @returns {string|undefined} Class name.
-   */
-  static _getMapType(type)
-  {
-    if (type?.kind !== "map") return undefined;
-
-    const value = type.valueType;
-    const name = typeof value === "string" ? value : value?.kind === "rootRef" ? value.className : undefined;
-    if (name === undefined || Object.hasOwn(GRAPH_TYPES, name)) return undefined;
-
-    return name;
-  }
-
-  /**
-   * One Map member.
-   * @param {object} field Schema declaration.
-   * @param {string} type Declared class of its values.
-   * @returns {object} Graph member.
-   */
-  static _getMapMember(field, type)
-  {
-    return {
-      ...this._getFlags(field),
-      type: "map",
-      edge: { kind: "ref", collection: "map", type }
     };
   }
 
@@ -332,34 +232,6 @@ export class CjsBlueGraph
   {
     const chained = exposureChainTo(ctor);
     return chained === null ? null : CjsSchema.getClassName(chained);
-  }
-
-  /**
-   * What a Map or list of plain values holds: a type name, or a nested list of one.
-   * @param {string|object|undefined} type Declared item.
-   * @returns {string|object|undefined} The graph's item, or undefined when it is not plain.
-   */
-  static _getItem(type)
-  {
-    if (typeof type === "string") return Object.hasOwn(GRAPH_TYPES, type) && !KIND_EDGES[type] ? type : undefined;
-    if (type?.kind !== "list" && type?.kind !== "array") return undefined;
-
-    const item = this._getItem(type.itemType);
-    return item === undefined ? undefined : { type: "values", item, collection: type.kind };
-  }
-
-  /**
-   * The item type of a list or array of plain values, or null for any other member.
-   * @param {object|undefined} type Schema type.
-   * @returns {string|null} A type name.
-   */
-  static _getValuesItem(type)
-  {
-    if (type?.kind !== "list" && type?.kind !== "array") return null;
-
-    const item = typeof type.itemType === "string" ? type.itemType : type.itemType?.kind;
-
-    return Object.hasOwn(GRAPH_TYPES, item) && !KIND_EDGES[item] ? item : null;
   }
 
   /** Stable class identity. */

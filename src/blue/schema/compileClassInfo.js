@@ -111,6 +111,114 @@ export function declaredTypes(type)
   return names.every(name => name && name !== "unknown") ? names : [];
 }
 
+/** How each object type holds its object on the graph. `type.object.ref.weak` is a rootRef on the edge `refWeak`. */
+const KIND_EDGES = Object.freeze({ rootRef: "ref", rootWeak: "weak", root: "embed", rawStruct: "embed", list: "ref", array: "ref", set: "ref", structList: "embed" });
+
+/** The object types an array's item may be: `type.object.embed`, `ref` (and `ref.weak`) and `weak`. */
+const OBJECT_ITEMS = new Set([ "root", "rootRef", "rootWeak" ]);
+
+/**
+ * The classes a map of objects holds, or undefined when the member is not a map of objects. A value named by its
+ * object type (`type.map("rootRef")`, `{ kind: "rootRef" }` with no class) holds any object: no names.
+ *
+ * @param {object} type The declared type.
+ * @returns {string[]|undefined} The class names.
+ */
+function mapValueClasses(type)
+{
+  if (type.kind !== "map") return undefined;
+  const value = type.valueType;
+  if (value === "rootRef" || (value?.kind === "rootRef" && !value.className)) return [];
+  const name = typeof value === "string" ? value : value?.kind === "rootRef" ? value.className : undefined;
+  return name === undefined || Object.hasOwn(GRAPH_TYPES, name) ? undefined : [ name ];
+}
+
+/**
+ * What a map or list of plain values holds on the graph: a type name, or a nested list of one.
+ *
+ * @param {string|object|undefined} item The declared item.
+ * @returns {string|object|undefined} The graph's item, or undefined when it is not plain.
+ */
+function plainItem(item)
+{
+  if (typeof item === "string") return Object.hasOwn(GRAPH_TYPES, item) && !KIND_EDGES[item] ? item : undefined;
+  if (item?.kind !== "list" && item?.kind !== "array") return undefined;
+  const nested = plainItem(item.itemType);
+  return nested === undefined ? undefined : { type: "values", item: nested, collection: item.kind };
+}
+
+/**
+ * The item type name of a list or array of plain values, or null for any other member.
+ *
+ * @param {object} type The declared type.
+ * @returns {string|null} The type name.
+ */
+function valuesItem(type)
+{
+  if (type.kind !== "list" && type.kind !== "array") return null;
+  const item = typeof type.itemType === "string" ? type.itemType : type.itemType?.kind;
+  return Object.hasOwn(GRAPH_TYPES, item) && !KIND_EDGES[item] ? item : null;
+}
+
+/**
+ * How a member holds its objects on the graph, or undefined for a value. A private field cannot be walked, and an
+ * array of plain values is not an object list. An array whose item is an object type (`type.object.embed.array("X")`,
+ * or `type.array("rootRef")` by its name) holds each item as that type does.
+ *
+ * @param {object} type The declared type.
+ * @param {string|symbol|undefined} key The member's key.
+ * @returns {string|undefined} The edge: embed, ref, refWeak or weak.
+ */
+function edgeKindOf(type, key)
+{
+  if (typeof key === "string" && key.startsWith("#")) return undefined;
+  const kind = type.kind;
+  const declared = kind === "array" ? type.itemType : null;
+  const item = typeof declared === "string" && OBJECT_ITEMS.has(declared) ? { kind: declared } : declared;
+  if (typeof item === "object" && item !== null && OBJECT_ITEMS.has(item.kind)) return item.owned === false ? "refWeak" : KIND_EDGES[item.kind];
+  const held = heldClass(type);
+  if (kind === "array" && (!held || held === "unknown" || Object.hasOwn(GRAPH_TYPES, held))) return undefined;
+  return type.owned === false ? "refWeak" : KIND_EDGES[kind];
+}
+
+/**
+ * A declared type as the graph's definition takes it: the graph type name, a values item, the edge that holds its
+ * objects, the count and a path's accepted files. A type the table does not name stays Invalid, which throws when
+ * used.
+ *
+ * @param {object} type The declared type.
+ * @param {string|symbol|undefined} key The member's key.
+ * @returns {{type: (string|undefined), item: *, collection: (string|undefined), length: (number|undefined), options: (object|undefined), edge: ({kind: string, collection: (string|null), type: string[]}|null)}} The graph member's type facts.
+ */
+function graphMemberOf(type, key)
+{
+  const kind = type.kind;
+  const mapClasses = mapValueClasses(type);
+  if (mapClasses !== undefined) return { type: "map", edge: { kind: "ref", collection: "map", type: mapClasses } };
+  if (kind === "map")
+  {
+    const item = plainItem(type.valueType);
+    if (item !== undefined) return { type: "valuesMap", item, edge: null };
+  }
+  const item = valuesItem(type);
+  if (item !== null) return { type: "values", item, collection: kind, length: type.length, edge: null };
+
+  const edge = edgeKindOf(type, key);
+  // A typed array is named for its constructor (`Float32Array` is `float32Array`); one declared without it has none.
+  const name = kind === "typedArray" ? (typeof type.arrayType === "string" ? type.arrayType.charAt(0).toLowerCase() + type.arrayType.slice(1) : undefined)
+    : kind === "array" ? "list" : kind;
+  return {
+    type: Object.hasOwn(GRAPH_TYPES, name) && (edge || (name !== "map" && name !== "list")) ? name : undefined,
+    length: type.length,
+    options: kind === "path" || kind === "wpath" ? { accepts: type.accepts ?? [] } : undefined,
+    edge: edge ? {
+      kind: edge,
+      collection: kind === "structList" ? "list" : kind === "list" || kind === "array" || kind === "set" ? kind : null,
+      type: declaredTypes(type)
+    } : null
+  };
+}
+
 /**
  * Whether a declared item names a value type (`type.vec4.array()` holds `vec4`), not a class.
  *
@@ -124,22 +232,31 @@ function isValueItem(itemType)
 }
 
 /**
- * A declared type as Carbon's member type gives it: VARTYPE, sign, element count,
- * and for an IROOT member what it holds. A type with no VARTYPE gives INVALID,
- * so reading it gives Carbon's "Invalid attribute type".
+ * A declared type as a row holds it: Carbon's member type (VARTYPE, sign, element count, and for an IROOT member
+ * what it holds) and the graph's (`graph`, its definition's type facts). The one translation of a declared type:
+ * the schema's compile and the graph's both read it, so the fields both write agree. A type with no VARTYPE gives
+ * INVALID, so reading it gives Carbon's "Invalid attribute type".
  *
- * `collection` is how JavaScript stores a container member ("list", "array", "set", "map"), the same field the
- * graph writes on the row; `iid` is the interface Carbon's member has, or the wrapper class of a wrapped member.
+ * `collection` is how JavaScript stores a container member ("list", "array", "set", "map"), and `edgeType` the
+ * classes an object member may hold, both as the graph holds them; `iid` is the interface Carbon's member has, or
+ * the wrapper class of a wrapped member.
  *
  * @param {object|string|Function|undefined} declared The member's declared type.
- * @returns {{type: number, signed: boolean, length: number, collection: (string|null), iid: (string|null), structClass: (string|Function|null)}} The member type.
+ * @param {string|symbol} [key] The member's key: a private field holds no graph edge.
+ * @returns {{type: number, signed: boolean, length: number, collection: (string|null), edgeType: string[], iid: (string|null), structClass: (string|Function|null), graph: object}} The member type.
  */
-export function declaredMemberType(declared)
+export function declaredMemberType(declared, key = undefined)
 {
   let type = declared;
   if (typeof type === "function") type = { kind: "rootRef", className: type };
   if (typeof type === "string") type = { kind: type };
-  const result = { type: VARTYPE.INVALID, signed: false, length: 0, collection: null, iid: null, structClass: null };
+  const graph = graphMemberOf(type ?? {}, key);
+  const result = {
+    type: VARTYPE.INVALID, signed: false, length: 0,
+    collection: graph.edge !== null ? graph.edge.collection : graph.collection ?? null,
+    edgeType: graph.edge !== null ? graph.edge.type : [],
+    iid: null, structClass: null, graph
+  };
   if (!type || type.runtimeOnly === true) return result;
 
   // type.binary is Carbon's BINARYBLOCK, whatever value the member holds.
@@ -161,7 +278,7 @@ export function declaredMemberType(declared)
 
   // A value type: its trait gives the VARTYPE, sign and element count. Object members are worked out below.
   // A typed array's trait is named for its constructor (`Float32Array` is `float32Array`), as the graph names it.
-  const kind = type.kind === "typedArray" ? type.arrayType.charAt(0).toLowerCase() + type.arrayType.slice(1) : type.kind;
+  const kind = type.kind === "typedArray" ? (typeof type.arrayType === "string" ? type.arrayType.charAt(0).toLowerCase() + type.arrayType.slice(1) : undefined) : type.kind;
   const trait = Object.hasOwn(GRAPH_TYPES, kind) ? GRAPH_TYPES[kind] : undefined;
   if (trait !== undefined && !OBJECT_STORAGE.has(trait.storage))
   {
@@ -176,7 +293,6 @@ export function declaredMemberType(declared)
   else if (kind === "structList")
   {
     result.type = VARTYPE.IROOT;
-    result.collection = "list";
     result.iid = "IBlueStructureList";
     result.structClass = type.className;
   }
@@ -186,7 +302,6 @@ export function declaredMemberType(declared)
     // A list of values (`type.vec4.array()`) has no VARTYPE: Carbon exposes no container of values.
     if (isValueItem(itemType))
     {
-      result.collection = kind;
       result.length = type.length ?? 0;
       return result;
     }
@@ -195,7 +310,6 @@ export function declaredMemberType(declared)
     if (itemType?.kind === "root" || itemType?.kind === "rootRef" || itemType?.kind === "rootWeak")
     {
       result.type = VARTYPE.IROOT;
-      result.collection = kind;
       result.iid = CONTAINER_IIDS[kind];
       result.length = type.length ?? 0;
     }
@@ -277,7 +391,7 @@ function varEntryOf(Constructor, member, entry)
   const reference = type && (type.kind === "rootRef" || type.kind === "rootWeak") ? type.className : null;
   entry.name = member.name;
   entry.key = member.key ?? member.name;
-  const declared = declaredMemberType(type);
+  const declared = declaredMemberType(type, member.key);
   entry.type = declared.type;
   // Ours, beside Carbon's: what the readers need that a JavaScript property cannot say.
   entry.index = member.index ?? -1;
@@ -286,7 +400,7 @@ function varEntryOf(Constructor, member, entry)
   entry.length = declared.length;
   entry.collection = declared.collection;
   entry.keepsNulls = type?.kind === "array";
-  entry.edgeType = OBJECT_STORAGE.has(declared.type) ? declaredTypes(type) : [];
+  entry.edgeType = declared.edgeType;
   entry.structClass = declared.structClass;
   entry.iid = declared.iid ?? (typeof reference === "function" ? Schema.getClassName(reference) : reference || null);
   entry.description = member.jessica && member.jessica.description ? member.jessica.description : "";
