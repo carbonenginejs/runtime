@@ -339,7 +339,7 @@ export class CjsPaperDollInstance
      * its version is the owner's state field while shown, else 0.
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python. The library holds the entries; this applies them.
-     * @param {Array<{ path: string, owner: string, state: string, parameters: Object<string, number|number[]>, diffuseSize: number[] }>} entries The library's entries.
+     * @param {Array<{ path: string, owner: string, state: string, parameters: Object<string, number[]>, diffuseSize: number[] }>} entries The library's entries.
      * @param {object} value The definition's values as the update applies them (`value[member].option` and the state field).
      * @param {Set<string>} suppressed The suppressed members (`suppress`).
      * @param {(member: string, option: string) => string[]} dependantsOf The resolved garment's dependants.
@@ -358,22 +358,18 @@ export class CjsPaperDollInstance
     }
 
     /**
-     * Sets a drawn dependant mesh's effect parameters (an entry's `parameters`): an array on a parameter the effect
-     * has (`TransformUV0`), a number through `SetParameter` (`DecalClip`, which the drape does not author).
+     * Sets a drawn dependant mesh's effect parameters (an entry's `parameters`), each through `SetParameter__Vector4`,
+     * as area setups are (`applyAreaSetup`): it replaces a parameter of the name or adds one (`DecalClip`, which the
+     * drape does not author).
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python.
      * @param {object} effect The area's `Tr2Effect`.
-     * @param {Object<string, number|number[]>} parameters The entry's parameters.
+     * @param {Object<string, number[]>} parameters The entry's parameters, each four components.
      * @returns {void}
      */
     static applyEffectParameters(effect, parameters)
     {
-        for (const [ name, value ] of Object.entries(parameters))
-        {
-            if (!Array.isArray(value)) { effect.SetParameter(name, value); continue; }
-            const parameter = effect.FindParameterByName(name);
-            if (parameter !== null) parameter.SetValue(Float32Array.from(value));
-        }
+        for (const [ name, value ] of Object.entries(parameters)) effect.SetParameter__Vector4(name, Float32Array.from(value));
     }
 
     /**

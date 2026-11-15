@@ -7,6 +7,7 @@ import "./CjsCharacterDataString.js";
 import "./CjsCharacterDataNamedValue.js";
 import "./CjsCharacterDataParameter.js";
 import "./CjsCharacterDataMorphCorrection.js";
+import "./CjsCharacterDataMeshDependant.js";
 
 // Discovery: src/character/discovery/animationdata.yaml
 // Discovery: src/character/discovery/{animation_animinfo,animation_movementstates,animationoffsets,basefemalebindpose,basemalebindpose,basename,blendshapes,face,facetweaksettings,modifiernames,scultpinglimits,trif}.yaml
@@ -156,5 +157,13 @@ export class CjsCharacterGeneric
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterDataMorphCorrection")
     morphCorrections = [];
+
+    /**
+     * The dependant meshes the paper doll draws, one per `path`, each replacing the shipped default of that path
+     * (`factory/defaults/generic.js`). Empty: the defaults are in force.
+     */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterDataMeshDependant")
+    meshDependants = [];
 
 }

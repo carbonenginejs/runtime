@@ -1,20 +1,26 @@
 // The dependant meshes the paper doll draws (the drape) are library data with a default
-// (factory/defaults/meshDependants.json); the paper doll decides each one's state and sets its effect parameters.
+// (the generic's meshDependants, shipped in factory/defaults/generic.js); the paper doll decides each one's state and sets its effect parameters.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsCharacterLibraryManager, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
+import { CjsCharacterDataMeshDependant, CjsCharacterLibrary, CjsCharacterLibraryManager, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
 
-import file from "../../../npm/dist/character/factory/defaults/meshDependants.json.js";
+const [ DRAPE ] = structuredClone(new CjsCharacterLibraryManager()._MeshDependants());
 
-const [ DRAPE ] = structuredClone(file.dependants);
-
-test("the defaults file holds the drape entry, and only the library reads it", () =>
+test("the shipped generic holds the drape entry, each parameter four components, and only the library reads it", () =>
 {
-    assert.deepEqual(file.dependants, [
-        { path: "dependants/drape/standard", owner: "topMiddle", state: "tuck", parameters: { TransformUV0: [ 0, 0, 1, 1 ], DecalClip: 1 }, diffuseSize: [ 2048, 2048 ] }
+    assert.deepEqual(new CjsCharacterLibraryManager()._MeshDependants(), [
+        { path: "dependants/drape/standard", owner: "topMiddle", state: "tuck", parameters: { TransformUV0: [ 0, 0, 1, 1 ], DecalClip: [ 1, 0, 0, 0 ] }, diffuseSize: [ 2048, 2048 ] }
     ]);
     for (const name of [ "GetMeshDependants", "SetMeshDependants" ])
-        assert.equal(typeof CjsCharacterLibraryManager.prototype[name], "undefined", "no " + name + ": only the library loads the file (FetchMeshDependants answers from it)");
+        assert.equal(typeof CjsCharacterLibraryManager.prototype[name], "undefined", "no " + name + ": only the library holds them (FetchMeshDependants answers from it)");
+});
+
+test("an installed generic dependant replaces the shipped one of its path whole", () =>
+{
+    const installed = new CjsCharacterLibrary();
+    installed.generic.meshDependants.push(Object.assign(new CjsCharacterDataMeshDependant(), { path: "dependants/drape/standard", owner: "topOuter", state: "tuck" }));
+    const [ entry ] = new CjsCharacterLibraryManager(installed)._MeshDependants();
+    assert.deepEqual(entry, { path: "dependants/drape/standard", owner: "topOuter", state: "tuck", parameters: {}, diffuseSize: [ 0, 0 ] }, "not merged with the shipped parameters");
 });
 
 test("the drape draws in its owner's state while the owner is worn, lists it and nothing removes it", () =>
@@ -31,14 +37,10 @@ test("the drape draws in its owner's state while the owner is worn, lists it and
         "a worn garment's own occludes remove it, and its state is 0");
 });
 
-test("an entry's parameters: an array on a parameter the effect has, a number through SetParameter", () =>
+test("an entry's parameters: each set as a Vector4, which replaces or adds the parameter", () =>
 {
-    const set = [], values = [];
-    const effect = {
-        SetParameter: (name, value) => set.push([ name, value ]),
-        FindParameterByName: name => name === "TransformUV0" ? { SetValue: value => values.push(Array.from(value)) } : null
-    };
-    CjsPaperDollInstance.applyEffectParameters(effect, { ...DRAPE.parameters, Missing: [ 1, 2 ] });
-    assert.deepEqual(values, [ [ 0, 0, 1, 1 ] ]);
-    assert.deepEqual(set, [ [ "DecalClip", 1 ] ], "a missing array parameter is left alone");
+    const set = [];
+    const effect = { SetParameter__Vector4: (name, value) => set.push([ name, Array.from(value) ]) };
+    CjsPaperDollInstance.applyEffectParameters(effect, DRAPE.parameters);
+    assert.deepEqual(set, [ [ "TransformUV0", [ 0, 0, 1, 1 ] ], [ "DecalClip", [ 1, 0, 0, 0 ] ] ], "DecalClip too, which the drape does not author");
 });

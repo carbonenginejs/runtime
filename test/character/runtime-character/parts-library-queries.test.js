@@ -5,7 +5,6 @@ import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from 
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
 import "../../support/frameLoop.js";
 import bodyCarrierFile from "../../../npm/dist/character/factory/defaults/bodyCarriers.json.js";
-import meshDependantFile from "../../../npm/dist/character/factory/defaults/meshDependants.json.js";
 
 const ROOT = "res:/graphics/character/female/paperdoll/";
 const META = "!!python/object:paperDoll.AvatarPartMetaData\n";
@@ -258,7 +257,7 @@ test("the drawn dependant meshes: each entry with its folder's model and one per
     const [ drape, ...rest ] = await library.FetchMeshDependants("female");
     assert.deepEqual(rest, []);
     const { versions, ...entry } = drape;
-    assert.deepEqual([ entry ], meshDependantFile.dependants);
+    assert.deepEqual([ entry ], new CjsCharacterLibraryManager()._MeshDependants());
     assert.deepEqual(versions.map(version => [ version.index, version.name, version.model.slice(ROOT.length) ]), [
         [ 0, "wide", "dependants/drape/standard/wide.black" ],
         [ 1, "tuck", "dependants/drape/standard/v1/tuck.black" ],

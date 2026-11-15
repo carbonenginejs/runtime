@@ -12,7 +12,6 @@ import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsCharacterTextureRoles } from "./CjsCharacterTextureRoles.js";
 import bodyCarrierDefaults from "../factory/defaults/bodyCarriers.json" with { type: "json" };
-import meshDependantDefaults from "../factory/defaults/meshDependants.json" with { type: "json" };
 import genericDefaults from "../factory/defaults/generic.js";
 import partCategoryDefaults from "../factory/defaults/partCategories.json" with { type: "json" };
 import defaultFemalePaperDoll from "../factory/defaults/defaultFemalePaperDoll.json" with { type: "json" };
@@ -129,6 +128,11 @@ export class CjsCharacterLibraryManager
     _morphCorrections = null;
 
     _morphCorrectionsGeneration = -1;
+
+    /** The drawn dependant meshes in force (`_MeshDependants`), and the install generation they were built for. */
+    _meshDependants = null;
+
+    _meshDependantsGeneration = -1;
 
     /** The shipped generic (`_ShippedGeneric`), built once. */
     _shippedGeneric = null;
@@ -285,12 +289,32 @@ export class CjsCharacterLibraryManager
     });
 
     /**
-     * The dependant meshes the paper doll draws with their owner's diffuse (`CjsPaperDollInstance.meshDependantStates`):
-     * each its path, owner member, the owner's state field, effect parameters and diffuse size. Read from the defaults
-     * file `factory/defaults/meshDependants.json`, which only the library loads; no consumer overrides it yet.
-     * @type {Array<{ path: string, owner: string, state: string, parameters: Object<string, number|number[]>, diffuseSize: number[] }>}
+     * The dependant meshes the paper doll draws with their owner's diffuse (`CjsPaperDollInstance.meshDependantStates`),
+     * built once per install as `_Sexes` is: the shipped defaults (`factory/defaults/generic.js`, built into
+     * `CjsCharacterDataMeshDependant` objects by the graph), each replaced whole by the installed library's generic
+     * dependant of the same `path`. Each is its path, owner member, the owner's state field, its effect parameters by
+     * name (each a Vector4) and its diffuse size.
+     * @returns {Array<{ path: string, owner: string, state: string, parameters: Object<string, number[]>, diffuseSize: number[] }>}
+     *   The entries; not to be changed.
      */
-    _meshDependants = CjsCharacterLibraryManager.copy(meshDependantDefaults.dependants);
+    _MeshDependants()
+    {
+        if (this._meshDependants === null || this._meshDependantsGeneration !== this._installGeneration)
+        {
+            const dependants = new Map();
+            for (const entry of [ ...this._ShippedGeneric().meshDependants, ...this._library.generic.meshDependants ])
+            {
+                dependants.set(entry.path, {
+                    path: entry.path, owner: entry.owner, state: entry.state,
+                    parameters: Object.fromEntries(entry.parameters.map(parameter => [ parameter.name, Array.from(parameter.value) ])),
+                    diffuseSize: Array.from(entry.diffuseSize)
+                });
+            }
+            this._meshDependants = [ ...dependants.values() ];
+            this._meshDependantsGeneration = this._installGeneration;
+        }
+        return this._meshDependants;
+    }
 
     /**
      * One sex's body carriers, read once: each carrier with its model and decoded metadata, and the carrier rules in
@@ -356,7 +380,7 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * One sex's drawn dependant meshes, read once: each entry in force (`_meshDependants`) with its versions, each
+     * One sex's drawn dependant meshes, read once: each entry in force (`_MeshDependants`) with its versions, each
      * model its folder holds: its own as version 0 and each `vN/` folder's as version N, in version order (the
      * drape's tuck states: `standard`, then `v1/tuck`, `v2/bunchedup`, ...). Derived: no content record lists a
      * dependant's versions; the folder names are the rule Graphene's drape used, moved here.
@@ -364,14 +388,14 @@ export class CjsCharacterLibraryManager
      * Ours, as `FetchOptions`.
      *
      * @param {string} sex The paper doll's sex (`female`).
-     * @returns {Promise<Array<{ path: string, owner: string, state: string, parameters: Object<string, number|number[]>, diffuseSize: number[], versions: Array<{ index: number, name: string, model: string }> }>>}
+     * @returns {Promise<Array<{ path: string, owner: string, state: string, parameters: Object<string, number[]>, diffuseSize: number[], versions: Array<{ index: number, name: string, model: string }> }>>}
      *   The entries (`model` the `.black` path, `name` its file name), the caller's own copy.
      * @throws {Error} For an entry whose models are not its folder's own and `v1`..`vN`.
      */
     FetchMeshDependants(sex)
     {
         const root = this.GetSexFacts(sex).root;
-        return this._Query("meshDependants|" + sex, async () => this._meshDependants.map(entry =>
+        return this._Query("meshDependants|" + sex, async () => this._MeshDependants().map(entry =>
         {
             const folder = root + entry.path + "/";
             const versions = this._PaperDollFiles(folder).filter(file => file.endsWith(".black")).map(model =>

@@ -14,6 +14,7 @@ export { CjsCharacterColorVariation } from "./CjsCharacterColorVariation.js";
 export { CjsCharacterCurveCacheList } from "./CjsCharacterCurveCacheList.js";
 export { CjsCharacterCurveSetMetadata } from "./CjsCharacterCurveSetMetadata.js";
 export { CjsCharacterDataCategory } from "./CjsCharacterDataCategory.js";
+export { CjsCharacterDataMeshDependant } from "./CjsCharacterDataMeshDependant.js";
 export { CjsCharacterDataMirrorRegion } from "./CjsCharacterDataMirrorRegion.js";
 export { CjsCharacterDataMorphCorrection } from "./CjsCharacterDataMorphCorrection.js";
 export { CjsCharacterDataMorphCorrectionMesh } from "./CjsCharacterDataMorphCorrectionMesh.js";
