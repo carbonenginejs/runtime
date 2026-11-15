@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
     CjsCharacterObjectBuilder, CjsCharacterFactory, CjsCharacterLibraryConfiguration, CjsCharacterCamera,
-    CjsCharacterPost, CjsCharacterPose,
+    CjsCharacterPost, CjsCharacterPose, CjsCharacterPoseTransform,
     CjsCharacterRecipeModifier, CjsProjectedDecal, CjsCharacterLightRig, Tr2InteriorLightSource, CjsCharacterType, CjsCharacterColorVariation, CjsCharacterPdpType
 } from "../../../npm/dist/character/index.js";
 import { InitializeTrinityStub } from "../../support/trinityStub.js";
@@ -45,7 +45,8 @@ test("root dictionaries hydrate typed records and preserve Number precision", ()
     const builder = Builder("Jaw:\n  orientation: !!python/tuple [0.1, 0.2, 0.3]\n  rotation: !!python/tuple [0.4, 0.5, 0.6]\n  translation: [0.7, 0.8, 0.9]\n", "poses");
     const pose = builder.CreateObject();
     assert.equal(Object.getPrototypeOf(pose), CjsCharacterPose.prototype);
-    assert.deepEqual(pose.value.get("Jaw").rotation, [0.4, 0.5, 0.6]);
+    assert.equal(Object.getPrototypeOf(pose.value.get("Jaw")), CjsCharacterPoseTransform.prototype, "each map value is a record");
+    assert.deepEqual(pose.value.get("Jaw").rotation, Float64Array.of(0.4, 0.5, 0.6), "a record's vec3d, at the authored double precision");
     const second = builder.CreateObject();
     assert.notEqual(second, pose);
     assert.notEqual(second.value.get("Jaw"), pose.value.get("Jaw"));

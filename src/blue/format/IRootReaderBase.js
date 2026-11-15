@@ -16,7 +16,8 @@
 // | root | IROOT (embedded) | `ReadIRoot` into the EXISTING object |
 // | rootRef | IROOTPTR | `ReadIRootClass`: an anchor's object, or a new one |
 // | list, array | IROOT BlueList | `ReadList` |
-// | map, set, rawStruct | IROOT BlueDict | by value |
+// | map | IROOT BlueDict | `ReadDict`: each value an object, when the map's values declare a class; else by value |
+// | set, rawStruct | IROOT BlueDict | by value |
 // | structList | IROOT BlueStructureList | `ReadStructureList`: records by value, into instances of the item class |
 // | binary | BINARYBLOCK | `ReadBinaryBlock`: the reader hands the bytes to the instance's ICustomPersist |
 //
@@ -157,6 +158,12 @@ export class IRootReaderBase
     if (LIST_KINDS.has(kind))
     {
       return this.ReadList(instance, field);
+    }
+    // An IBlueDict member (IRootReader.cpp:169-172).
+    if (kind === "map")
+    {
+      const changed = this.ReadDict(instance, field);
+      if (changed !== undefined) return changed;
     }
 
     const source = omitRuntimeValues(this.ReadValue(), field.type);
@@ -340,6 +347,17 @@ export class IRootReaderBase
    * @abstract
    */
   ReadList(_instance, _field) {}
+
+  /**
+   * Reads a dictionary member (`ReadDict`, IRootReader.h:118); a subclass provides it.
+   *
+   * @adapted Carbon's is pure virtual; undefined here leaves the map to the value read.
+   * @returns {boolean|undefined} Whether the member changed, or undefined to read it by value.
+   */
+  ReadDict(_instance, _field)
+  {
+    return undefined;
+  }
 
   /**
    * Reads a binary block into an ICustomPersist (`ReadBinaryBlock`, IRootReader.h:114); a subclass provides it.

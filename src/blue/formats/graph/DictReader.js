@@ -973,6 +973,65 @@ export class DictReader extends IRootReaderBase
   }
 
   /**
+   * A dictionary member (`ReadDict`, DictReader.cpp:479-530): each value null, an
+   * anchored object, a live object, or a new one built as `ReadIRootClass` builds it,
+   * assigned under its key.
+   *
+   * @adapted reads our values format (a dictionary or Map, not Carbon's flat key/value list) into a new Map.
+   *   Carbon assigns into the dict the member holds; this replaces the map, as the value read did. A value
+   *   without `_type` builds the map's declared class, as a list item does. Declared reads keep their own path.
+   * @param {object} instance The owner.
+   * @param {object} field The map declaration.
+   * @returns {boolean|undefined} Whether the member changed, or undefined when the map's values declare no
+   *   registered class, so the value read keeps it.
+   */
+  ReadDict(instance, field)
+  {
+    const source = this._currentSource;
+    if (this._options.declarations === true || !(source instanceof Map || DictReader._IsPlainObject(source))) return undefined;
+    const valueType = field.type.valueType;
+    const valueClassName = typeof valueType === "string" || typeof valueType === "function" ? valueType : valueType?.className ?? null;
+    const Declared = typeof valueClassName === "function" ? valueClassName : valueClassName ? CjsSchema.getConstructor(valueClassName) : null;
+    if (!Declared) return undefined;
+    // An interface or abstract value class cannot be built for a value that names no `_type`; the value read keeps
+    // such a map as it was.
+    const declared = CjsSchema.getSchema(Declared);
+    if (declared.interface === true || declared.abstract === true) return undefined;
+    const className = CjsSchema.getClassName(Declared);
+
+    const dict = new Map();
+    const entries = source instanceof Map ? Array.from(source) : Object.entries(source);
+    const parent = this._contextStack.pop() ?? field.name;
+    for (let i = 0; i < entries.length; i++)
+    {
+      const [ key, item ] = entries[i];
+      this._contextStack.push(`${parent} ['${key}' - ${i}]`);
+      let value = item;
+      if (DictReader._IsReference(item))
+      {
+        value = this._anchors.byId.get(item._ref);
+        if (value === undefined)
+        {
+          this._anchors.defer(item._ref, object => { dict.set(key, object); });
+          value = null;
+        }
+      }
+      else if (DictReader._IsPlainObject(item))
+      {
+        this._currentSource = item;
+        value = this.ReadIRootClass(null, className);
+      }
+      dict.set(key, value);
+      this._contextStack.pop();
+    }
+    this._contextStack.push(parent);
+    this._currentSource = source;
+
+    IRootReaderBase.writeDictionaryValue(instance, field, dict);
+    return true;
+  }
+
+  /**
    * Editor extension: preflight all keys in explicitly selected root lists
    * before any writes or lifecycle work. The class supplies scope separately
    * from values. Missing keys and repeats are errors, never positional matches.
