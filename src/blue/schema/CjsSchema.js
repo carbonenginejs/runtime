@@ -1625,14 +1625,17 @@ function createComponentsNamespace()
 /**
  * A value-type decorator that also offers `.array(length)`: a list of that value, `length` of them when given
  * (`@type.vec3.array(3)` is three vec3), any number when not. The list is declared as `type.array(kind)` was, with
- * its count, so the graph reads it as a values list and its row's `length` holds the count.
+ * its count, so the graph reads it as a values list and its row's `length` holds the count. `.nullable` is the
+ * same value that may also hold null, which only object members may otherwise (graph plan 2.2); its row carries
+ * GraphMemberFlags.NULLABLE.
  *
  * @param {string} kind The value type.
- * @returns {Function} The decorator, with `array(length)`.
+ * @returns {Function} The decorator, with `array(length)` and `nullable`.
  */
 function valueTypeDecorator(kind)
 {
     const decorator = fieldDecorator("type", { kind });
+    decorator.nullable = fieldDecorator("type", { kind, nullable: true });
     decorator.array = length => fieldDecorator("type", length === undefined ? { kind: "array", itemType: kind } : { kind: "array", itemType: kind, length: requireCount(length) });
     return decorator;
 }

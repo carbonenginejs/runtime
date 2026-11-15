@@ -8,7 +8,7 @@ const { CjsSchema, type } = await ImportDist("blue/schema/index.js");
 const { exposure: be } = await ImportDist("blue/exposure/be.js");
 const { ClassInfo } = await ImportDist("blue/index.js");
 const { VARTYPE } = await ImportDist("global/consts/blue.js");
-const { CjsGraph } = await ImportDist("global/model/graph/index.js");
+const { CjsGraph, GraphMemberFlags } = await ImportDist("global/model/graph/index.js");
 await ImportDist("blue/formats/graph/index.js");
 
 /** The graph's row for a member of a defined class. */
@@ -75,4 +75,21 @@ test("a declared count is a positive integer", () =>
 {
   assert.throws(() => type.float32Array(0), /positive integer/);
   assert.throws(() => type.vec3.array(1.5), /positive integer/);
+});
+
+test("a nullable value member carries GraphMemberFlags.NULLABLE; a plain one does not", () =>
+{
+  class NullableValueProbe
+  {
+    color1 = null;
+    color2 = new Float32Array(4);
+  }
+  CjsSchema.decorateField(NullableValueProbe, "color1", be.mapAttribute(be.READWRITE | be.PERSIST), type.color.nullable);
+  CjsSchema.decorateField(NullableValueProbe, "color2", be.mapAttribute(be.READWRITE | be.PERSIST), type.color);
+  be.define("NullableValueProbe")(NullableValueProbe);
+
+  const nullable = graphRow(NullableValueProbe, "color1");
+  assert.notEqual(nullable.flags & GraphMemberFlags.NULLABLE, 0);
+  assert.equal(nullable.type, VARTYPE.FLOATARRAY);
+  assert.equal(graphRow(NullableValueProbe, "color2").flags & GraphMemberFlags.NULLABLE, 0);
 });

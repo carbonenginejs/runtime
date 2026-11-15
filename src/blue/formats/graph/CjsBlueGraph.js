@@ -269,6 +269,7 @@ export class CjsBlueGraph
       flags: getDeclaredEditFlags(field)
         | (field.type?.binary === true ? GraphMemberFlags.BINARY : 0)
         | (field.type?.runtimeOnly === true ? GraphMemberFlags.RUNTIMEONLY : 0)
+        | (field.type?.nullable === true ? GraphMemberFlags.NULLABLE : 0)
     };
   }
 

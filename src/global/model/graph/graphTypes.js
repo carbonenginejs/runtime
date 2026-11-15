@@ -92,12 +92,15 @@ export const GRAPH_METADATA_KEY = "__bluemetadata__";
 
 /**
  * A compiled member's own bits, above Be::EDMASK, in the integer that holds its Be::EDITFLAGS.
- * BINARY is a block its class reads and writes itself, and RUNTIMEONLY claims a name and is never read.
- * @cjs Carbon's binary block is a VARTYPE on a PERSISTONLY row, and it has no runtime-only member.
+ * BINARY is a block its class reads and writes itself, RUNTIMEONLY claims a name and is never read, and NULLABLE
+ * is a value member that may hold null (graph plan 2.2: only object members hold null otherwise).
+ * @cjs Carbon's binary block is a VARTYPE on a PERSISTONLY row, it has no runtime-only member, and a C++ value
+ *   member cannot be null.
  */
 export const GraphMemberFlags = Object.freeze({
   BINARY: 0x1000,
-  RUNTIMEONLY: 0x2000
+  RUNTIMEONLY: 0x2000,
+  NULLABLE: 0x4000
 });
 
 /**
