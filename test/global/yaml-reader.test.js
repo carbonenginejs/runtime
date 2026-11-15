@@ -130,7 +130,7 @@ test("Initialize runs child before parent and suppresses mapped member notificat
 
 test("float arrays preserve storage and short tails, accept legacy vectors and reject overflow", () => {
   class Root { v = new Float32Array([7, 8, 9]); q = new Float32Array(4); }
-  const name = register(Root, { v: "vector3", q: "quaternion" });
+  const name = register(Root, { v: "vec3", q: "quat" });
   const object = read(`type: ${name}\nv: [0.1]\nq: {type: TriQuaternion, x: 0.5}`);
   assert.deepEqual(object.v, new Float32Array([0.1, 8, 9]));
   assert.deepEqual(object.q, new Float32Array([0.5, 0, 0, 1]));

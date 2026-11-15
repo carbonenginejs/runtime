@@ -17,6 +17,7 @@ import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { getRegisteredConstructor, registerClass } from "../exposure/classes/registry.js";
 import { ClassInfo } from "../../global/model/graph/ClassInfo.js";
 import { BLACK_DESTINATION, VarEntry } from "../../global/model/graph/VarEntry.js";
+import { GRAPH_TYPES } from "../../global/model/graph/graphTypes.js";
 import { blueEnums } from "../enums/CjsBlueEnumRegistry.js";
 
 /** The schema, from `installClassInfoCompile`. @type {typeof import("./CjsSchema.js").CjsSchema} */
@@ -71,42 +72,8 @@ export function getEditFlags(member)
   return member.exposure ? member.exposure.flags : getDeclaredEditFlags(member);
 }
 
-/** A declared scalar kind's VARTYPE, sign and float count (Carbon reads them from the C++ member type). */
-const SCALARS = Object.freeze({
-  boolean: [ VARTYPE.BOOL, false, 0 ],
-  string: [ VARTYPE.STDSTRING, false, 0 ],
-  path: [ VARTYPE.STDSTRING, false, 0 ],
-  expression: [ VARTYPE.STDSTRING, false, 0 ],
-  wstring: [ VARTYPE.STDWSTRING, false, 0 ],
-  wpath: [ VARTYPE.STDWSTRING, false, 0 ],
-  // A PyObject* member: BLUE_DEFINE_TYPE_TRAIT( PyObject*, Be::PYOBJECTPTR ) (BlueTypeTraits.h:76). Be::PYOBJECT is an embedded one.
-  pyObject: [ VARTYPE.PYOBJECTPTR, false, 0 ],
-  scriptCallback: [ VARTYPE.SCRIPTCALLBACK, false, 0 ],
-  enum: [ VARTYPE.LONG, true, 0 ],
-  float32: [ VARTYPE.FLOAT, false, 0 ],
-  float64: [ VARTYPE.DOUBLE, false, 0 ],
-  int8: [ VARTYPE.BYTE, true, 0 ],
-  uint8: [ VARTYPE.BYTE, false, 0 ],
-  int16: [ VARTYPE.SHORT, true, 0 ],
-  uint16: [ VARTYPE.SHORT, false, 0 ],
-  int32: [ VARTYPE.LONG, true, 0 ],
-  uint32: [ VARTYPE.ULONG, false, 0 ],
-  int64: [ VARTYPE.INT64, true, 0 ],
-  uint64: [ VARTYPE.UINT64, false, 0 ],
-  vec2: [ VARTYPE.FLOATARRAY, false, 2 ],
-  vector2: [ VARTYPE.FLOATARRAY, false, 2 ],
-  vec3: [ VARTYPE.FLOATARRAY, false, 3 ],
-  vector3: [ VARTYPE.FLOATARRAY, false, 3 ],
-  vec4: [ VARTYPE.FLOATARRAY, false, 4 ],
-  vector4: [ VARTYPE.FLOATARRAY, false, 4 ],
-  color: [ VARTYPE.FLOATARRAY, false, 4 ],
-  quat: [ VARTYPE.FLOATARRAY, false, 4 ],
-  quaternion: [ VARTYPE.FLOATARRAY, false, 4 ],
-  mat3: [ VARTYPE.FLOATARRAY, false, 9 ],
-  matrix3: [ VARTYPE.FLOATARRAY, false, 9 ],
-  mat4: [ VARTYPE.FLOATARRAY, false, 16 ],
-  matrix4: [ VARTYPE.FLOATARRAY, false, 16 ]
-});
+/** The VARTYPEs that hold an object. A trait with one is an object member, which `declaredMemberType` works out itself. */
+const OBJECT_STORAGE = new Set([ VARTYPE.IROOT, VARTYPE.IROOTPTR, VARTYPE.IROOTWEAKREF ]);
 
 /** A declared container kind's destination. */
 const CONTAINERS = Object.freeze({
@@ -147,10 +114,14 @@ export function declaredMemberType(declared)
     return result;
   }
 
+  // A value type: its trait gives the VARTYPE, sign and float count. Object members are worked out below.
   const kind = type.kind;
-  if (Object.hasOwn(SCALARS, kind))
+  const trait = Object.hasOwn(GRAPH_TYPES, kind) ? GRAPH_TYPES[kind] : undefined;
+  if (trait !== undefined && !OBJECT_STORAGE.has(trait.storage))
   {
-    [ result.type, result.signed, result.floatArraySize ] = SCALARS[kind];
+    result.type = trait.storage;
+    result.signed = trait.signed === true;
+    result.floatArraySize = trait.storage === VARTYPE.FLOATARRAY ? trait.length : 0;
     return result;
   }
   if (kind === "rootRef") result.type = VARTYPE.IROOTPTR;

@@ -73,7 +73,7 @@ test("quaternion, color and integer enum meanings refine compatible storage", ()
         mode: [meta.struct.UINT32_1(32), type.enum({ A: 0 })]
     }, 36);
     assert.deepEqual(info.members.map(member => member.type.kind), ["quat", "color", "uint32"]);
-    assert.deepEqual(info.structureDefinition.members.map(member => member.type), ["quaternion", "color", "uint32"]);
+    assert.deepEqual(info.structureDefinition.members.map(member => member.type), ["quat", "color", "uint32"]);
 });
 
 test("stage-3 member metadata builds the layout before any instance is constructed", () =>

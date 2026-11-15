@@ -88,17 +88,17 @@ export { CJS_CLASS_NAME };
 
 // Be::BlueStructureDataType storage used by native BlueStructureDefinition.
 const STRUCT_TYPES = {
-    UINT32_1: ["uint32", "uint32", 4, 4],
-    FLOAT32_1: ["float32", "float32", 4, 4],
-    FLOAT32_3: ["vec3", "vector3", 12, 4],
-    FLOAT32_4: ["vec4", "vector4", 16, 4],
-    INT32_1: ["int32", "int32", 4, 4],
-    SHAREDSTRING_1: ["string", "string", 8, 8],
-    USHORT_1: ["uint16", "uint16", 2, 2],
-    UBYTE_1: ["uint8", "uint8", 1, 1],
-    BOOL8_1: ["boolean", "boolean", 1, 1],
-    SHORT_1: ["int16", "int16", 2, 2],
-    BYTE_1: ["int8", "int8", 1, 1]
+    UINT32_1: ["uint32", 4, 4],
+    FLOAT32_1: ["float32", 4, 4],
+    FLOAT32_3: ["vec3", 12, 4],
+    FLOAT32_4: ["vec4", 16, 4],
+    INT32_1: ["int32", 4, 4],
+    SHAREDSTRING_1: ["string", 8, 8],
+    USHORT_1: ["uint16", 2, 2],
+    UBYTE_1: ["uint8", 1, 1],
+    BOOL8_1: ["boolean", 1, 1],
+    SHORT_1: ["int16", 2, 2],
+    BYTE_1: ["int8", 1, 1]
 };
 
 /**
@@ -1253,7 +1253,7 @@ function buildStructureDefinition(schema)
         const storage = STRUCT_TYPES[dataType];
         const fail = reason => { throw new TypeError(className + "." + entry.name + ": " + reason); };
         if (!storage) fail("unsupported structure data type " + dataType);
-        const [kind, wireType, width, alignment] = storage;
+        const [kind, width, alignment] = storage;
         if (!Number.isSafeInteger(offset) || offset < 0) fail("struct offset must be a non-negative integer");
         if (!Number.isSafeInteger(schema.structureSize) || schema.structureSize <= 0) fail("struct requires a positive integer size");
         if (offset % alignment) fail("misaligned struct offset for " + dataType);
@@ -1268,9 +1268,7 @@ function buildStructureDefinition(schema)
             fail("enum requires integer struct storage");
         }
         entry.type ||= { kind };
-        members.push({ name: entry.name, offset, dataType,
-            type: entry.type.kind === "quat" ? "quaternion" : entry.type.kind === "color" ? "color" : wireType,
-            width });
+        members.push({ name: entry.name, offset, dataType, type: entry.type.kind, width });
     }
     if (!members.length)
     {
