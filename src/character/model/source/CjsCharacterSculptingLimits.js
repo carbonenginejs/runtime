@@ -1,4 +1,5 @@
 import { meta, type } from "#schema";
+import "./CjsCharacterSculptingLimit.js";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 // Discovery: src/character/discovery/scultpinglimits.yaml
@@ -23,9 +24,9 @@ export class CjsCharacterSculptingLimits extends CjsCharacterRecord
     @type.string
     head = "";
 
-    /** Authored identifiers mapped to two-component numeric limits. */
+    /** The shapes' limits, each named by its shape, the key in the file (a repeated key keeps its last pair). */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map({ kind: "list", itemType: "float64" })
-    limits = new Map();
+    @type.list("CjsCharacterSculptingLimit")
+    limits = [];
 
 }

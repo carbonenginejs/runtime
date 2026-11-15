@@ -121,13 +121,6 @@ test("a name a class declares again is answered by its own row in every table, o
   assert.deepEqual(served, []);
 });
 
-// Character members the schema and the graph store differently until the character library holds no maps (four
-// maps) and the tuple form is ruled (Tris).
-const AWAITING_CHARACTER = new Set([
-  "CjsCharacterAnimationInfoEntry.ControlParameters", "CjsCharacterBlendShapes.value", "CjsCharacterFaceTweakSettings.gammaCurves",
-  "CjsCharacterField.Tris", "CjsCharacterMaterial.Textures"
-]);
-
 // Before any recompile: the schema's compile writes the row again, over what the graph wrote.
 test("the graph's compile writes the storage the schema's compile wrote on every persisted row", () =>
 {
@@ -155,7 +148,6 @@ test("the graph's compile writes the storage the schema's compile wrote on every
         continue;
       }
       compared++;
-      if (AWAITING_CHARACTER.has(`${name}.${member}`)) continue;
       if (declared.collection !== definition.collection) differences.push(`${name}.${member}: ${declared.collection} / ${definition.collection}`);
     }
   }

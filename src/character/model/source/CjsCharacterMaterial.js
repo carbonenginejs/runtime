@@ -1,4 +1,5 @@
 import { meta, type } from "#schema";
+import "./CjsCharacterDataNamedValue.js";
 
 // Discovery: src/character/discovery/info.yaml
 // Resource pattern: res:/graphics/character/*
@@ -21,9 +22,9 @@ export class CjsCharacterMaterial
     @type.object.ref("CjsCharacterAttributes")
     Attributes = null;
 
-    /** Only an empty map is evidenced; no texture entry shape is invented. */
+    /** Its textures by name. Every shipped file writes none (`Textures: {}`), so the value's type is not evidenced; it is read as a string (a number or list warns and reads "", a mapping reads as its text). */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map("unknown")
-    Textures = new Map();
+    @type.list("CjsCharacterDataNamedValue")
+    Textures = [];
 
 }

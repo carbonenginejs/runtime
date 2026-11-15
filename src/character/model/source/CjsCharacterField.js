@@ -1,10 +1,15 @@
 import { meta, type } from "#schema";
+import "./CjsCharacterFieldTriangle.js";
+import "./CjsCharacterFieldTri.js";
+import "./CjsCharacterFieldVertexData.js";
+import "./CjsCharacterFieldVertexPosition.js";
 
 // Discovery: src/character/discovery/trif.yaml
 // Resource pattern: res:/graphics/character/global/facesetup/*
 
 /**
- * One sculpt-field record retaining integer dictionary keys and tuple nesting.
+ * One field of a `.trif` field set: a small triangulated grid whose vertices carry named values. The file's
+ * integer-keyed mappings and tuples read as lists of records, each with its key.
  * Storage defaults initialize empty records; they are not inferred authored defaults.
  */
 @meta.define("CjsCharacterField")
@@ -26,27 +31,24 @@ export class CjsCharacterField
     @type.vec3d
     MarkerPosition = new Float64Array(3);
 
-    /** Integer triangle keys mapped to three integer vertex indices. */
+    /** Its triangles, each with its key in the file and three vertex indices. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map({ kind: "list", itemType: "int32" })
-    Triangles = new Map();
+    @type.list("CjsCharacterFieldTriangle")
+    Triangles = [];
 
-    /**
-     * Triangles of three vertex tuples; each vertex is [integer index, two-component UV tuple]. Preserve
-     * mixed tuple slots.
-     */
+    /** Its triangles as corners: each corner a vertex and its position in the field's plane. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list({ kind: "list", itemType: { kind: "list", itemType: "unknown" } })
+    @type.list("CjsCharacterFieldTri")
     Tris = [];
 
-    /** Integer vertex keys mapped to lists of [string, scalar] pairs. */
+    /** Its vertices' named values, each with its vertex index, the key in the file. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map({ kind: "list", itemType: { kind: "list", itemType: "unknown" } })
-    VertData = new Map();
+    @type.list("CjsCharacterFieldVertexData")
+    VertData = [];
 
-    /** Integer vertex keys mapped to three-component numeric positions. */
+    /** Its vertices' points, each with its vertex index, the key in the file. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map({ kind: "list", itemType: "float64" })
-    VertPositions = new Map();
+    @type.list("CjsCharacterFieldVertexPosition")
+    VertPositions = [];
 
 }

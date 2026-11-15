@@ -1,4 +1,5 @@
 import { meta, type } from "#schema";
+import "./CjsCharacterDataParameterDouble.js";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 // Discovery: src/character/discovery/blendshapes.yaml
@@ -18,9 +19,9 @@ export class CjsCharacterBlendShapes extends CjsCharacterRecord
     @type.string
     name = "";
 
-    /** Authored identifier keys and weights. */
+    /** The blend shapes' weights, each named by its shape, the key in the file. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map("float64")
-    value = new Map();
+    @type.list("CjsCharacterDataParameterDouble")
+    value = [];
 
 }

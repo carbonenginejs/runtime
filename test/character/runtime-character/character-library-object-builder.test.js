@@ -129,10 +129,39 @@ test("sculpting limits retain duplicate source pairs and expose the last value",
 {
     const source = "gender: male\nhead: example\nlimits:\n  FatShape: [0, 0.5]\n  FatShape: [0, 1]\n";
     const builder = Builder(source, "sculptingLimits");
-    assert.deepEqual(builder.CreateObject().limits.get("FatShape"), [0, 1]);
+    assert.deepEqual(builder.CreateObject().limits.map(limit => [ limit.name, limit.min, limit.max ]), [ [ "FatShape", 0, 1 ] ]);
     assert.equal(builder.GetSourceDocument().get("limits", true).items.length, 2);
     assert.throws(() => new CjsCharacterObjectBuilder(source, "sculptingLimits", "test.yaml", CjsCharacterLibraryConfiguration, { uniqueKeys: true }), /unique/);
     assert.throws(() => Builder("field_of_view: 1\nfield_of_view: 2\n", "cameras"), /unique/);
+});
+
+test("a field's keyed and tuple lists read as records; a face mapping's two tuple shapes fill named fields and the rest", () =>
+{
+    const trif = "Fields:\n  Default_Front:\n    Attributes: [XXX_up]\n    MarkerPosition: [0.0, 0.0, 0.0]\n"
+        + "    Triangles:\n      10: [4, 5, 8]\n      2: [0, 1, 4]\n"
+        + "    Tris:\n    - - !!python/tuple [0, !!python/tuple [-2.0, 2.0]]\n      - !!python/tuple [1, !!python/tuple [0.0, 2.0]]\n      - !!python/tuple [4, !!python/tuple [0.0, 0.0]]\n"
+        + "    VertData:\n      0:\n      - [XXX_up, 1.0]\n      - [XXX_down, 0.25]\n"
+        + "    VertPositions:\n      1: [0.0, 0.0, 2.0]\n";
+    const [ field ] = Builder(trif, "fieldSets").CreateObject().Fields;
+    assert.equal(field.name, "Default_Front");
+    assert.deepEqual(field.Triangles.map(triangle => [ triangle.index, Array.from(triangle.vertices) ]), [ [ 2, [ 0, 1, 4 ] ], [ 10, [ 4, 5, 8 ] ] ],
+        "whole-number keys are numbers, ascending");
+    assert.deepEqual(field.Tris[0].corners.map(corner => [ corner.vertex, Array.from(corner.position) ]), [ [ 0, [ -2, 2 ] ], [ 1, [ 0, 2 ] ], [ 4, [ 0, 0 ] ] ]);
+    assert.deepEqual(field.VertData.map(vertex => [ vertex.index, vertex.parameters.map(parameter => [ parameter.name, parameter.value ]) ]),
+        [ [ 0, [ [ "XXX_up", 1 ], [ "XXX_down", 0.25 ] ] ] ]);
+    assert.deepEqual(field.VertPositions.map(vertex => [ vertex.index, Array.from(vertex.position) ]), [ [ 1, [ 0, 0, 2 ] ] ]);
+    assert.throws(() => Builder("Fields:\n  F:\n    VertPositions:\n      x1: [0, 0, 0]\n", "fieldSets").CreateObject(), /VertPositions\.x1 must be keyed by a whole number/u);
+
+    const face = "fj_a: [fj_a, 4, y, 0.67575298195180011]\nfj_b: [fj_b, fj_c, 3, 1.0, 0.0, 8.884, 9.297]\n";
+    const entries = Builder(face, "faceMappings").CreateObject().value;
+    assert.deepEqual(entries.map(entry => [ entry.name, entry.joint, entry.pairedJoint, entry.index, entry.axis, entry.values ]), [
+        [ "fj_a", "fj_a", "", 4, "y", [ 0.67575298195180011 ] ],
+        [ "fj_b", "fj_b", "fj_c", 3, "", [ 1, 0, 8.884, 9.297 ] ]
+    ], "the trailing numbers at double precision");
+    assert.throws(() => Builder("fj_a: [fj_a, 4, y]\n", "faceMappings").CreateObject(), /value\.fj_a has 3 items; its form names no tuple of that length/u);
+
+    const shapes = Builder("{abs_upshape: 1.0, thinshape: 0.2638888888888889}\n", "blendShapes").CreateObject().value;
+    assert.deepEqual(shapes.map(shape => [ shape.name, shape.value ]), [ [ "abs_upshape", 1 ], [ "thinshape", 0.2638888888888889 ] ], "a weight keeps its double precision");
 });
 
 test("GetPost answers a post in either layout; ListPostNames lists both", async t =>

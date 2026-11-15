@@ -1,4 +1,5 @@
 import { meta, type } from "#schema";
+import "./CjsCharacterDataParameterDouble.js";
 
 // Discovery: src/character/discovery/animation_animinfo.yaml
 // Resource pattern: res:/animation/*
@@ -21,10 +22,10 @@ export class CjsCharacterAnimationInfoEntry
     @type.string
     Category = "";
 
-    /** Authored control parameter names and scalar values. */
+    /** Its control parameters, each named by its key in the file. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map("float64")
-    ControlParameters = new Map();
+    @type.list("CjsCharacterDataParameterDouble")
+    ControlParameters = [];
 
     /** Authored string, retained without normalization of spelling. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

@@ -192,7 +192,22 @@ export class CjsCharacterLibraryConfiguration
         CjsCharacterAnimationData: { value: { keyed: "name" } },
         CjsCharacterAnimationInfo: { value: { keyed: "name" } },
         CjsCharacterFieldSet: { Fields: { keyed: "name" } },
-        CjsCharacterMaterialSet: { Materials: { keyed: "name" } }
+        CjsCharacterMaterialSet: { Materials: { keyed: "name" } },
+        CjsCharacterMaterial: { Textures: { keyed: "name", value: "value" } },
+        CjsCharacterAnimationInfoEntry: { ControlParameters: { keyed: "name", value: "value" } },
+        CjsCharacterBlendShapes: { value: { keyed: "name", value: "value" } },
+        CjsCharacterFaceTweakSettings: { gammaCurves: { keyed: "name", value: "value" } },
+        CjsCharacterAnimationOffsets: { value: { keyed: "name", value: "value" } },
+        CjsCharacterSculptingLimits: { limits: { keyed: "name", tuple: [ "min", "max" ] } },
+        CjsCharacterFaceMapping: { value: { keyed: "name", tuple: { 4: [ "joint", "index", "axis" ], 7: [ "joint", "pairedJoint", "index" ] }, rest: "values" } },
+        CjsCharacterField: {
+            Triangles: { keyed: "index", value: "vertices" },
+            Tris: { value: "corners" },
+            VertData: { keyed: "index", value: "parameters" },
+            VertPositions: { keyed: "index", value: "position" }
+        },
+        CjsCharacterFieldTri: { corners: { tuple: [ "vertex", "position" ] } },
+        CjsCharacterFieldVertexData: { parameters: { tuple: [ "name", "value" ] } }
     };
 
     /** Non-data and unestablished opaque inputs, relative to each configured root. */

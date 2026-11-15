@@ -1,4 +1,5 @@
 import { meta, type } from "#schema";
+import "./CjsCharacterAnimationOffset.js";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 // Discovery: src/character/discovery/animationoffsets.yaml
@@ -18,9 +19,9 @@ export class CjsCharacterAnimationOffsets extends CjsCharacterRecord
     @type.string
     name = "";
 
-    /** Authored keys and vec3 Python tuples; JS number components preserve precision. */
+    /** The bones' offsets, each named by its bone, the key in the file. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map({ kind: "list", itemType: "float64" })
-    value = new Map();
+    @type.list("CjsCharacterAnimationOffset")
+    value = [];
 
 }

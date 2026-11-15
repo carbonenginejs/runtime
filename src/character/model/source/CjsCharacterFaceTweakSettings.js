@@ -1,4 +1,5 @@
 import { meta, type } from "#schema";
+import "./CjsCharacterDataParameterDouble.js";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 // Discovery: src/character/discovery/facetweaksettings.yaml
@@ -13,10 +14,10 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterFaceTweakSettings extends CjsCharacterRecord
 {
 
-    /** Authored names and gamma values. */
+    /** The wrinkle maps' fade-in powers, each named by its joint pair (or `default`), the key in the file. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map("float64")
-    gammaCurves = new Map();
+    @type.list("CjsCharacterDataParameterDouble")
+    gammaCurves = [];
 
     /** Authored numeric value, retained at JavaScript number precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
