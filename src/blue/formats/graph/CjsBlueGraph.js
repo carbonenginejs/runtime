@@ -206,7 +206,7 @@ export class CjsBlueGraph
     }
 
     const item = this._getValuesItem(field.type);
-    if (item !== null) return { ...this._getFlags(field), type: "values", item, collection: kind };
+    if (item !== null) return { ...this._getFlags(field), type: "values", item, collection: kind, length: field.type.length };
 
     const edge = this._getEdgeKind(field);
     const name = kind === "typedArray" ? arrayType(field.type.arrayType) : kind === "array" ? "list" : kind;
@@ -214,6 +214,7 @@ export class CjsBlueGraph
     return {
       ...this._getFlags(field),
       type: Object.hasOwn(GRAPH_TYPES, name) && (edge || (name !== "map" && name !== "list")) ? name : undefined,
+      length: field.type?.length,
       options: kind === "path" || kind === "wpath" ? { accepts: field.type.accepts ?? [] } : undefined,
       edge: edge ? {
         kind: edge,

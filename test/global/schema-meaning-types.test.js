@@ -89,8 +89,9 @@ test("component labels require valid explicit declarations; type.custom is gone"
   assert.throws(() => meta.ui.components(["x", 2]), /string labels/);
   assert.throws(() => meta.ui.components(["a", "b", "c", "d", "e"]), /four/);
   assert.equal(declaredMemberType({ kind: "uint32", binary: true }).type, VARTYPE.BINARYBLOCK);
-  // A typed array that is not a binary block has no VARTYPE: reading one is Carbon's "Invalid attribute type".
-  assert.equal(declaredMemberType({ kind: "typedArray", arrayType: "Uint32Array" }).type, VARTYPE.INVALID);
+  // A typed array has its trait's VARTYPE, ours from 100 where Carbon has none (graph plan 2.2); Blue's readers refuse ours.
+  assert.equal(declaredMemberType({ kind: "typedArray", arrayType: "Uint32Array" }).type, VARTYPE.UINT32ARRAY);
+  assert.equal(declaredMemberType({ kind: "typedArray", arrayType: "Float32Array", length: 96 }).length, 96);
 });
 
 test("abstract methods throw while subclass implementations are preserved", () =>

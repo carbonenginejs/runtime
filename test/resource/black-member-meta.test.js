@@ -35,7 +35,7 @@ test("declared kinds give Carbon's VARTYPE and destination", () =>
   assert.equal(declaredMemberType({ kind: "wpath" }).type, VARTYPE.STDWSTRING);
   // MAP_ATTRIBUTE_AS_CUSTOM_BINARY_BLOCK is the only binary block (BlueExposureMacros.h:157-161).
   assert.equal(declaredMemberType({ kind: "uint8", binary: true }).type, VARTYPE.BINARYBLOCK);
-  assert.equal(declaredMemberType({ kind: "typedArray", arrayType: "Uint32Array" }).type, VARTYPE.INVALID);
+  assert.equal(declaredMemberType({ kind: "typedArray", arrayType: "Uint32Array" }).type, VARTYPE.UINT32ARRAY);
   // A runtime-only member has no VARTYPE, so a file naming it fails with Carbon's "Invalid attribute type".
   assert.equal(declaredMemberType({ kind: "rootRef", runtimeOnly: true }).type, VARTYPE.INVALID);
 });

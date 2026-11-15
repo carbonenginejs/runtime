@@ -163,6 +163,9 @@ test("a wrapped TriMatrix member fills the instance's own mat4 from the matrix's
   // The wrapper's value type is checked where it is declared, before any class registers.
   assert.throws(() => CjsSchema.type.vec3.wrapped("TriMatrix"), /TriMatrix does not hold vec3/);
   assert.throws(() => CjsSchema.type.mat4.wrapped("TriNothing"), /TriNothing is not a Blue math wrapper/);
+  // The data form meets the same check.
+  class WrongOwner { transform = new Float32Array(3); }
+  assert.throws(() => CjsSchema.define(WrongOwner, { name: "BlackReadsMatrixWrongOwner", members: [ { ...member("transform", "vec3"), type: { kind: "vec3", wrapped: "TriMatrix" } } ] }), /TriMatrix does not hold vec3/);
   const file = kind =>
   {
     const f = new Fixture();

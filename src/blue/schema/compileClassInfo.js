@@ -118,13 +118,14 @@ export function declaredMemberType(declared)
   }
 
   // A value type: its trait gives the VARTYPE, sign and element count. Object members are worked out below.
-  const kind = type.kind;
+  // A typed array's trait is named for its constructor (`Float32Array` is `float32Array`), as the graph names it.
+  const kind = type.kind === "typedArray" ? type.arrayType.charAt(0).toLowerCase() + type.arrayType.slice(1) : type.kind;
   const trait = Object.hasOwn(GRAPH_TYPES, kind) ? GRAPH_TYPES[kind] : undefined;
   if (trait !== undefined && !OBJECT_STORAGE.has(trait.storage))
   {
     result.type = trait.storage;
     result.signed = trait.signed === true;
-    result.length = trait.length ?? 0;
+    result.length = type.length ?? trait.length ?? 0;
     return result;
   }
   if (kind === "rootRef") result.type = VARTYPE.IROOTPTR;

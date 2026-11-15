@@ -17,7 +17,7 @@ import { composeValuesDecorator, createValuesTransport } from "../compose/values
 import { isExportableField, isTransportedDeclaration, isWritableField } from "../compose/fieldFlags.js";
 import { blueEnums, CjsBlueEnumRegistry } from "../enums/CjsBlueEnumRegistry.js";
 import { EDITFLAGS } from "../../global/consts/blue.js";
-import { getWrapperLayout } from "../../global/model/graph/blueMathWrappers.js";
+import { requireWrapperHolds } from "../../global/model/graph/blueMathWrappers.js";
 import { TriSettingNames } from "../../global/consts/trinity.js";
 import { CjsUnusedMethodError } from "../../global/utils/errors/CjsUnusedMethodError.js";
 import { unregisterClass, getRegisteredConstructor, getClassRegistrationRevision, ClassRegistrarNullFactory } from "../exposure/classes/registry.js";
@@ -791,19 +791,19 @@ export class CjsSchema
          * Declares array item types; native struct layout belongs to the item class.
          */
         array: (itemType, options) => collectionDecorator("array", itemType, options),
-        boolean: fieldDecorator("type", { kind: "boolean" }),
+        boolean: valueTypeDecorator("boolean"),
         color: wrappableTypeDecorator("color"),
-        int8Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Int8Array" }),
-        uint8Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Uint8Array" }),
-        uint8ClampedArray: fieldDecorator("type", { kind: "typedArray", arrayType: "Uint8ClampedArray" }),
-        int16Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Int16Array" }),
-        uint16Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Uint16Array" }),
-        int32Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Int32Array" }),
-        uint32Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Uint32Array" }),
-        float32Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Float32Array" }),
-        float64Array: fieldDecorator("type", { kind: "typedArray", arrayType: "Float64Array" }),
-        bigInt64Array: fieldDecorator("type", { kind: "typedArray", arrayType: "BigInt64Array" }),
-        bigUint64Array: fieldDecorator("type", { kind: "typedArray", arrayType: "BigUint64Array" }),
+        int8Array: typedArrayDecorator("Int8Array"),
+        uint8Array: typedArrayDecorator("Uint8Array"),
+        uint8ClampedArray: typedArrayDecorator("Uint8ClampedArray"),
+        int16Array: typedArrayDecorator("Int16Array"),
+        uint16Array: typedArrayDecorator("Uint16Array"),
+        int32Array: typedArrayDecorator("Int32Array"),
+        uint32Array: typedArrayDecorator("Uint32Array"),
+        float32Array: typedArrayDecorator("Float32Array"),
+        float64Array: typedArrayDecorator("Float64Array"),
+        bigInt64Array: typedArrayDecorator("BigInt64Array"),
+        bigUint64Array: typedArrayDecorator("BigUint64Array"),
         // A bitmask: uint32 storage whose values combine (Carbon's FLAGS bit, 0x100).
         flags: values => combinedFieldDecorator({ type: { kind: "uint32", flags: true }, enum: normalizeEnumDefinition(values) }),
         /**
@@ -818,17 +818,17 @@ export class CjsSchema
         binary: fieldDecorator("type", { binary: true }),
         define: definition => classDefinitionDecorator(definition),
         expression: fieldDecorator("type", { kind: "expression", js: "string" }),
-        float32: fieldDecorator("type", { kind: "float32" }),
-        float64: fieldDecorator("type", { kind: "float64" }),
-        int8: fieldDecorator("type", { kind: "int8" }),
-        int16: fieldDecorator("type", { kind: "int16" }),
-        int32: fieldDecorator("type", { kind: "int32" }),
-        int64: fieldDecorator("type", { kind: "int64" }),
+        float32: valueTypeDecorator("float32"),
+        float64: valueTypeDecorator("float64"),
+        int8: valueTypeDecorator("int8"),
+        int16: valueTypeDecorator("int16"),
+        int32: valueTypeDecorator("int32"),
+        int64: valueTypeDecorator("int64"),
         /**
          * Declares list item types; native struct layout belongs to the item class.
          */
         list: (itemType, options) => collectionDecorator("list", itemType, options),
-        mat3: fieldDecorator("type", { kind: "mat3" }),
+        mat3: valueTypeDecorator("mat3"),
         mat4: wrappableTypeDecorator("mat4"),
         map: valueType => fieldDecorator("type", { kind: "map", valueType }),
         /**
@@ -877,8 +877,8 @@ export class CjsSchema
          */
         scriptCallback: fieldDecorator("type", { kind: "scriptCallback" }),
         set: itemType => fieldDecorator("type", { kind: "set", itemType }),
-        string: fieldDecorator("type", { kind: "string" }),
-        wstring: fieldDecorator("type", { kind: "wstring" }),
+        string: valueTypeDecorator("string"),
+        wstring: valueTypeDecorator("wstring"),
         /** Target ownership spellings retain the existing reader/storage class information. */
         object: {
             embed: className => objectTypeDecorator("root", className),
@@ -894,14 +894,17 @@ export class CjsSchema
          */
         structList: className => fieldDecorator("type", { kind: "structList", className: requireClassName(className) }),
         typedArray: arrayType => fieldDecorator("type", { kind: "typedArray", arrayType }),
-        uint8: fieldDecorator("type", { kind: "uint8" }),
-        uint16: fieldDecorator("type", { kind: "uint16" }),
-        uint32: fieldDecorator("type", { kind: "uint32" }),
-        uint64: fieldDecorator("type", { kind: "uint64" }),
+        uint8: valueTypeDecorator("uint8"),
+        uint16: valueTypeDecorator("uint16"),
+        uint32: valueTypeDecorator("uint32"),
+        uint64: valueTypeDecorator("uint64"),
         unknown: fieldDecorator("type", { kind: "unknown" }),
-        vec2: fieldDecorator("type", { kind: "vec2" }),
+        vec2: valueTypeDecorator("vec2"),
         vec3: wrappableTypeDecorator("vec3"),
-        vec4: fieldDecorator("type", { kind: "vec4" }),
+        vec2d: valueTypeDecorator("vec2d"),
+        vec3d: valueTypeDecorator("vec3d"),
+        vec4d: valueTypeDecorator("vec4d"),
+        vec4: valueTypeDecorator("vec4"),
 
         // An enum names the vocabulary a field's values are drawn from, which
         // is part of its type - it belongs here beside int32 and string rather
@@ -1620,6 +1623,54 @@ function createComponentsNamespace()
 // Without it the object form would need its own spelling of every namespace
 // value, and two spellings of `impl.adapted` will eventually disagree.
 /**
+ * A value-type decorator that also offers `.array(length)`: a list of that value, `length` of them when given
+ * (`@type.vec3.array(3)` is three vec3), any number when not. The list is declared as `type.array(kind)` was, with
+ * its count, so the graph reads it as a values list and its row's `length` holds the count.
+ *
+ * @param {string} kind The value type.
+ * @returns {Function} The decorator, with `array(length)`.
+ */
+function valueTypeDecorator(kind)
+{
+    const decorator = fieldDecorator("type", { kind });
+    decorator.array = length => fieldDecorator("type", length === undefined ? { kind: "array", itemType: kind } : { kind: "array", itemType: kind, length: requireCount(length) });
+    return decorator;
+}
+
+/**
+ * A typed-array decorator, bare (`@type.float32Array`, any length) or counted (`@type.float32Array(6 * 16)`, one
+ * flat array of that many elements; the row's `length` holds it).
+ *
+ * @adapted decorator syntax gives the two forms one name, so the first argument tells them apart: a number is the
+ *   count, anything else is the decorated field
+ * @param {string} arrayType The typed array's constructor name.
+ * @returns {Function} The decorator.
+ */
+function typedArrayDecorator(arrayType)
+{
+    const declared = { kind: "typedArray", arrayType };
+    const bare = fieldDecorator("type", declared);
+    return describeDecorator(function typedArrayFieldDecorator(targetOrCount, context)
+    {
+        if (typeof targetOrCount === "number" && context === undefined) return fieldDecorator("type", { ...declared, length: requireCount(targetOrCount) });
+        return bare(targetOrCount, context);
+    }, "type", declared);
+}
+
+/**
+ * A declared count: a positive integer.
+ *
+ * @param {number} length The count.
+ * @returns {number} The count.
+ * @throws {TypeError} When it is not a positive integer.
+ */
+function requireCount(length)
+{
+    if (!Number.isInteger(length) || length < 1) throw new TypeError(`A declared length is a positive integer, not ${length}.`);
+    return length;
+}
+
+/**
  * A value-type decorator that also offers `.wrapped(className)`: the same value
  * held by a Carbon Blue math wrapper member (`PTriMatrix`, `PTriVector`,
  * `PTriQuaternion`, `PTriColor`). On the wire that member is an embedded
@@ -1627,15 +1678,15 @@ function createComponentsNamespace()
  * into the plain value, e.g. `@type.mat4.wrapped("TriMatrix")`.
  *
  * @param {string} kind The value type.
- * @returns {Function} The decorator, with `wrapped(className)`, which throws when the class is not a Blue math
- *   wrapper or does not hold this value type.
+ * @returns {Function} The decorator, with `array(length)` and `wrapped(className)`, which throws when the class is
+ *   not a Blue math wrapper or does not hold this value type.
  */
 function wrappableTypeDecorator(kind)
 {
-    const decorator = fieldDecorator("type", { kind });
+    const decorator = valueTypeDecorator(kind);
     decorator.wrapped = className =>
     {
-        if (!getWrapperLayout(className).types.includes(kind)) throw new TypeError(`${className} does not hold ${kind}.`);
+        requireWrapperHolds(className, kind);
         return fieldDecorator("type", { kind, wrapped: className });
     };
     return decorator;
@@ -3535,6 +3586,8 @@ function normalizeManualMember(name, definition, memberType)
             member[namespace] = mergeNamespace(member[namespace], value);
         }
     }
+    // A data-form wrapped member meets the check `.wrapped(className)` makes.
+    if (isPlainObject(member.type) && member.type.wrapped !== undefined) requireWrapperHolds(member.type.wrapped, member.type.kind);
 
     return member;
 }

@@ -33,3 +33,16 @@ export function getWrapperLayout(className)
   if (!layout) throw new TypeError(`${className} is not a Blue math wrapper.`);
   return layout;
 }
+
+/**
+ * Checks that a member may be persisted as the given wrapper: the class is a Blue math wrapper and holds the
+ * member's value type. Every declaration form calls it, decorator and data alike, before its class registers.
+ *
+ * @param {string} className The wrapper class the member declares.
+ * @param {string} valueType The member's value type.
+ * @throws {TypeError} When the class is not a Blue math wrapper, or holds another value type.
+ */
+export function requireWrapperHolds(className, valueType)
+{
+  if (!getWrapperLayout(className).types.includes(valueType)) throw new TypeError(`${className} does not hold ${valueType}.`);
+}
