@@ -125,7 +125,12 @@ test("a library's generic category overrides the shipped default of that name", 
     installed.generic.categories.set("hair", Object.assign(new CjsCharacterDataCategory(), { options: "type", maps: "", palettes: "own", areas: "none" }));
     library.InstallLibrary(installed);
     await assert.rejects(library.FetchOptionMaps({ sex: "female", category: "hair", id: "x" }), /No maps rule for the paper doll category hair/);
-    assert.equal(CjsCharacterLibraryManager.categories.hair.maps, "variation", "the defaults are not changed");
+    assert.equal(library.GetCategoryRules().get("hair").maps, "", "the rules in force are the generic's");
+    assert.equal(new CjsCharacterLibraryManager().GetCategoryRules().get("hair").maps, "variation", "the defaults are not changed");
+    const rules = library.GetCategoryRules();
+    rules.get("outer").maps = "changed";
+    assert.equal(library.GetCategoryRules().get("outer").maps, "garment", "the caller's own copy");
+    assert.equal(CjsCharacterLibraryManager.categories, undefined, "no public table: the library answers the rules in force");
 });
 
 test("lashes: one option per .type, their composed maps, no palette, so the category's default colours", async t =>

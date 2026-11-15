@@ -1,7 +1,7 @@
 // The character factory's DNA core: reading and writing a DNA, the sex defaults, and their merge.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsCharacterFactory, CjsCharacterLibraryManager, CjsCharacterPdpType, CjsPaperDollDefinition, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
+import { CjsCharacterDataCategory, CjsCharacterFactory, CjsCharacterLibraryManager, CjsCharacterPdpType, CjsPaperDollDefinition, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
 import { installPartsLibrary } from "../../support/partsLibrary.js";
 
@@ -197,4 +197,18 @@ test("a recipe reads into a DNA: each entry's option on, its weight and colours;
   assert.deepEqual(CjsCharacterFactory.merge(dna).modifiers, dna.modifiers);
   assert.throws(() => CjsCharacterFactory.readJSON({ ...dna, modifiers: [ { wat: 1 } ] }), /Unknown field wat on character DNA modifier 0/u);
   assert.throws(() => CjsCharacterFactory.readJSON({ ...dna, modifiers: [ { weight: "1" } ] }), /modifier 0 weight is not a number/u);
+});
+
+test("a recipe reads by the category rules in force: a library's generic category reaches it", async t =>
+{
+  const ROOT = "res:/graphics/character/female/paperdoll/", PRS = "res:/graphics/character/dnafiles/coat.prs";
+  const recipe = [ "- female", "- { category: outer, path: outer/coat01, variation: v9, weight: 1.0 }", "" ].join("\n");
+  const { library } = installPartsLibrary(t, ROOT, [ PRS, ROOT + "outer/coat01/types/coat01.type" ], { text: { [PRS]: recipe } });
+  assert.equal((await CjsCharacterFactory.readRecipe(PRS)).dna.parts.outer.option, "recipe", "the shipped garment rule: the recipe option");
+
+  // A library whose generic says outer is no garment category: no type presets the coat, and no recipe option stands in.
+  const installed = library.GetLibrary();
+  installed.generic.categories.set("outer", Object.assign(new CjsCharacterDataCategory(), { options: "type", maps: "name", palettes: "own", areas: "none" }));
+  library.InstallLibrary(installed);
+  await assert.rejects(CjsCharacterFactory.readRecipe(PRS), /outer\/coat01: no outer option presets it \(variation 'v9', colour variation ''\)$/u);
 });

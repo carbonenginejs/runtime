@@ -56,6 +56,13 @@ const defaultPaperDolls = { female: defaultFemalePaperDoll, male: defaultMalePap
  *   rules: CjsCharacterAreaShaderRule[] }} CjsCharacterAreaShaderData
  */
 
+/**
+ * One paper doll category's rules in force (`factory/defaults/categories.json` says what each value means).
+ * @typedef {{ options: (""|"type"|"folder"|"self"), maps: (""|"name"|"composed"|"variation"|"accessory"|"catalog"|"garment"),
+ *   palettes: (""|"own"|"shared"|"variant"|"folders"|"styles"), areas: (""|"zone"|"detail"|"count"|"stated"|"none"),
+ *   defaultColors: number[][], requiresModel: boolean, skipPatternedPalettes: boolean }} CjsCharacterCategoryRule
+ */
+
 /** Installs, loads, and queries one combined hydrated character library. */
 export class CjsCharacterLibraryManager
 {
@@ -394,17 +401,9 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * The shipped paper doll category rules (`factory/defaults/categories.json`, which says what each value means),
-     * by category path below the sex's paper doll root. An empty rule is no rule. The parts library reads the rules
-     * in force through `_Categories`, where a library's generic overrides these by name.
-     * @type {Object<string, { options: (""|"type"|"folder"|"self"), maps: (""|"name"|"composed"|"variation"|"accessory"|"catalog"|"garment"), palettes: (""|"own"|"shared"|"variant"|"folders"|"styles"), areas: (""|"zone"|"detail"|"count"|"stated"|"none"), defaultColors?: number[][], requiresModel?: boolean, skipPatternedPalettes?: boolean }>}
-     */
-    static categories = categoryDefaults.categories;
-
-    /**
      * The category a paper doll part reads (`factory/defaults/categories.json`, `parts`): the path below the sex's paper
-     * doll root of its options. The parts' own classes declare none; the library answers. The shipped defaults only for
-     * now: a library's generic override of the parts comes with the factory's categories (step 11 of the generic plan).
+     * doll root of its options. The parts' own classes declare none; the library answers. The shipped defaults only: a
+     * library's generic overrides category rules (`GetCategoryRules`), not which category a part reads.
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python.
      * @param {string} member A `CjsPaperDollDefinition.parts` member (`hair`, `topMiddle`).
@@ -467,14 +466,14 @@ export class CjsCharacterLibraryManager
     /**
      * A category's options, from the index alone (no file is read): each option's id, its `.type` (null for a
      * folder option), its folder and its path below the root, and for a folder option the bloodlines its `.type`
-     * names say wear it. Sorted by `.type` path, or by folder. A category that `requiresModel` (`categories`) offers
+     * names say wear it. Sorted by `.type` path, or by folder. A category that `requiresModel` (`GetCategoryRules`) offers
      * only the types whose part ships a mesh, which reads their `.type`s.
      *
      * Ours (non-carbon-extensions.md § *The shared character library*): the game's paper doll is Python client
      * code, not Carbon. The listing each paper doll source made for itself, moved into the parts library.
      *
      * @param {"female"|"male"} sex The sex.
-     * @param {string} category The category path below the root (a key of `categories`).
+     * @param {string} category The category path below the root (a key of `GetCategoryRules`).
      * @returns {Promise<Array<{ sex: string, category: string, id: string, typePath: ?string, typePaths: string[], folder: string, path: string, bloodlines: string[] }>>}
      *   The options; the caller's own copy.
      * @throws {Error} For a category the library has no rule for.
@@ -682,7 +681,7 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * An option's maps at the character texture quality, by its category's rule (`categories`):
+     * An option's maps at the character texture quality, by its category's rule (`GetCategoryRules`):
      * - `name`: `{ paths }`, one map per name, a variation's replacing the part folder's;
      * - `composed`: `{ roles, skipped }`, the option folder's composed maps by role, and those not named so;
      * - `variation`: `{ roles, skipped }`, as `composed` over the option's folders (`FetchOptionPart`), a name in the
@@ -768,7 +767,7 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * An option's palettes by path, with their kinds (`paletteRecord`), by its category's rule (`categories`): `own`,
+     * An option's palettes by path, with their kinds (`paletteRecord`), by its category's rule (`GetCategoryRules`): `own`,
      * the `.color` files directly in its folder; `shared`, those, then those in the category's `colors/`; `variant`,
      * its own where its `.type`'s colour variant names one of them, else the category's `colors/`; `folders`, the
      * `.color` files directly in each of an accessory's folders (`_AccessoryFolders`); `styles`, every option's of the
@@ -826,7 +825,7 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * The colour areas (1 to 3) an option paints, decoded once, by its category's rule (`categories`): `zone`, the
+     * The colour areas (1 to 3) an option paints, decoded once, by its category's rule (`GetCategoryRules`): `zone`, the
      * areas its zone map selects (`FetchMaterialMaskAreas__Zone`: layers that paint every pixel of their zone);
      * `detail`, the areas its colourise detail paints through its zone (`FetchMaterialMaskAreas`), each region's
      * pair joined, or for a garment its metadata's `numColorAreas` where stated; `count`, its metadata's
@@ -1261,17 +1260,30 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * The paper doll category rules in force, by category path: the shipped defaults (`categories`), each replaced by
-     * the installed library's generic category of the same name. Built once per install. A default that lists no
-     * `defaultColors` has none; one that lists no `requiresModel` or `skipPatternedPalettes` has them off.
-     * @returns {Map<string, { options: string, maps: string, palettes: string, areas: string, defaultColors: number[][], requiresModel: boolean, skipPatternedPalettes: boolean }>}
-     *   The rules; not to be changed.
+     * The paper doll category rules in force, by category path below the sex's paper doll root (`_Categories`): the
+     * shipped defaults (`factory/defaults/categories.json`, which says what each value means) with the installed
+     * library's generic categories over them. An empty rule is no rule.
+     *
+     * Ours, as `FetchOptions`.
+     * @returns {Map<string, CjsCharacterCategoryRule>} The rules, the caller's own copy.
+     */
+    GetCategoryRules()
+    {
+        return CjsCharacterLibraryManager.copy(this._Categories());
+    }
+
+    /**
+     * The paper doll category rules in force, by category path: the shipped defaults
+     * (`factory/defaults/categories.json`), each replaced by the installed library's generic category of the same name.
+     * Built once per install. A default that lists no `defaultColors` has none; one that lists no `requiresModel` or
+     * `skipPatternedPalettes` has them off.
+     * @returns {Map<string, CjsCharacterCategoryRule>} The rules; not to be changed.
      */
     _Categories()
     {
         if (this._categories === null || this._categoriesGeneration !== this._installGeneration)
         {
-            const rules = new Map(Object.entries(CjsCharacterLibraryManager.categories).map(([ name, rule ]) => [ name, {
+            const rules = new Map(Object.entries(categoryDefaults.categories).map(([ name, rule ]) => [ name, {
                 ...rule, defaultColors: rule.defaultColors ?? [], requiresModel: rule.requiresModel ?? false, skipPatternedPalettes: rule.skipPatternedPalettes ?? false
             } ]));
             for (const [ name, category ] of this._library.generic.categories)

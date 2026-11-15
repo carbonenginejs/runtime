@@ -287,7 +287,7 @@ export class CjsCharacterFactory
         const recipeSex = recipe.sex || sex;
         if (recipeSex !== "female" && recipeSex !== "male") throw new Error("The recipe " + path + " names no sex, and none was given");
         const dna = { sex: recipeSex, parts: {}, modifiers: recipe.modifiers.map(entry => CjsCharacterFactory.modifierValues(entry)) };
-        const problems = [], unapplied = [], parts = CjsCharacterFactory._partsByCategory();
+        const rules = library.GetCategoryRules(), problems = [], unapplied = [], parts = CjsCharacterFactory._partsByCategory(rules);
         for (const entry of recipe.modifiers)
         {
             const found = await library.ResolveRecipeEntry(recipeSex, entry);
@@ -307,11 +307,12 @@ export class CjsCharacterFactory
                 // An entry naming a part's bare state (feet_nude) turns the part off.
                 if (found.nude === true) { dna.parts[name] = { enabled: false }; continue; }
                 // A garment no `.type` presets takes the part's `recipe` option.
-                const recipeOption = CjsCharacterLibraryManager.categories[found.category].maps === "garment"
+                const garment = rules.get(found.category).maps === "garment";
+                const recipeOption = garment
                     ? await library.FetchRecipeOption(recipeSex, found.category, entry) : null;
                 if (recipeOption === null)
                 {
-                    unapplied.push(entry.path + ": no " + name + " option presets it (variation '" + entry.variation + "', colour variation '" + entry.colorVariation + "')" + (CjsCharacterLibraryManager.categories[found.category].maps === "garment" ? ", and the build ships no such folder" : ""));
+                    unapplied.push(entry.path + ": no " + name + " option presets it (variation '" + entry.variation + "', colour variation '" + entry.colorVariation + "')" + (garment ? ", and the build ships no such folder" : ""));
                     continue;
                 }
                 if (Object.hasOwn(dna.parts, name)) problems.push(entry.path + ": a second entry for " + name + "; the last applies");
@@ -479,26 +480,20 @@ export class CjsCharacterFactory
      * and the one library category below it that the library reads in full (has a maps rule). Two parts' categories are
      * one folder up:
      * `tattoo` reads `tattoo/head` (`tattoo/armleft` has no maps rule), and `skintone` reads `skintone/basic`.
+     * @param {Map<string, { maps: string }>} rules The category rules in force (`CjsCharacterLibraryManager.GetCategoryRules`).
      * @returns {Map<string, string>}
      */
-    static _partsByCategory()
+    static _partsByCategory(rules)
     {
-        if (CjsCharacterFactory._partsByCategoryCache === null)
+        const parts = new Map();
+        for (const name of CjsPaperDollDefinition.parts) parts.set(CjsCharacterLibraryManager.partCategory(name), name);
+        for (const [ category, rule ] of rules)
         {
-            const parts = new Map();
-            for (const name of CjsPaperDollDefinition.parts) parts.set(CjsCharacterLibraryManager.partCategory(name), name);
-            for (const [ category, rule ] of Object.entries(CjsCharacterLibraryManager.categories))
-            {
-                const parent = category.slice(0, category.lastIndexOf("/"));
-                if (rule.maps !== "" && !parts.has(category) && parts.has(parent)) parts.set(category, parts.get(parent));
-            }
-            CjsCharacterFactory._partsByCategoryCache = parts;
+            const parent = category.slice(0, category.lastIndexOf("/"));
+            if (rule.maps !== "" && !parts.has(category) && parts.has(parent)) parts.set(category, parts.get(parent));
         }
-        return CjsCharacterFactory._partsByCategoryCache;
+        return parts;
     }
-
-    /** The parts by category, made once (`_partsByCategory`). @type {?Map<string, string>} */
-    static _partsByCategoryCache = null;
 
     /**
      * One DNA part, checked and copied.
