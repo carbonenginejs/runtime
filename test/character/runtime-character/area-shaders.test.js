@@ -19,7 +19,7 @@ const ROOT = "res:/graphics/character/female/paperdoll/";
 const MODEL = ROOT + "topinner/torso_nude/torso_nude.black", FLOATCLIP = ROOT + "topinner/torso_float/torso_float.black";
 const HELDCLIP = ROOT + "topinner/torso_held/torso_held.black", UNKNOWN = ROOT + "topinner/torso_other/torso_other.black";
 const BRDF = "res:/texture/global/brdflibrary.dds", NDOTL = "res:/texture/global/ndotllibrary.png";
-const ONE = [ 1, 1, 1, 1 ], IDENTITY = [ 0, 0, 1, 1 ];
+const CLIP = [ 1, 0, 0, 0 ], IDENTITY = [ 0, 0, 1, 1 ];
 const SHADERS = "res:/graphics/effect/managed/interior/avatar/";
 
 /**
@@ -100,7 +100,7 @@ test("an authored area's setup: the resolved values its effect does not already 
         "the empty Fresnel slot takes the default, the authored NdotL stays, the rect becomes its placement");
     assert.deepEqual(torso.whole.setup, { textures: { FresnelLookupMap: BRDF }, parameters: {} }, "an authored texture wins; the identity is already placed");
     assert.deepEqual(torso.unplaced.setup, { textures: { FresnelLookupMap: BRDF, ColorNdotLLookupMap: NDOTL }, parameters: {} }, "no slots: every default");
-    assert.deepEqual([ torso.seam.setup.parameters.DecalClip, torso.shell.setup.parameters.DecalClip ], [ ONE, ONE ],
+    assert.deepEqual([ torso.seam.setup.parameters.DecalClip, torso.shell.setup.parameters.DecalClip ], [ CLIP, CLIP ],
         "a body carrier's decal and transparent DoubleLinear areas clip");
     assert.equal(torso.skin.setup.parameters.DecalClip, undefined, "its opaque one does not");
     assert.equal(torso.band.setup.parameters.DecalClip, undefined, "the hair rule needs the hair category");
@@ -114,7 +114,7 @@ test("the same model for a hair style: its BRDF areas in the hair or body region
 {
     const installed = library(t);
     const hair = await areas(installed, "hair");
-    assert.deepEqual([ hair.band.setup.parameters.DecalClip, hair.skin.setup.parameters.DecalClip ], [ ONE, ONE ]);
+    assert.deepEqual([ hair.band.setup.parameters.DecalClip, hair.skin.setup.parameters.DecalClip ], [ CLIP, CLIP ]);
     assert.equal(hair.whole.setup.parameters.DecalClip, undefined, "the whole image is not the hair or body region");
     assert.equal(hair.brow.setup.parameters.DecalClip, undefined, "nor is the head region");
     assert.equal(hair.unplaced.setup.parameters.DecalClip, undefined, "an unplaced area is in no region");
@@ -137,9 +137,9 @@ test("a new part resolves the same way from the values given for it, and from no
     const fresh = new CjsCharacterLibraryManager();
     const resolve = (provided, category = "topinner") => fresh._ResolveAreaValues("skinnedavatarbrdfdoublelinear.fx", category, TriBatchType.TRIBATCHTYPE_TRANSPARENT, provided);
     assert.deepEqual(resolve({ textures: {}, parameters: {} }),
-        { region: null, textures: { FresnelLookupMap: BRDF, ColorNdotLLookupMap: NDOTL }, parameters: { DecalClip: ONE } }, "nothing given: the defaults and the rule");
+        { region: null, textures: { FresnelLookupMap: BRDF, ColorNdotLLookupMap: NDOTL }, parameters: { DecalClip: CLIP } }, "nothing given: the defaults and the rule");
     assert.deepEqual(resolve({ textures: { ColorNdotLLookupMap: "res:/given.png" }, parameters: { TransformUV0: [ 0, 0, 0.5, 1 ], Gloss: [ 2, 2, 2, 2 ] } }),
-        { region: "body", textures: { FresnelLookupMap: BRDF, ColorNdotLLookupMap: "res:/given.png" }, parameters: { TransformUV0: IDENTITY, Gloss: [ 2, 2, 2, 2 ], DecalClip: ONE } },
+        { region: "body", textures: { FresnelLookupMap: BRDF, ColorNdotLLookupMap: "res:/given.png" }, parameters: { TransformUV0: IDENTITY, Gloss: [ 2, 2, 2, 2 ], DecalClip: CLIP } },
         "given values over the defaults, the placement over the given rect, the rule last");
 });
 
@@ -195,12 +195,12 @@ test("applying a setup sets each texture and each parameter as a Vector4, over t
     effect.SetResourceTexture2D("FresnelLookupMap", "");
     effect.SetParameter__Vector4("TransformUV0", [ 0, 0, 0.5, 1 ]);
 
-    CjsPaperDollInstance.applyAreaSetup(effect, { textures: { FresnelLookupMap: BRDF }, parameters: { TransformUV0: IDENTITY, DecalClip: ONE } });
+    CjsPaperDollInstance.applyAreaSetup(effect, { textures: { FresnelLookupMap: BRDF }, parameters: { TransformUV0: IDENTITY, DecalClip: CLIP } });
     assert.equal(effect.GetResourceByName("FresnelLookupMap").resourcePath, BRDF);
     const named = name => effect.parameters.filter(parameter => parameter.name === name);
     assert.equal(named("TransformUV0").length, 1, "the authored TransformUV0 takes the value; no second one");
     assert.deepEqual(Array.from(named("TransformUV0")[0].value), IDENTITY);
-    assert.deepEqual(Array.from(named("DecalClip")[0].value), ONE);
+    assert.deepEqual(Array.from(named("DecalClip")[0].value), CLIP);
 });
 
 test("the shipped area shaders are in the generic's own shape, built into records by the graph", () =>

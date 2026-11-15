@@ -200,7 +200,8 @@ export const genericDefaults = {
     // glass helmet, the only one) sample the hair maps whole at their own UVs: TransformUV0 the identity, over the
     // area placement. The drape (a top's lower edge, `dependants/drape`, DoubleLinear decal areas in every model of build
     // 3698585) samples the body atlas whole (TransformUV0 the identity) and clips as a decal (DecalClip 1; it authors
-    // none, and the compiled 0 drew the black below the hem). A value is four floats; a float parameter reads the first.
+    // none, and the compiled 0 drew the black below the hem). A value is four floats; a float parameter reads the first,
+    // and a one-component shader constant (DecalClip) is written [ value, 0, 0, 0 ].
     // In the generic's own shape: `areaShaders`, a CjsCharacterDataShader each, keyed by `shader`; a library's generic
     // shader replaces the shipped one of its name. Edit freely: the library reads this file as data.
     areaShaders: [
@@ -217,7 +218,7 @@ export const genericDefaults = {
                     categories: [ { str: "hair" } ],
                     batches: [],
                     regions: [ { str: "hair" }, { str: "body" } ],
-                    parameters: [ { name: "DecalClip", value: [ 1, 1, 1, 1 ] } ]
+                    parameters: [ { name: "DecalClip", value: [ 1, 0, 0, 0 ] } ]
                 }
             ]
         },
@@ -234,7 +235,7 @@ export const genericDefaults = {
                     categories: [ { str: "hair" } ],
                     batches: [],
                     regions: [ { str: "hair" }, { str: "body" } ],
-                    parameters: [ { name: "DecalClip", value: [ 1, 1, 1, 1 ] } ]
+                    parameters: [ { name: "DecalClip", value: [ 1, 0, 0, 0 ] } ]
                 }
             ]
         },
@@ -251,7 +252,7 @@ export const genericDefaults = {
                     categories: [ { str: "hair" } ],
                     batches: [],
                     regions: [ { str: "hair" }, { str: "body" } ],
-                    parameters: [ { name: "DecalClip", value: [ 1, 1, 1, 1 ] } ]
+                    parameters: [ { name: "DecalClip", value: [ 1, 0, 0, 0 ] } ]
                 },
                 {
                     categories: [
@@ -266,7 +267,7 @@ export const genericDefaults = {
                     ],
                     batches: [ { str: "TRIBATCHTYPE_DECAL" }, { str: "TRIBATCHTYPE_TRANSPARENT" } ],
                     regions: [],
-                    parameters: [ { name: "DecalClip", value: [ 1, 1, 1, 1 ] } ]
+                    parameters: [ { name: "DecalClip", value: [ 1, 0, 0, 0 ] } ]
                 },
                 {
                     categories: [ { str: "dependants/drape" } ],
