@@ -6,6 +6,7 @@ import { CjsSchema, type } from "#schema";
 import { Tr2PrimitiveSet } from "./Tr2PrimitiveSet.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { TriangleData } from "./TriangleData.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
 import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
@@ -40,7 +41,7 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   _destroyed = false;
 
   /** m_triangles (std::vector<TriangleData>) */
-  @type.array({ kind: "rawStruct", className: "TriangleData" })
+  @type.object.embed.array("TriangleData")
   triangles = [];
 
   /** m_maxCurrentTriangleCount (unsigned int) */
@@ -52,24 +53,24 @@ export class Tr2SolidSet extends Tr2PrimitiveSet
   currentSubmittedTriangleCount = 0;
 
   /**
-   * Carbon method AddTriangle (MAP_METHOD_AND_WRAP).
+   * Carbon method AddTriangle (MAP_METHOD_AND_WRAP; Tr2SolidSet.cpp:158-176): a TriangleData holding the three
+   * corners and the face normal.
    *
-   * @adapted
+   * @implemented
    */
   AddTriangle(position1, color1, position2, color2, position3, color3)
   {
+    const newTriangle = new TriangleData();
+    vec3.copy(newTriangle.position1, position1);
+    vec4.copy(newTriangle.color1, color1);
+    vec3.copy(newTriangle.position2, position2);
+    vec4.copy(newTriangle.color2, color2);
+    vec3.copy(newTriangle.position3, position3);
+    vec4.copy(newTriangle.color3, color3);
     const dir13 = vec3.subtract(vec3.create(), position1, position3);
     const dir21 = vec3.subtract(vec3.create(), position2, position1);
-    const normal = vec3.normalize(vec3.create(), vec3.cross(vec3.create(), dir13, dir21));
-    this.triangles.push({
-      position1: vec3.clone(position1),
-      color1: vec4.clone(color1),
-      position2: vec3.clone(position2),
-      color2: vec4.clone(color2),
-      position3: vec3.clone(position3),
-      color3: vec4.clone(color3),
-      normal
-    });
+    vec3.normalize(newTriangle.normal, vec3.cross(newTriangle.normal, dir13, dir21));
+    this.triangles.push(newTriangle);
   }
 
   /**

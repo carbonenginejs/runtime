@@ -8,6 +8,8 @@ import { type } from "#schema";
 import { Tr2PrimitiveSet } from "./Tr2PrimitiveSet.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { LineData } from "./LineData.js";
+import { Triangle } from "./Triangle.js";
 import { Tr2CpuUsage, Tr2GpuUsage, Topology } from "#consts/render-context";
 import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferAL.js";
 import { Tr2BufferDescriptionAL } from "../../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
@@ -43,7 +45,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   _destroyed = false;
 
   /** m_lines (std::vector<LineData>) */
-  @type.array({ kind: "rawStruct", className: "LineData" })
+  @type.object.embed.array("LineData")
   lines = [];
 
   /** m_maxCurrentLineCount (unsigned int) */
@@ -62,7 +64,7 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   pickingVertexBuffer = new Tr2BufferAL();
 
   /** m_triangles (std::vector<Triangle>) */
-  @type.array({ kind: "rawStruct", className: "Triangle" })
+  @type.object.embed.array("Triangle")
   triangles = [];
 
   /** m_maxCurrentTriangleCount (unsigned int) */
@@ -74,33 +76,33 @@ export class Tr2LineSet extends Tr2PrimitiveSet
   currentSubmittedTriangleCount = 0;
 
   /**
-   * Carbon method AddLine (MAP_METHOD_AND_WRAP).
+   * Carbon method AddLine (MAP_METHOD_AND_WRAP; Tr2LineSet.cpp:180-190): a LineData holding the two ends.
    *
-   * @adapted
+   * @implemented
    */
   AddLine(position1, color1, position2, color2)
   {
-    this.lines.push({
-      position1: vec3.clone(position1),
-      color1: vec4.clone(color1),
-      position2: vec3.clone(position2),
-      color2: vec4.clone(color2)
-    });
+    const newLine = new LineData();
+    vec3.copy(newLine.position1, position1);
+    vec4.copy(newLine.color1, color1);
+    vec3.copy(newLine.position2, position2);
+    vec4.copy(newLine.color2, color2);
+    this.lines.push(newLine);
   }
 
   /** Carbon method AddPickingTriangle (MAP_METHOD_AND_WRAP). */
   /**
-   * Appends a triangle to the picking list that accompanies the lines.
+   * Appends a triangle to the picking list that accompanies the lines (Tr2LineSet.cpp:193-202).
    *
-   * @adapted
+   * @implemented
    */
   AddPickingTriangle(position1, position2, position3)
   {
-    this.triangles.push({
-      position1: vec3.clone(position1),
-      position2: vec3.clone(position2),
-      position3: vec3.clone(position3)
-    });
+    const newTriangle = new Triangle();
+    vec3.copy(newTriangle.position1, position1);
+    vec3.copy(newTriangle.position2, position2);
+    vec3.copy(newTriangle.position3, position3);
+    this.triangles.push(newTriangle);
   }
 
   /**
