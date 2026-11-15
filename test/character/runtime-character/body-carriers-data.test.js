@@ -8,11 +8,9 @@ import defaults from "../../../npm/dist/character/factory/defaults/bodyCarriers.
 /** The carriers of the defaults file, without its description. */
 const fileCarriers = () => { const { description, ...carriers } = structuredClone(defaults); return carriers; };
 
-test("the library hands out the body carriers of its defaults file, and each read is a copy", () =>
+test("the defaults file holds the body carriers, and the library has no public getter or setter for them", () =>
 {
-    const library = new CjsCharacterLibraryManager();
-    const carriers = library.GetBodyCarriers();
-    assert.deepEqual(carriers, fileCarriers());
+    const carriers = fileCarriers();
     assert.deepEqual(carriers.parts.map(part => part.path), [ "topinner/torso_nude", "bottominner/legs_nude", "hands/hands_nude", "feet/feet_nude" ]);
     assert.deepEqual(carriers.parts[0].dependants, [ "dependants/sleevesupper", "dependants/sleeveslower" ]);
     assert.deepEqual(carriers.garmentDependants, [ "dependants/sleevesupper", "dependants/sleeveslower", "dependants/collar", "dependants/hood" ]);
@@ -20,11 +18,8 @@ test("the library hands out the body carriers of its defaults file, and each rea
     assert.deepEqual(carriers.meshCopy, { share: 0.1, positionScale: 10000 });
     assert.deepEqual(carriers.shells, { draw: false });
     assert.deepEqual(carriers.backingCutout, { parameter: "MaterialCutoutColor", alpha: 0 });
-    assert.equal("description" in carriers, false, "the description is the file's, not a setting");
-
-    carriers.parts.length = 0;
-    assert.equal(library.GetBodyCarriers().parts.length, 4, "the caller's own copy");
-    assert.equal(typeof CjsCharacterLibraryManager.prototype.SetBodyCarriers, "undefined", "no public setter: only the library loads the file");
+    for (const name of [ "GetBodyCarriers", "SetBodyCarriers" ])
+        assert.equal(typeof CjsCharacterLibraryManager.prototype[name], "undefined", "no " + name + ": only the library loads the file");
 });
 
 test("the cut mask clips the areas holding the rule's mask whose influence is above the rule's threshold", () =>

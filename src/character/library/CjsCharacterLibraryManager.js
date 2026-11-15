@@ -206,30 +206,12 @@ export class CjsCharacterLibraryManager
     });
 
     /**
-     * The body carriers in force (`_bodyCarriers`).
-     * @returns {{ parts: Array<{ path: string, dependants: string[] }>, garmentDependants: string[], cutMaskClip: object }} A copy.
-     */
-    GetBodyCarriers()
-    {
-        return CjsCharacterLibraryManager.copy(this._bodyCarriers);
-    }
-
-    /**
      * The dependant meshes the paper doll draws with their owner's diffuse (`CjsPaperDollInstance.meshDependantStates`):
      * each its path, owner member, the owner's state field, effect parameters and diffuse size. Read from the defaults
      * file `factory/defaults/meshDependants.json`, which only the library loads; no consumer overrides it yet.
      * @type {Array<{ path: string, owner: string, state: string, parameters: Object<string, number|number[]>, diffuseSize: number[] }>}
      */
     _meshDependants = CjsCharacterLibraryManager.copy(meshDependantDefaults.dependants);
-
-    /**
-     * The drawn dependant meshes in force (`_meshDependants`).
-     * @returns {Array<{ path: string, owner: string, state: string, parameters: Object<string, number|number[]>, diffuseSize: number[] }>} A copy.
-     */
-    GetMeshDependants()
-    {
-        return CjsCharacterLibraryManager.copy(this._meshDependants);
-    }
 
     /**
      * One sex's body carriers, read once: each carrier with its model and decoded metadata, and the carrier rules in

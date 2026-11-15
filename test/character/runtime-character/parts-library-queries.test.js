@@ -4,6 +4,8 @@ import { CjsCharacterLibraryManager, CjsCharacterObjectBuilder } from "../../../
 import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
 import "../../support/frameLoop.js";
+import bodyCarrierFile from "../../../npm/dist/character/factory/defaults/bodyCarriers.json.js";
+import meshDependantFile from "../../../npm/dist/character/factory/defaults/meshDependants.json.js";
 
 const ROOT = "res:/graphics/character/female/paperdoll/";
 const META = "!!python/object:paperDoll.AvatarPartMetaData\n";
@@ -239,7 +241,8 @@ test("the body carriers: the nude parts, the dependants they name, then the garm
     assert.deepEqual(torso.occludes, [ "hands/gloves" ]);
     assert.deepEqual(torso.shapes.requests.map(request => request.weight), [ 0.5 ]);
     assert.deepEqual([ legs.occludes, legs.shapes ], [ [], { requests: [], occlusions: [] } ], "a carrier without metadata");
-    const { parts, garmentDependants, ...rules } = library.GetBodyCarriers();
+    assert.deepEqual(Object.keys(answer).sort(), [ "backingCutout", "carriers", "cutMaskClip", "meshCopy", "shells" ], "the carriers and the rules, nothing else");
+    const { description, parts, garmentDependants, ...rules } = bodyCarrierFile;
     assert.deepEqual({ cutMaskClip: answer.cutMaskClip, meshCopy: answer.meshCopy, shells: answer.shells, backingCutout: answer.backingCutout }, rules);
     answer.carriers.length = 0;
     assert.equal((await library.FetchBodyCarriers("female")).carriers.length, 7, "the caller's own copy");
@@ -252,12 +255,14 @@ test("the drawn dependant meshes: each entry with its folder's model and one per
     const [ drape, ...rest ] = await library.FetchMeshDependants("female");
     assert.deepEqual(rest, []);
     const { versions, ...entry } = drape;
-    assert.deepEqual([ entry ], library.GetMeshDependants());
+    assert.deepEqual([ entry ], meshDependantFile.dependants);
     assert.deepEqual(versions.map(version => [ version.index, version.name, version.model.slice(ROOT.length) ]), [
         [ 0, "wide", "dependants/drape/standard/wide.black" ],
         [ 1, "tuck", "dependants/drape/standard/v1/tuck.black" ],
         [ 2, "bunchedup", "dependants/drape/standard/v2/bunchedup.black" ]
     ]);
     assert.deepEqual(reads, [], "listing reads no file");
+    drape.versions.length = 0;
+    assert.equal((await library.FetchMeshDependants("female"))[0].versions.length, 3, "the caller's own copy");
     await assert.rejects(library.FetchMeshDependants("male"), /Mesh dependant versions are not the folder and v1\.\.vN: .*standard\.black, .*v2\/loose\.black$/, "a gap in the versions");
 });

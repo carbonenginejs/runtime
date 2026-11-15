@@ -334,7 +334,7 @@ export class CjsPaperDollInstance
 
     /**
      * Each drawn dependant mesh's state for one update, by the library's entries
-     * (`CjsCharacterLibraryManager.GetMeshDependants`): shown while its owner is worn with an option, not suppressed,
+     * (`CjsCharacterLibraryManager.FetchMeshDependants`): shown while its owner is worn with an option, not suppressed,
      * its resolved garment lists the dependant, and no worn garment's own occludes remove it (`dependantMeshShown`);
      * its version is the owner's state field while shown, else 0.
      *
@@ -528,7 +528,7 @@ export class CjsPaperDollInstance
 
     /**
      * The nude carrier area effects the composed cut mask clips, by the library's rule
-     * (`CjsCharacterLibraryManager.GetBodyCarriers().cutMaskClip`): those holding the rule's mask resource whose
+     * (`CjsCharacterLibraryManager.FetchBodyCarriers(sex)`, its `cutMaskClip`): those holding the rule's mask resource whose
      * influence parameter is above its threshold. The caller sets the rule's clip parameter on them and passes only
      * nude carriers' areas: a garment's own body piece is the garment's, and its mask would cut it away.
      *
