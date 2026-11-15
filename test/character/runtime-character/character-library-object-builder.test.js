@@ -142,3 +142,10 @@ test("GetPost answers a post in either layout; ListPostNames lists both", async 
     assert.deepEqual((await library.GetPost(scalar)).lut_influence, Float64Array.of(0, 0, 0, 0));
     assert.deepEqual(await library.ListPostNames(), [ vector, scalar ]);
 });
+
+test("records the file nests take their own list forms: a material set's materials, each with its attributes' colours", () =>
+{
+    const source = "Materials:\n  C_Test:\n    Attributes:\n      color:\n      - !!python/tuple [0.5, 0.5, 0.5]\n      incandescence:\n      - !!python/tuple [0.1, 0.2, 0.3]\n    Textures: {}\n";
+    const attributes = Builder(source, "materialSets").CreateObject().Materials.get("C_Test").Attributes;
+    assert.deepEqual([ Array.from(attributes.color), Array.from(attributes.incandescence) ], [ [ 0.5, 0.5, 0.5, 1 ], [ 0.1, 0.2, 0.3, 1 ].map(Math.fround) ]);
+});

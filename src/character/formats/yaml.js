@@ -124,7 +124,52 @@ export function normalizeCharacterYamlValues(Constructor, values, sourceLists)
             else result[form.list] = items.map((item, i) => ReadTuple(className + "." + key + "[" + i + "]", item));
         }
     }
+
+    // Records the file nests (a map's values, a list's items, one member's record) normalize by their own class, so
+    // their list forms apply too (a material set's materials, each with its attributes' colours).
+    for (const [ key, value ] of Object.entries(result))
+    {
+        const type = fields.get(key);
+        if (!type || value === null || typeof value !== "object") continue;
+        const nested = (item, Item) => IsPlainRecord(item) ? normalizeCharacterYamlValues(Item, item, sourceLists) : item;
+        if (type.kind === "map")
+        {
+            const Item = RecordClass(type.valueType);
+            if (Item && IsPlainRecord(value)) result[key] = Object.fromEntries(Object.entries(value).map(([ name, item ]) => [ name, nested(item, Item) ]));
+        }
+        else if (type.kind === "list")
+        {
+            const Item = RecordClass(type.itemType);
+            if (Item && Array.isArray(value)) result[key] = value.map(item => nested(item, Item));
+        }
+        else
+        {
+            const Item = RecordClass(type);
+            if (Item) result[key] = nested(value, Item);
+        }
+    }
     return result;
+}
+
+/**
+ * The registered record class a member type holds, or null for a value type.
+ * @param {*} type A field type, a map's value type or a list's item type (a class name, or `{ className }`).
+ * @returns {?Function} The class.
+ */
+function RecordClass(type)
+{
+    const name = typeof type === "string" ? type : type?.className;
+    return name ? CjsSchema.getConstructor(name) ?? null : null;
+}
+
+/**
+ * Whether a value is a plain authored record (not an instance, a list or a reference).
+ * @param {*} value The value.
+ * @returns {boolean} Whether to normalize it.
+ */
+function IsPlainRecord(value)
+{
+    return value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype && !Object.hasOwn(value, "_ref");
 }
 
 /**
