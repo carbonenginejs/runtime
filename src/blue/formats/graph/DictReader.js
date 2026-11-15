@@ -973,13 +973,15 @@ export class DictReader extends IRootReaderBase
   }
 
   /**
-   * A dictionary member (`ReadDict`, DictReader.cpp:479-530): each value null, an
-   * anchored object, a live object, or a new one built as `ReadIRootClass` builds it,
-   * assigned under its key.
+   * A dictionary member (`ReadDict`, DictReader.cpp:479-530): each value an anchored object,
+   * a live object, or a new one built as `ReadIRootClass` builds it, assigned under its key.
    *
-   * @adapted reads our values format (a dictionary or Map, not Carbon's flat key/value list) into a new Map.
-   *   Carbon assigns into the dict the member holds; this replaces the map, as the value read did. A value
-   *   without `_type` builds the map's declared class, as a list item does. Declared reads keep their own path.
+   * @adapted reads our values format (a dictionary or Map, not Carbon's flat key/value list) into a new Map;
+   *   Carbon assigns into the dict the member holds, this replaces the map, as the value read did. A value
+   *   without `_type` builds the map's declared class, as a list item does. A null value leaves its key out, as
+   *   Carbon's Black and Yaml ReadDict do (BlackReader.cpp:522-526, YamlReader.cpp:1440-1444); Carbon's
+   *   DictReader throws on one (CreateObjectInternal, DictReader.cpp:44-49), and our values writer writes null
+   *   for an empty value. Declared reads keep their own path.
    * @param {object} instance The owner.
    * @param {object} field The map declaration.
    * @returns {boolean|undefined} Whether the member changed, or undefined when the map's values declare no
@@ -1005,7 +1007,7 @@ export class DictReader extends IRootReaderBase
     for (let i = 0; i < entries.length; i++)
     {
       const [ key, item ] = entries[i];
-      // Carbon adds a value only when it read one (`if( p )`, DictReader.cpp:517-521): a null leaves its key out.
+      // A null leaves its key out, as Carbon's Black and Yaml ReadDict add only a value they read (`if( p )`).
       if (item === null || item === undefined) continue;
       this._contextStack.push(`${parent} ['${key}' - ${i}]`);
       let value = item;

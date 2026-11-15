@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ImportDist } from "../support/allDistClasses.js";
 
-// An embedded object member that holds nothing (Carbon's owning std::unique_ptr, null) reads its values back: null
-// keeps it empty, and a dictionary gives it a new object of its declared class.
+// An embedded object member that holds nothing (an owning std::unique_ptr, or a by-value member JavaScript holds as
+// null until created) reads its values back: null keeps it empty, and a dictionary gives it a new object of its
+// declared class.
 const { CjsSchema, type } = await ImportDist("blue/schema/index.js");
 const { DictReader } = await ImportDist("blue/formats/graph/DictReader.js");
 

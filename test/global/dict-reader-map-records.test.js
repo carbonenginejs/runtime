@@ -36,7 +36,7 @@ test("a map of a record class builds each plain value as a record in the default
   assert.deepEqual(Array.from(jaw.rotation), [ 0.4, 0.5, 0.6 ]);
 });
 
-test("map values keep the reader's anchors, aliases, nulls and live references", () =>
+test("map values keep the reader's anchors, aliases and live references, and a null leaves its key out", () =>
 {
   const owner = new DictMapOwnerProbe();
   const live = new DictMapRecordProbe();
@@ -49,7 +49,7 @@ test("map values keep the reader's anchors, aliases, nulls and live references",
     later: { _id: 2, rotation: [ 4, 5, 6 ] }
   } }, null);
 
-  // A null value leaves its key out, as Carbon's ReadDict adds only a value it read (DictReader.cpp:517-521).
+  // A null value leaves its key out, as Carbon's Black and Yaml ReadDict do (BlackReader.cpp:522-526).
   assert.deepEqual([ ...owner.value.keys() ], [ "first", "back", "ahead", "live", "later" ]);
   assert.equal(owner.value.get("back"), owner.value.get("first"));
   assert.equal(owner.value.get("ahead"), owner.value.get("later"), "a forward alias resolves when the read ends");
