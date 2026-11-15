@@ -273,7 +273,8 @@ export class IRootReaderBase
      * Fills a float array member in place.
      *
      * @adapted a holder and key stand in for `Be::Var*`; the member's array is its storage, and a property gets it
-     * back through its setter; a non-finite number reads as 0, because those in client files are authoring errors
+     * back through its setter; a non-finite number reads as 0, because those in client files are authoring errors; the
+     * count is `entry.length`, not `GetFloatArraySize()`, because struct field records reach here as plain objects
      * @param {object} holder The object or array holding the member.
      * @param {string|number} key The member's place in the holder.
      * @param {object} entry The member's compiled entry.

@@ -179,6 +179,8 @@ export class CjsBlackRecordReader extends BlackReader
     /**
      * Reads a float array into a new array.
      *
+     * @adapted a record is plain data, so the array is new; the count is `entry.length`, not `GetFloatArraySize()`,
+     *   because struct field records reach here as plain objects
      * @param {object} holder The record.
      * @param {string} key The member's name.
      * @param {import("../../../global/model/graph/VarEntry.js").VarEntry} entry The member's compiled entry.

@@ -147,6 +147,8 @@ test("the Blue view is PyGetTypeInfo's members and methods", () =>
       // mType is the VARTYPE; PyGetTypeInfo reports the declaration's carbon type kind.
       const declared = rowLevels.get(entry).declarationOf(entry).type;
       if (entry.type !== declaredMemberType(declared).type) problems.push(`${name}.${memberName}: type ${entry.type}, declared ${declaredMemberType(declared).type}`);
+      // The count Blue writes alone must be the one the graph writes when it loads.
+      if (entry.length !== declaredMemberType(declared).length) problems.push(`${name}.${memberName}: length ${entry.length}, declared ${declaredMemberType(declared).length}`);
       if (getCarbonTypeDefinition(declared).kind !== info.type) problems.push(`${name}.${memberName}: kind ${getCarbonTypeDefinition(declared).kind}, typeinfo ${info.type}`);
       if ((entry.iid ?? "") !== info.iid_name) problems.push(`${name}.${memberName}: iid ${entry.iid}, typeinfo ${info.iid_name}`);
       if (JSON.stringify(entry.chooserTable) !== JSON.stringify(info.choosers)) problems.push(`${name}.${memberName}: chooser differs`);

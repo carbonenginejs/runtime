@@ -84,7 +84,7 @@ const CONTAINERS = Object.freeze({
 });
 
 /**
- * A declared type as Carbon's member type gives it: VARTYPE, sign, float count,
+ * A declared type as Carbon's member type gives it: VARTYPE, sign, element count,
  * and for an IROOT member what it holds. A type with no VARTYPE gives INVALID,
  * so reading it gives Carbon's "Invalid attribute type".
  *
@@ -111,17 +111,19 @@ export function declaredMemberType(declared)
     result.type = VARTYPE.IROOT;
     result.destination = BLACK_DESTINATION.WRAPPER;
     result.wrapperClass = type.wrapped;
+    // The count of the value the member holds, which the graph writes too.
+    result.length = Object.hasOwn(GRAPH_TYPES, type.kind) ? GRAPH_TYPES[type.kind].length ?? 0 : 0;
     return result;
   }
 
-  // A value type: its trait gives the VARTYPE, sign and float count. Object members are worked out below.
+  // A value type: its trait gives the VARTYPE, sign and element count. Object members are worked out below.
   const kind = type.kind;
   const trait = Object.hasOwn(GRAPH_TYPES, kind) ? GRAPH_TYPES[kind] : undefined;
   if (trait !== undefined && !OBJECT_STORAGE.has(trait.storage))
   {
     result.type = trait.storage;
     result.signed = trait.signed === true;
-    result.length = trait.storage === VARTYPE.FLOATARRAY ? trait.length : 0;
+    result.length = trait.length ?? 0;
     return result;
   }
   if (kind === "rootRef") result.type = VARTYPE.IROOTPTR;
