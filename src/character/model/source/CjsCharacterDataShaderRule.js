@@ -24,7 +24,7 @@ export class CjsCharacterDataShaderRule
     @type.list("string")
     batches = [];
 
-    /** The atlas regions it applies to (`CjsCharacterTextureRoles.atlas`: `body`, `head`, `hair`, `acc`); empty for any. */
+    /** The atlas regions it applies to (the texture atlas, `CjsCharacterLibraryManager.GetTextureRoles`: `body`, `head`, `hair`, `acc`); empty for any. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("string")
     regions = [];

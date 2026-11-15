@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsPaperDollDefinition, CjsPaperDollMaterialSource, CjsCharacterTextureRoles, PaperDollPalettes } from "../../../npm/dist/character/index.js";
+import { CjsCharacterLibraryManager, CjsPaperDollDefinition, CjsPaperDollMaterialSource, CjsCharacterTextureRoles, PaperDollPalettes } from "../../../npm/dist/character/index.js";
 import { Tr2Effect } from "../../../npm/dist/trinity/index.js";
 import { installPartsLibrary } from "../../support/partsLibrary.js";
 
@@ -136,17 +136,18 @@ test("maps follow today's precedence: folder, then tier, then name; undrawn name
 test("the garment names: today's first, then the ruled ones, with folder, tier, name precedence and a `*` fallback", () =>
 {
   const F = "res:/graphics/character/female/paperdoll/outer/robef01/";
+  const ROLES = new CjsCharacterLibraryManager().GetTextureRoles();
   // A 4k `<part>_s` beats a 512 `comp_body_s` in the same folder: the tier comes before the name.
-  assert.equal(CjsCharacterTextureRoles.pickGarmentMaps([ F ], [ F + "robef01_s_4k.png", F + "comp_body_s_512.png" ]).specular, F + "robef01_s_4k.png");
+  assert.equal(CjsCharacterTextureRoles.pickGarmentMaps(ROLES, [ F ], [ F + "robef01_s_4k.png", F + "comp_body_s_512.png" ]).specular, F + "robef01_s_4k.png");
   // Another part's name (`robeam01_n` in `robef01`) draws where nothing else does; two such candidates throw.
-  assert.equal(CjsCharacterTextureRoles.pickGarmentMaps([ F ], [ F + "robeam01_n.png" ]).normal, F + "robeam01_n.png");
-  assert.throws(() => CjsCharacterTextureRoles.pickGarmentMaps([ F ], [ F + "a_n.png", F + "b_n.png" ]), /Ambiguous garment maps/);
+  assert.equal(CjsCharacterTextureRoles.pickGarmentMaps(ROLES, [ F ], [ F + "robeam01_n.png" ]).normal, F + "robeam01_n.png");
+  assert.throws(() => CjsCharacterTextureRoles.pickGarmentMaps(ROLES, [ F ], [ F + "a_n.png", F + "b_n.png" ]), /Ambiguous garment maps/);
   // A masked normal and a twist normal, and a variation's own authored diffuse ahead of the part folder's detail.
-  const maps = CjsCharacterTextureRoles.pickGarmentMaps([ F + "v4/", F ], [ F + "comp_body_mn.png", F + "_tn.png", F + "v4/robef01_d.png", F + "colorize_body_l.png" ]);
+  const maps = CjsCharacterTextureRoles.pickGarmentMaps(ROLES, [ F + "v4/", F ], [ F + "comp_body_mn.png", F + "_tn.png", F + "v4/robef01_d.png", F + "colorize_body_l.png" ]);
   assert.deepEqual([ maps.normal, maps.twist, maps.detail ], [ F + "comp_body_mn.png", F + "_tn.png", F + "v4/robef01_d.png" ]);
-  assert.deepEqual(CjsCharacterTextureRoles.garment.specular, [ "comp_body_s", "<part>_s", "_s", "colorize_body_s", "comb_body_s", "<part>_body_s", "*_s" ]);
+  assert.deepEqual(ROLES.garment.specular, [ "comp_body_s", "<part>_s", "_s", "colorize_body_s", "comb_body_s", "<part>_body_s", "*_s" ]);
   // Junk names stay unruled.
-  assert.deepEqual(CjsCharacterTextureRoles.garmentSkipped([ F ], [ F + "dots_prv.png", F + "colorize_body_s_resize.png" ], []).unruled.sort(), [ "robef01/colorize_body_s_resize", "robef01/dots_prv" ]);
+  assert.deepEqual(CjsCharacterTextureRoles.garmentSkipped(ROLES, [ F ], [ F + "dots_prv.png", F + "colorize_body_s_resize.png" ], []).unruled.sort(), [ "robef01/colorize_body_s_resize", "robef01/dots_prv" ]);
 });
 
 test("the recipe option takes the part folder and variation the component names, read again when forgotten", async t =>

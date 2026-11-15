@@ -10,7 +10,7 @@ import { CjsCharacterLibraryManager } from "../../library/CjsCharacterLibraryMan
  * middles, outers, feet). Each selected option draws its material layer (`CjsPaperDollCompositor.CreateMaterialLayer`)
  * into the body: its diffuse (the detail colourised through its zone map in the captured colours, or an authored
  * diffuse drawn as it is) and its body cut masks; and into the surface, under its coverage, a flat normal and a black
- * specular first, then its own normal and specular. Its maps are named by `CjsCharacterTextureRoles.garment`.
+ * specular first, then its own normal and specular. Its maps are named by the library's garment map names (`GetTextureRoles`).
  *
  * Options, their palettes, parts, maps, cut masks, default palette and colour areas are the parts library's
  * (`blue.characterLibrary`: `FetchOptions`, where the underwear is one option per folder and each folder's `.type`s name
@@ -218,7 +218,7 @@ export class CjsPaperDollMaterialSource
         const [ flatNormal, noSpecular ] = await Promise.all([ "0.5,0.5,1,1", "0,0,0,1" ].map(color => build.Ready(c.Texture("dynamic:/color/" + color))));
         const layer = await c.CreateMaterialLayer({ detail, zones, normal, specular }, palette, { coverage: true, patterns });
         // A masked normal (`mn`) carries its own coverage and encoding (maskednormalblit), not the detail's; a twist normal
-        // (`tn`) adds over the normal (twistnormalblit). The `mn` and `tn` roles: `CjsCharacterTextureRoles.table`.
+        // (`tn`) adds over the normal (twistnormalblit). The `mn` and `tn` roles: the library's texture roles (`GetTextureRoles`).
         if (normal !== null && maskedNormal) layer.NormalMap = { effect: await c.MaskedNormal(normal, crop(normal)), region: crop(normal) };
         const twistLayer = twist === null ? null : { effect: await c.Twist(twist, crop(twist)), region: crop(twist) };
         return Object.assign(layer, {

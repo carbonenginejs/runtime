@@ -3,6 +3,7 @@ import { CjsPaperDollMaterialLayer } from "../compositor/CjsPaperDollMaterialLay
 import { PaperDollTarget } from "../paperDollOrder.js";
 import { CjsPaperDollMakeupCatalog } from "./CjsPaperDollMakeupCatalog.js";
 import { CjsCharacterTextureRoles } from "../../library/CjsCharacterTextureRoles.js";
+import { blue } from "#blue";
 
 /** The eye material's channels: the effect properties its outputs feed. */
 const CHANNELS = [ "DiffuseMap", "NormalMap", "SpecularMap" ];
@@ -48,6 +49,9 @@ export class CjsPaperDollEyesComposer
     /** Notes a change, for the build's log. @type {function(string): void} */
     _onChange = null;
 
+    /** The library the catalogue and the texture roles are read through (`Prepare`). */
+    _characterLibrary = null;
+
     /**
      * @param {import("./CjsPaperDollComposition.js").CjsPaperDollComposition} composition The character's composition.
      * @param {{ CheckActive: function(): void, Ready: function(Promise<*>): Promise<*>, report: object, content: { root: string } }} build
@@ -65,14 +69,16 @@ export class CjsPaperDollEyesComposer
      * @param {import("../CjsPaperDollDefinition.js").CjsPaperDollDefinition} definition The paper doll definition.
      * @param {Array<{ effect: object, mesh: object }>} consumers The EyeShader effects and their meshes.
      * @param {function(string): void} onChange Notes a change.
-     * @param {object} [services] The library the catalogue is read through (`CjsPaperDollMakeupCatalog.read`).
+     * @param {{ characterLibrary?: object }} [services] The library the catalogue and the texture roles are read
+     *   through (`CjsPaperDollMakeupCatalog.read`); `blue.characterLibrary` by default.
      * @returns {Promise<void>}
      * @throws {Error} With no consumers, or consumers that do not share their maps.
      */
-    async Prepare(definition, consumers, onChange, services = undefined)
+    async Prepare(definition, consumers, onChange, { characterLibrary = blue.characterLibrary } = {})
     {
         const build = this._build, c = this.composition.compositor;
-        const catalog = await CjsPaperDollMakeupCatalog.read("eyes", build, services);
+        this._characterLibrary = characterLibrary;
+        const catalog = await CjsPaperDollMakeupCatalog.read("eyes", build, { characterLibrary });
         if (!consumers.length) throw new Error("No EyeShader consumers");
         this._consumers = consumers;
         this._onChange = onChange;
@@ -163,9 +169,10 @@ export class CjsPaperDollEyesComposer
         if (option.metadata?.dependantModifiers?.length) throw new Error("Unresolved eye dependencies " + option.definition);
         // The option's maps by role (CjsCharacterTextureRoles): a diffuse drawn as it is or colourised through its zone
         // map, and the normal and specular copied in as patches.
-        const roles = Object.values(option.channels).map(value => CjsCharacterTextureRoles.lookup(value.path));
+        const textureRoles = this._characterLibrary.GetTextureRoles();
+        const roles = Object.values(option.channels).map(value => CjsCharacterTextureRoles.lookup(textureRoles, value.path));
         const one = match => CjsCharacterTextureRoles.one(roles, match);
-        const detailRole = one(role => role.property === "DiffuseMap" && role.operation !== null), zoneRole = one(role => role.inputOf === "l");
+        const detailRole = one(role => role.property === "DiffuseMap" && role.operation !== ""), zoneRole = one(role => role.inputOf === "l");
         const coloured = detailRole?.operation === "Colorized";
         if (!detailRole || coloured !== !!zoneRole) throw new Error("Ambiguous diffuse inputs " + option.definition);
         if (option.metadata?.numColorAreas === 0 && coloured) throw new Error("Colour metadata conflicts with channel inputs");

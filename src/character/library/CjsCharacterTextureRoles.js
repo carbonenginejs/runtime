@@ -1,5 +1,24 @@
 import { meta } from "#schema";
-import roles from "../factory/defaults/textureRoles.json" with { type: "json" };
+
+/**
+ * The paper doll texture tables in force, as `CjsCharacterLibraryManager.GetTextureRoles` answers them (the generic's
+ * `textureRoles`, `textureRegions`, `textureAtlas`, `textureAtlasTolerance` and `textureGarmentMaps`; the shipped
+ * `factory/defaults/textureRoles.json` says what each value means):
+ * - `regions`: the regions a file name can carry;
+ * - `atlas`: the character atlas's regions as an area's `TransformUV0` places them, [u0, v0, u1, v1] by region;
+ * - `atlasTolerance`: how far an authored rect may lie outside a region and still be placed in it;
+ * - `table`: each role by suffix (`CjsCharacterDataTextureRole` says what each field holds), a key
+ *   `<family>_<suffix>` a role for that family alone, read before the suffix's own (`comp_z`);
+ * - `garment`: the garment map names by the map they give, each searched in order (`pickGarmentMaps`).
+ * @typedef {{ regions: string[], atlas: Object<string, number[]>, atlasTolerance: number,
+ *   table: Object<string, CjsCharacterTextureRoleEntry>, garment: Object<string, string[]> }} CjsCharacterTextureRoleSet
+ */
+
+/**
+ * One texture role as the set holds it (`CjsCharacterDataTextureRole`); an empty `operation` or `inputOf` is none.
+ * @typedef {{ families: string[], property: string, channels: Object<string, string>, operation: string,
+ *   inputOf: string, plan: string, covered: boolean, source: string, derived: string }} CjsCharacterTextureRoleEntry
+ */
 
 /**
  * The paper-doll map size tiers, largest first, as `[characterTextureQuality value, file suffix]`: `_4k`, unsuffixed
@@ -24,10 +43,11 @@ const TEXTURE_TIERS = [ [ "4k", "_4k" ], [ "2k", "" ], [ "512", "_512" ], [ "256
  *   index, build 3670638): families `comp` and `colorize`; regions `head`, `body`, `hair`, `acc`; tiers `_4k`,
  *   `_512`, `_256` and none (`CjsCharacterTextureRoles.splitTier`).
  *
- * The parts library's one texture-role table (character-structure-and-plugins.md, "One role per manager": the parts
- * library is the only code that parses content paths). The tables are data, `factory/defaults/textureRoles.json`,
- * which only the library loads, each entry with its sources. The map size tiers and the `characterTextureQuality`
- * setting live here too.
+ * The parts library's one texture-role reader (character-structure-and-plugins.md, "One role per manager": the parts
+ * library is the only code that parses content paths). The tables are the library's data, the generic's texture
+ * members over the shipped `factory/defaults/textureRoles.json`: a caller passes the set in force
+ * (`CjsCharacterLibraryManager.GetTextureRoles`). The map size tiers and the `characterTextureQuality` setting live
+ * here.
  *
  * Ours (no Carbon counterpart): Carbon ships no paper doll; the client's is Python. The name is a working name.
  */
@@ -56,33 +76,21 @@ export class CjsCharacterTextureRoles
 
     static className = "CjsCharacterTextureRoles";
 
-    /** The regions a file name can carry, as authored (`factory/defaults/textureRoles.json`). */
-    static regions = roles.regions;
-
-    /**
-     * The character atlas's regions, as an area's `TransformUV0` places them: [u0, v0, u1, v1]. Found: every character
-     * area's `TransformUV0` in build 3670638 is the identity or lies within one of these (moved from Graphene's
-     * `atlasRegions.js`).
-     * @type {Object<string, number[]>}
-     */
-    static atlas = roles.atlas;
-
-    /** How far an authored rect may lie outside an atlas region and still be placed in it (`placeInRegion`). */
-    static atlasTolerance = roles.atlasTolerance;
-
     /**
      * Where an area's authored `TransformUV0` places it: `identity` with the identity for the whole image; else the
-     * atlas region it lies in (`atlas`), with the rect relative to that region, so an area samples its region's own
-     * composed map (the identity when it fills the region); else null. Rects authored as floats match within
-     * `atlasTolerance`. Moved from Graphene's `atlasRegions.js` (`PlaceInRegion`), with the whole image added.
+     * atlas region it lies in (the set's `atlas`; found: every character area's `TransformUV0` in build 3670638 is the
+     * identity or lies within one), with the rect relative to that region, so an area samples its region's own
+     * composed map (the identity when it fills the region); else null. Rects authored as floats match within the
+     * set's `atlasTolerance`. Moved from Graphene's `atlasRegions.js` (`PlaceInRegion`), with the whole image added.
+     * @param {CjsCharacterTextureRoleSet} roles The texture tables in force.
      * @param {ArrayLike<number>} transform The area's `TransformUV0`, [u0, v0, u1, v1].
      * @returns {?{ region: string, transform: number[] }} The placement.
      */
-    static placeInRegion(transform)
+    static placeInRegion(roles, transform)
     {
-        const tolerance = CjsCharacterTextureRoles.atlasTolerance, near = (a, b) => Math.abs(a - b) < tolerance;
+        const tolerance = roles.atlasTolerance, near = (a, b) => Math.abs(a - b) < tolerance;
         if (near(transform[0], 0) && near(transform[1], 0) && near(transform[2], 1) && near(transform[3], 1)) return { region: "identity", transform: [ 0, 0, 1, 1 ] };
-        for (const [ region, [ u0, v0, u1, v1 ] ] of Object.entries(CjsCharacterTextureRoles.atlas))
+        for (const [ region, [ u0, v0, u1, v1 ] ] of Object.entries(roles.atlas))
         {
             if (transform[0] < u0 - tolerance || transform[1] < v0 - tolerance || transform[2] > u1 + tolerance || transform[3] > v1 + tolerance) continue;
             const width = u1 - u0, height = v1 - v0;
@@ -152,43 +160,28 @@ export class CjsCharacterTextureRoles
     }
 
     /**
-     * Each suffix's role. `families`: the name prefixes it is sourced for. `property`: the effect texture parameter
-     * the composed map feeds. `channels`: what the file's channels hold. `operation`: the `CjsPaperDollCompositor`
-     * method that draws it, or null for an input of another role's operation (`inputOf`). `plan`: `replace` (drawn
-     * over what is under it) or `add` (added to it); one part's layers on one property draw replacements first, then
-     * additions (character-compositing.md:593, `PlanNormal`). `covered`: drawn through the same option's diffuse
-     * coverage when the option has a diffuse. `source`: where each fact is read. `derived`: the facts no source states,
-     * which match the working behaviour of our own earlier code (today's look) and wait for a ruling. A key
-     * `<family>_<suffix>` is a role for that family alone, read before the suffix's own (`comp_z`).
-     */
-    static table = roles.table;
-
-    /**
-     * The garment map names (the MATERIAL parts with the body target), by the map they give: each map is the first
-     * name found searching the option's folders in order (its variation's, then its part's), then the size tiers
-     * (`CjsCharacterTextureRoles.tierOrder`), then these names in order; `<part>` is the part folder's name, and `*` any
-     * name (a folder holding two such candidates at one tier throws). A name these lists do not hold is not drawn.
+     * A garment option's maps by the set's garment names, with today's precedence: each map is the first name found
+     * searching the option's folders in order (its variation's, then its part's), then the size tiers (`tierOrder`),
+     * then the names in order; `<part>` is the part folder's name, and `*` any name. A name the lists do not hold is
+     * not drawn. One part's layers on one property draw replacements first, then additions
+     * (character-compositing.md:593, `PlanNormal`).
      *
-     * Derived, every entry (no source states them; Carbon ships no paper doll). Today's look first: Graphene d2b1306
-     * `bodyComposition.js` `mapPaths` and `maskPaths`, with their exact precedence. Then the names that are drawn
-     * where they exist, each after today's names for its map, so they draw only
-     * where today's draw nothing: `comb_body_s` as a `comp` specular, `colorize_body_d` and `<part>_d` as an authored
-     * diffuse, `colorize_body_n`, `<part>_body_n`/`_s`, `comp_body_mn` (a masked normal), `_tn` (a twist normal, added
-     * over the normal), and any other `<name>_n`/`_s` (the part-name mismatches: `spacesuit01f_n`, `catsuitf01_s`,
-     * `robeam01_n` in `robef01`, `jacketmilf01_s` in `jacketmilf02`). An authored diffuse is colourised through a zone
-     * map when the chain holds one, as today's `comp_body_d` is.
-     */
-    static garment = roles.garment;
-
-    /**
-     * A garment option's maps by the garment names (`garment`), with today's precedence: folder, then tier, then name.
+     * Derived, every garment name (no source states them; Carbon ships no paper doll). Today's look first: Graphene
+     * d2b1306 `bodyComposition.js` `mapPaths` and `maskPaths`, with their exact precedence. Then the names that are
+     * drawn where they exist, each after today's names for its map, so they draw only where today's draw nothing:
+     * `comb_body_s` as a `comp` specular, `colorize_body_d` and `<part>_d` as an authored diffuse, `colorize_body_n`,
+     * `<part>_body_n`/`_s`, `comp_body_mn` (a masked normal), `_tn` (a twist normal, added over the normal), and any
+     * other `<name>_n`/`_s` (the part-name mismatches: `spacesuit01f_n`, `catsuitf01_s`, `robeam01_n` in `robef01`,
+     * `jacketmilf01_s` in `jacketmilf02`). An authored diffuse is colourised through a zone map when the chain holds
+     * one, as today's `comp_body_d` is.
+     * @param {CjsCharacterTextureRoleSet} roles The texture tables in force.
      * @param {string[]} folders The option's folders, most specific first, each ending in "/"; the last is the part's.
      * @param {string[]} files The listed files below them.
      * @returns {{ detail: ?string, zone: ?string, normal: ?string, twist: ?string, specular: ?string, cutMask: ?string }}
      *   Each map's path; null when no folder holds one.
      * @throws {Error} For a folder holding two candidates for a `*` name at one tier.
      */
-    static pickGarmentMaps(folders, files)
+    static pickGarmentMaps(roles, folders, files)
     {
         const part = folders.at(-1).slice(0, -1).split("/").at(-1), tiers = CjsCharacterTextureRoles.tierOrder(), maps = {};
         const find = (folder, tier, name) =>
@@ -199,7 +192,7 @@ export class CjsCharacterTextureRoles
             if (found.length > 1) throw new Error("Ambiguous garment maps " + found.join(", "));
             return found[0] ?? null;
         };
-        for (const [ key, names ] of Object.entries(CjsCharacterTextureRoles.garment))
+        for (const [ key, names ] of Object.entries(roles.garment))
         {
             const stems = names.map(name => name.replace("<part>", part));
             maps[key] = null;
@@ -216,16 +209,17 @@ export class CjsCharacterTextureRoles
      * The `.png` map names (tier dropped) directly in a garment option's folders that its picked maps do not use, for
      * the build report, in two lists: `overridden`, names a rule draws that a better map hid (a later folder, a worse
      * tier or a later name for the same map); and `unruled`, names no rule draws, which wait for a ruling.
+     * @param {CjsCharacterTextureRoleSet} roles The texture tables in force.
      * @param {string[]} folders The option's folders.
      * @param {string[]} files The listed files below them.
      * @param {Array<?string>} used The picked map paths.
      * @returns {{ overridden: string[], unruled: string[] }} Each as `<folder>/<name>`, relative to the part folder's
      *   parent.
      */
-    static garmentSkipped(folders, files, used)
+    static garmentSkipped(roles, folders, files, used)
     {
         const stems = new Set(used.filter(Boolean).map(path => CjsCharacterTextureRoles.splitTier(path)[0]));
-        const part = folders.at(-1).slice(0, -1).split("/").at(-1), names = Object.values(CjsCharacterTextureRoles.garment).flat();
+        const part = folders.at(-1).slice(0, -1).split("/").at(-1), names = Object.values(roles.garment).flat();
         const exact = new Set(names.filter(name => !name.startsWith("*")).map(name => name.replace("<part>", part)));
         const endings = names.filter(name => name.startsWith("*")).map(name => name.slice(1));
         const ruled = { has: name => exact.has(name) || endings.some(ending => name.endsWith(ending)) };
@@ -243,56 +237,47 @@ export class CjsCharacterTextureRoles
 
     /**
      * A texture file's role.
+     * @param {CjsCharacterTextureRoleSet} roles The texture tables in force.
      * @param {string} path The file's `res:` path or name, at any tier.
-     * @returns {{ path: string, family: string, region: string, suffix: string, tier: string, property: string,
-     *   channels: object, operation: ?string, inputOf?: ?string, plan: string, covered: boolean, source: string,
-     *   derived?: string }}
+     * @returns {{ path: string, family: string, region: string, suffix: string, tier: string } & CjsCharacterTextureRoleEntry}
+     *   The file's name parts and its role (an empty `operation` or `inputOf` is none).
      * @throws {Error} For a name outside `<family>_<region>_<suffix>[<tier>].png`, or a suffix the table does not
      *   source for that family.
      */
-    static lookup(path)
+    static lookup(roles, path)
     {
         if (!path.endsWith(".png")) throw new Error("Not a paper doll texture name: " + path);
         const [ stem, tier ] = CjsCharacterTextureRoles.splitTier(path);
         const match = /^(comp|colorize)_([a-z]+)_([a-z]+)$/u.exec(stem.split("/").at(-1));
         if (!match) throw new Error("Not a paper doll texture name: " + path);
         const [ , family, region, suffix ] = match;
-        if (!CjsCharacterTextureRoles.regions.includes(region)) throw new Error("Unknown paper doll texture region " + region + ": " + path);
-        const role = CjsCharacterTextureRoles.table[family + "_" + suffix] ?? CjsCharacterTextureRoles.table[suffix];
+        if (!roles.regions.includes(region)) throw new Error("Unknown paper doll texture region " + region + ": " + path);
+        const role = roles.table[family + "_" + suffix] ?? roles.table[suffix];
         if (!role || !role.families.includes(family)) throw new Error("Unknown paper doll texture role " + family + "_" + suffix + ": " + path);
         return { path, family, region, suffix, tier, ...role };
     }
 
     /**
-     * The maps a folder holds directly, one per name at the character texture quality: the composed ones (`comp_` and
-     * `colorize_` names) with their roles, and the others, which are not composed maps, by name for the caller to
-     * refuse or report (`aa_female_head_s` in eyeshadow_02). A composed name the lookup does not source throws.
-     * @param {string} folder The folder's `res:` path, ending in "/".
-     * @param {string[]} files The listed files.
-     * @returns {{ roles: Array<ReturnType<typeof CjsCharacterTextureRoles.lookup>>, skipped: string[] }} The composed
-     *   maps' roles, and the other map names.
-     * @throws {Error} For a composed map name the lookup does not source.
-     */
-    /**
-     * An accessory's maps by region (`regions`) and role (`l`, `z`, `d`, `n`, `s`), each at the character texture
+     * An accessory's maps by region (the set's `regions`) and role (`l`, `z`, `d`, `n`, `s`), each at the character texture
      * quality, searched across its folders in order: the name for the region (`colorize_<region>_l`,
      * `comp_<region>_n`), else the accessory name (`colorize_acc_l`: a piercing's area may sit in the body region),
      * else, while `characterAccessoryMapFallback` is on, a name with no region ending in the role (not `_mn` or `_tn`).
      * Another region's named maps never stand in. Derived, moved from Graphene's accessories.
+     * @param {CjsCharacterTextureRoleSet} roles The texture tables in force.
      * @param {string[]} folders The item's folders, first searched first.
      * @param {function(string): string[]} list The listed files below a folder.
      * @returns {Object<string, Object<string, ?{ path: string, fallback: boolean }>>} Per region and role the map,
      *   and whether it was not named for the region; null where none is found.
      */
-    static pickAccessoryMaps(folders, list)
+    static pickAccessoryMaps(roles, folders, list)
     {
         const all = folders.flatMap(dir => list(dir).filter(file => file.lastIndexOf("/") === dir.length - 1 && file.endsWith(".png")));
         const tiers = CjsCharacterTextureRoles.tierOrder();
         const stem = file => { const [ name ] = CjsCharacterTextureRoles.splitTier(file); return name.slice(name.lastIndexOf("/") + 1); };
         const pick = test => tiers.map(tier => all.find(file => CjsCharacterTextureRoles.splitTier(file)[1] === tier && test(stem(file)))).find(Boolean) ?? null;
-        const qualified = new RegExp("^(colorize|comp)_(" + CjsCharacterTextureRoles.regions.join("|") + ")_", "u");
+        const qualified = new RegExp("^(colorize|comp)_(" + roles.regions.join("|") + ")_", "u");
         const result = {};
-        for (const region of CjsCharacterTextureRoles.regions)
+        for (const region of roles.regions)
         {
             result[region] = {};
             for (const role of [ "l", "z", "d", "n", "s" ])
@@ -307,14 +292,24 @@ export class CjsCharacterTextureRoles
         return result;
     }
 
-
-    static readFolder(folder, files)
+    /**
+     * The maps a folder holds directly, one per name at the character texture quality: the composed ones (`comp_` and
+     * `colorize_` names) with their roles, and the others, which are not composed maps, by name for the caller to
+     * refuse or report (`aa_female_head_s` in eyeshadow_02). A composed name the lookup does not source throws.
+     * @param {CjsCharacterTextureRoleSet} roles The texture tables in force.
+     * @param {string} folder The folder's `res:` path, ending in "/".
+     * @param {string[]} files The listed files.
+     * @returns {{ roles: Array<ReturnType<typeof CjsCharacterTextureRoles.lookup>>, skipped: string[] }} The composed
+     *   maps' roles, and the other map names.
+     * @throws {Error} For a composed map name the lookup does not source.
+     */
+    static readFolder(roles, folder, files)
     {
         const maps = files.filter(file => file.startsWith(folder) && file.lastIndexOf("/") === folder.length - 1 && file.endsWith(".png"));
         const names = [ ...new Set(maps.map(file => CjsCharacterTextureRoles.splitTier(file)[0])) ];
         const composed = names.filter(stem => /^(comp|colorize)_/u.test(stem.slice(folder.length)));
         return {
-            roles: composed.map(stem => CjsCharacterTextureRoles.lookup(CjsCharacterTextureRoles.pickTier(stem + ".png", maps))),
+            roles: composed.map(stem => CjsCharacterTextureRoles.lookup(roles, CjsCharacterTextureRoles.pickTier(stem + ".png", maps))),
             skipped: names.filter(stem => !composed.includes(stem)).map(stem => stem.slice(folder.length))
         };
     }

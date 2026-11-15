@@ -1,7 +1,5 @@
 {
-  "description": "Which name rules give an archetype its bloodline and morph target, in the generic's own shape (CjsCharacterGeneric.bloodlines, a CjsCharacterDataBloodlines), which only the library loads (CjsCharacterLibraryManager.FetchBloodline). `rule`: `headFolderLastWord`, the bloodline is the last word of the folder of the head that depends on the archetype (`head/caldari_deteis` is `deteis`). `morphTarget`: `archetypeCodeUpperShape`, the archetype's code in capitals then `Shape` (`archetypes/cdshape` is `CDShape`). Derived: no content record names an archetype's head, bloodline or morph. Ours: the client's paper doll is Python.",
-  "bloodlines": {
-    "rule": "headFolderLastWord",
-    "morphTarget": "archetypeCodeUpperShape"
-  }
+  "description": "Which name rules give an archetype its bloodline and morph target, in the generic's own shape (CjsCharacterGeneric.bloodlineRule and bloodlineMorphTargetRule), which only the library loads (CjsCharacterLibraryManager.FetchBloodline). `bloodlineRule`: `headFolderLastWord`, the bloodline is the last word of the folder of the head that depends on the archetype (`head/caldari_deteis` is `deteis`). `bloodlineMorphTargetRule`: `archetypeCodeUpperShape`, the archetype's code in capitals then `Shape` (`archetypes/cdshape` is `CDShape`). Derived: no content record names an archetype's head, bloodline or morph. Ours: the client's paper doll is Python.",
+  "bloodlineRule": "headFolderLastWord",
+  "bloodlineMorphTargetRule": "archetypeCodeUpperShape"
 }

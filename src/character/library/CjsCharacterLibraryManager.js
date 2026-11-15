@@ -20,6 +20,7 @@ import defaultMalePaperDoll from "../factory/defaults/defaultMalePaperDoll.json"
 import { LOADOBJECT_INIT_FLAG } from "#consts/blue";
 import sexDefaults from "../factory/defaults/sexes.json" with { type: "json" };
 import bloodlineDefaults from "../factory/defaults/bloodlines.json" with { type: "json" };
+import textureRoleDefaults from "../factory/defaults/textureRoles.json" with { type: "json" };
 import areaShaderDefaults from "../factory/defaults/areaShaders.json" with { type: "json" };
 import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCorrections.js";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
@@ -72,19 +73,15 @@ const defaultPaperDolls = { female: defaultFemalePaperDoll, male: defaultMalePap
  */
 
 /**
- * The bloodline name rules in force (`CjsCharacterDataBloodlines` says what each names).
- * @typedef {{ rule: string, morphTarget: string }} CjsCharacterBloodlineRules
+ * The bloodline name rules in force (`CjsCharacterGeneric.bloodlineRule`, `bloodlineMorphTargetRule`).
+ * @typedef {{ bloodlineRule: string, bloodlineMorphTargetRule: string }} CjsCharacterBloodlineRules
  */
 
 /**
- * Where a sex's generic head borrows its eye-wet effect from, as `GetSexFacts` answers it (`CjsCharacterDataEyeWet`).
- * @typedef {{ reference: string, mesh: string }} CjsCharacterEyeWetFacts
- */
-
-/**
- * A sex's resource facts as `GetSexFacts` answers them (`CjsCharacterDataSex` says what each value means).
+ * A sex's resource facts as `GetSexFacts` answers them, in the record's shape (`CjsCharacterDataSex` says what each
+ * value means).
  * @typedef {{ root: string, skeleton: string, genericHead: string, body: string, bodyFallbacks: Object<string, string>,
- *   defaultMorphs: Object<string, number>, eyeWet: CjsCharacterEyeWetFacts }} CjsCharacterSexFacts
+ *   defaultMorphs: Object<string, number>, eyeWetReference: string, eyeWetMesh: string }} CjsCharacterSexFacts
  */
 
 /** Installs, loads, and queries one combined hydrated character library. */
@@ -116,6 +113,11 @@ export class CjsCharacterLibraryManager
 
     /** The indexed paper doll files, sorted, for one install generation (`_PaperDollFiles`). */
     _paperDollFiles = null;
+
+    /** The texture tables in force (`_TextureRoles`), and the install generation they were built for. */
+    _textureRoles = null;
+
+    _textureRolesGeneration = -1;
 
     /** The bloodline name rules in force (`_Bloodlines`), and the install generation they were built for. */
     _bloodlines = null;
@@ -483,7 +485,7 @@ export class CjsCharacterLibraryManager
         return {
             root: facts.root, skeleton: facts.skeleton, genericHead: facts.genericHead, body: facts.body,
             bodyFallbacks: Object.fromEntries(facts.bodyFallbacks), defaultMorphs: Object.fromEntries(facts.defaultMorphs),
-            eyeWet: { reference: facts.eyeWet.reference, mesh: facts.eyeWet.mesh }
+            eyeWetReference: facts.eyeWetReference, eyeWetMesh: facts.eyeWetMesh
         };
     }
 
@@ -742,11 +744,11 @@ export class CjsCharacterLibraryManager
         const rule = this._CategoryRule(option.category, "maps").maps, tier = CjsCharacterTextureRoles.tierOrder()[0];
         return this._Query("maps|" + tier + "|" + CjsCharacterLibraryManager._OptionKey(option), async () =>
         {
-            if (rule === "composed") return CjsCharacterTextureRoles.readFolder(option.folder, this._PaperDollFiles(option.folder));
+            if (rule === "composed") return CjsCharacterTextureRoles.readFolder(this._TextureRoles(), option.folder, this._PaperDollFiles(option.folder));
             if (rule === "accessory")
             {
                 const folders = await this._AccessoryFolders(option);
-                return { folders, regions: CjsCharacterTextureRoles.pickAccessoryMaps(folders, folder => this._PaperDollFiles(folder)) };
+                return { folders, regions: CjsCharacterTextureRoles.pickAccessoryMaps(this._TextureRoles(), folders, folder => this._PaperDollFiles(folder)) };
             }
             if (rule === "variation")
             {
@@ -754,7 +756,7 @@ export class CjsCharacterLibraryManager
                 const roles = new Map(), skipped = new Set();
                 for (const folder of (await this.FetchOptionPart(option)).folders)
                 {
-                    const read = CjsCharacterTextureRoles.readFolder(folder, this._PaperDollFiles(folder));
+                    const read = CjsCharacterTextureRoles.readFolder(this._TextureRoles(), folder, this._PaperDollFiles(folder));
                     for (const role of read.roles)
                     {
                         const stem = CjsCharacterTextureRoles.splitTier(role.path)[0];
@@ -787,17 +789,17 @@ export class CjsCharacterLibraryManager
                 }
                 return { channels };
             }
-            const maps = CjsCharacterTextureRoles.pickGarmentMaps(facts.folders, files), root = this.GetSexFacts(option.sex).root;
+            const maps = CjsCharacterTextureRoles.pickGarmentMaps(this._TextureRoles(), facts.folders, files), root = this.GetSexFacts(option.sex).root;
             const fromDependants = facts.dependants.filter(path => !/^utilityshapes\//iu.test(path)).map(path =>
             {
                 const dir = root + path.toLowerCase() + "/";
-                return CjsCharacterTextureRoles.pickGarmentMaps([ dir ], this._PaperDollFiles(dir)).cutMask;
+                return CjsCharacterTextureRoles.pickGarmentMaps(this._TextureRoles(), [ dir ], this._PaperDollFiles(dir)).cutMask;
             });
             return {
                 maps,
-                skipped: CjsCharacterTextureRoles.garmentSkipped(facts.folders, files, [ ...Object.values(maps) ]),
+                skipped: CjsCharacterTextureRoles.garmentSkipped(this._TextureRoles(), facts.folders, files, [ ...Object.values(maps) ]),
                 masks: [ ...new Set([ maps.cutMask, ...fromDependants ].filter(Boolean)) ],
-                // A masked normal (`comp_body_mn`) carries its own coverage and encoding (`CjsCharacterTextureRoles.table`).
+                // A masked normal (`comp_body_mn`) carries its own coverage and encoding (the texture roles, `GetTextureRoles`).
                 maskedNormal: maps.normal !== null && CjsCharacterTextureRoles.splitTier(maps.normal)[0].endsWith("/comp_body_mn")
             };
         });
@@ -900,7 +902,7 @@ export class CjsCharacterLibraryManager
                 const count = (await this.FetchOptionPart(option)).numColorAreas;
                 return count < 0 ? this.FetchMaterialMaskAreas(maps.maps.detail, maps.maps.zone) : Array.from({ length: count }, (_, index) => index + 1);
             }
-            const roles = rule.maps === "catalog" ? Object.values(maps.channels).map(path => CjsCharacterTextureRoles.lookup(path)) : maps.roles;
+            const roles = rule.maps === "catalog" ? Object.values(maps.channels).map(path => CjsCharacterTextureRoles.lookup(this._TextureRoles(), path)) : maps.roles;
             const areas = new Set();
             for (const region of new Set(roles.filter(role => role.operation === "Colorized" || role.inputOf === "l").map(role => role.region)))
             {
@@ -1047,8 +1049,9 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * Where a sex's generic head takes its eye-wet effect from (`GetSexFacts` `eyeWet`): the generic head's eye-wet area
-     * (its model, by the folder rule of `FetchOptionAreas`, the mesh the data names and its first transparent area), and
+     * Where a sex's generic head takes its eye-wet effect from (`GetSexFacts` `eyeWetReference`, `eyeWetMesh`): the
+     * generic head's eye-wet area (its model, by the folder rule of `FetchOptionAreas`, the mesh the data names and its
+     * first transparent area), and
      * the area of the reference model whose effect it takes: the reference's one mesh of the same `meshIndex` on the
      * generic head's geometry, its first transparent area. Read once. The head's areas are set up as a head part's
      * (`FetchModelAreas`), so a head area whose shader has no generic data fails this query too.
@@ -1062,35 +1065,36 @@ export class CjsCharacterLibraryManager
      * @returns {Promise<{ head: CjsCharacterEyeWetArea, reference: CjsCharacterEyeWetArea }>} The two areas, the
      *   caller's own copy.
      * @throws {Error} For a reference that is not a `Tr2IntSkinnedObject`, a model without exactly one area the borrow
-     *   names, or a reference mesh whose name is not unique. `sexes.json` must give every sex an `eyeWet`.
+     *   names, or a reference mesh whose name is not unique. `sexes.json` must give every sex its `eyeWetReference`
+     *   and `eyeWetMesh`.
      */
     FetchEyeWet(sex)
     {
         return this._Query("eyeWet|" + sex, async () =>
         {
-            const { root, genericHead, eyeWet } = this.GetSexFacts(sex);
+            const { root, genericHead, eyeWetReference, eyeWetMesh } = this.GetSexFacts(sex);
             const TRANSPARENT = TriBatchType.TRIBATCHTYPE_TRANSPARENT;
 
             // The generic head, as an option of its folder: its category is the folder's first.
             const folder = root + genericHead + "/", category = genericHead.slice(0, genericHead.indexOf("/"));
             const head = await this.FetchOptionAreas({ sex, category, typePath: null, folder, path: genericHead });
-            const named = head ? head.meshes.filter(mesh => mesh.name === eyeWet.mesh) : [];
+            const named = head ? head.meshes.filter(mesh => mesh.name === eyeWetMesh) : [];
             const wet = named.length === 1 ? named[0] : undefined;
-            if (!wet || !wet.areas.some(area => area.batchType === TRANSPARENT)) throw new Error("No one eye-wet area " + eyeWet.mesh + " in " + folder);
+            if (!wet || !wet.areas.some(area => area.batchType === TRANSPARENT)) throw new Error("No one eye-wet area " + eyeWetMesh + " in " + folder);
 
             // The reference's one mesh of that index on the same geometry, with an effect on its first transparent area.
-            const reference = await blue.resMan.LoadObject(eyeWet.reference, LOADOBJECT_INIT_FLAG.LDOBJ_DONT_INITIALIZE);
+            const reference = await blue.resMan.LoadObject(eyeWetReference, LOADOBJECT_INIT_FLAG.LDOBJ_DONT_INITIALIZE);
             const className = CjsSchema.getClassName(reference.constructor);
-            if (className !== "Tr2IntSkinnedObject") throw new Error("The eye-wet reference " + eyeWet.reference + " is a " + className + ", not a Tr2IntSkinnedObject");
+            if (className !== "Tr2IntSkinnedObject") throw new Error("The eye-wet reference " + eyeWetReference + " is a " + className + ", not a Tr2IntSkinnedObject");
             const geometry = normalizeResourcePath(wet.geometry);
             const matching = reference.visualModel.meshes.filter(mesh => mesh.meshIndex === wet.meshIndex && normalizeResourcePath(mesh.geometryResPath) === geometry);
             const area = matching.length === 1 ? matching[0].transparentAreas[0] : undefined;
-            if (!area || !area.effect) throw new Error("No one eye-wet area of meshIndex " + wet.meshIndex + " in " + eyeWet.reference);
-            if (reference.visualModel.meshes.filter(mesh => mesh.name === matching[0].name).length !== 1) throw new Error("The eye-wet mesh name " + matching[0].name + " is not unique in " + eyeWet.reference);
+            if (!area || !area.effect) throw new Error("No one eye-wet area of meshIndex " + wet.meshIndex + " in " + eyeWetReference);
+            if (reference.visualModel.meshes.filter(mesh => mesh.name === matching[0].name).length !== 1) throw new Error("The eye-wet mesh name " + matching[0].name + " is not unique in " + eyeWetReference);
 
             return {
                 head: { model: head.model, mesh: wet.name, batchType: TRANSPARENT, area: 0 },
-                reference: { model: eyeWet.reference, mesh: matching[0].name, batchType: TRANSPARENT, area: 0 }
+                reference: { model: eyeWetReference, mesh: matching[0].name, batchType: TRANSPARENT, area: 0 }
             };
         });
     }
@@ -1128,7 +1132,7 @@ export class CjsCharacterLibraryManager
      * archetypes ship none, and two female ones are spelled apart from every other file (`deites`, `verokior`).
      * Derived: no content record names an archetype's head, bloodline or morph; the two name rules are the code
      * Graphene's foundation used, moved here behind this query, and the generic names which are in force
-     * (`CjsCharacterGeneric.bloodlines`: `headFolderLastWord`, `archetypeCodeUpperShape`).
+     * (`CjsCharacterGeneric.bloodlineRule` `headFolderLastWord`, `bloodlineMorphTargetRule` `archetypeCodeUpperShape`).
      *
      * Ours, as `FetchOptions`.
      *
@@ -1142,9 +1146,9 @@ export class CjsCharacterLibraryManager
     {
         return this._Query("bloodline|" + sex + "|" + archetype, async () =>
         {
-            const { rule, morphTarget } = this._Bloodlines();
-            if (rule !== "headFolderLastWord") throw new Error("No bloodline rule " + rule);
-            if (morphTarget !== "archetypeCodeUpperShape") throw new Error("No morph target rule " + morphTarget);
+            const { bloodlineRule, bloodlineMorphTargetRule } = this._Bloodlines();
+            if (bloodlineRule !== "headFolderLastWord") throw new Error("No bloodline rule " + bloodlineRule);
+            if (bloodlineMorphTargetRule !== "archetypeCodeUpperShape") throw new Error("No morph target rule " + bloodlineMorphTargetRule);
 
             const heads = this.GetSexFacts(sex).root + "head/";
             const paths = this._PaperDollFiles(heads).filter(path => path.endsWith("/metadata.yaml") && path.indexOf("/", heads.length) === path.length - "/metadata.yaml".length);
@@ -1279,7 +1283,7 @@ export class CjsCharacterLibraryManager
         {
             const parameters = list => Object.fromEntries(list.map(parameter => [ parameter.name, Array.from(parameter.value) ]));
             // A rule's batch and region names must be ones the areas carry, or the rule would silently pick nothing.
-            const regions = [ "identity", ...Object.keys(CjsCharacterTextureRoles.atlas) ];
+            const regions = [ "identity", ...Object.keys(this._TextureRoles().atlas) ];
             const known = (shader, kind, names, valid) =>
             {
                 for (const name of names) if (!valid.includes(name)) throw new Error("Area shader " + shader + " has a rule with an unknown " + kind + " " + name);
@@ -1333,7 +1337,7 @@ export class CjsCharacterLibraryManager
         const textures = { ...data.defaultTextures, ...Object.fromEntries(given) };
         const parameters = CjsCharacterLibraryManager.copy({ ...data.defaultParameters, ...provided.parameters });
 
-        const placement = provided.parameters.TransformUV0 ? CjsCharacterTextureRoles.placeInRegion(provided.parameters.TransformUV0) : null;
+        const placement = provided.parameters.TransformUV0 ? CjsCharacterTextureRoles.placeInRegion(this._TextureRoles(), provided.parameters.TransformUV0) : null;
         if (placement !== null) parameters.TransformUV0 = placement.transform;
 
         const batch = CjsCharacterLibraryManager._batchNames[batchType], region = placement ? placement.region : null;
@@ -1402,9 +1406,57 @@ export class CjsCharacterLibraryManager
     }
 
     /**
+     * The paper doll texture tables in force (`CjsCharacterTextureRoles` reads every map name by them): the installed
+     * library's generic texture members when it holds texture roles, else the shipped `factory/defaults/textureRoles.json`,
+     * whole (`_TextureRoles`).
+     *
+     * Ours (no Carbon counterpart): the client's paper doll is Python.
+     * @returns {import("./CjsCharacterTextureRoles.js").CjsCharacterTextureRoleSet} A copy the caller may change.
+     * @throws {Error} For an installed set that is not complete (`_TextureRoles`).
+     */
+    GetTextureRoles()
+    {
+        return CjsCharacterLibraryManager.copy(this._TextureRoles());
+    }
+
+    /**
+     * The texture tables in force, built once per install as `_Sexes` is: the installed library's generic texture
+     * members (`textureRoles`, `textureRegions`, `textureAtlas`, `textureAtlasTolerance`, `textureGarmentMaps`) when it
+     * holds texture roles, else the shipped defaults (in the generic's own shape, built by the graph); one set, never
+     * mixed. An installed set must be complete: roles, regions, an atlas, garment names and a tolerance above 0.
+     * @returns {import("./CjsCharacterTextureRoles.js").CjsCharacterTextureRoleSet} The tables; not to be changed.
+     * @throws {Error} For an installed set that holds roles but lacks one of the other members.
+     */
+    _TextureRoles()
+    {
+        if (this._textureRoles === null || this._textureRolesGeneration !== this._installGeneration)
+        {
+            const installed = this._library.generic;
+            const generic = installed.textureRoles.length ? installed
+                : CjsGraph.from(CjsCharacterGeneric, CjsCharacterLibraryManager._shippedValues(textureRoleDefaults));
+            if (!generic.textureRegions.length || !generic.textureAtlas.size || !generic.textureGarmentMaps.size || !(generic.textureAtlasTolerance > 0))
+                throw new Error("An installed library's texture roles need their regions, atlas, atlas tolerance and garment names too");
+
+            this._textureRoles = {
+                regions: [ ...generic.textureRegions ],
+                atlas: Object.fromEntries(Array.from(generic.textureAtlas, ([ region, rect ]) => [ region, Array.from(rect) ])),
+                atlasTolerance: generic.textureAtlasTolerance,
+                table: Object.fromEntries(generic.textureRoles.map(role => [ role.name, {
+                    families: [ ...role.families ], property: role.property, channels: Object.fromEntries(role.channels),
+                    operation: role.operation, inputOf: role.inputOf, plan: role.plan, covered: role.covered,
+                    source: role.source, derived: role.derived
+                } ])),
+                garment: Object.fromEntries(Array.from(generic.textureGarmentMaps, ([ key, names ]) => [ key, [ ...names ] ]))
+            };
+            this._textureRolesGeneration = this._installGeneration;
+        }
+        return this._textureRoles;
+    }
+
+    /**
      * The bloodline name rules in force, built once per install as `_Sexes` is: the shipped defaults
-     * (`factory/defaults/bloodlines.json`, in the generic's own shape, built into a `CjsCharacterDataBloodlines` by the
-     * graph), each value the installed library's generic sets (`CjsCharacterGeneric.bloodlines`, not empty) replacing
+     * (`factory/defaults/bloodlines.json`, in the generic's own shape, built by the graph), each value the installed
+     * library's generic sets (`CjsCharacterGeneric.bloodlineRule`, `bloodlineMorphTargetRule`, not empty) replacing
      * its default.
      * @returns {CjsCharacterBloodlineRules} The rule names; not to be changed.
      */
@@ -1412,9 +1464,12 @@ export class CjsCharacterLibraryManager
     {
         if (this._bloodlines === null || this._bloodlinesGeneration !== this._installGeneration)
         {
-            const shipped = CjsGraph.from(CjsCharacterGeneric, { bloodlines: bloodlineDefaults.bloodlines }).bloodlines;
-            const installed = this._library.generic.bloodlines;
-            this._bloodlines = { rule: installed.rule || shipped.rule, morphTarget: installed.morphTarget || shipped.morphTarget };
+            const shipped = CjsGraph.from(CjsCharacterGeneric, CjsCharacterLibraryManager._shippedValues(bloodlineDefaults));
+            const installed = this._library.generic;
+            this._bloodlines = {
+                bloodlineRule: installed.bloodlineRule || shipped.bloodlineRule,
+                bloodlineMorphTargetRule: installed.bloodlineMorphTargetRule || shipped.bloodlineMorphTargetRule
+            };
             this._bloodlinesGeneration = this._installGeneration;
         }
         return this._bloodlines;
@@ -1431,7 +1486,7 @@ export class CjsCharacterLibraryManager
     {
         if (this._sexes === null || this._sexesGeneration !== this._installGeneration)
         {
-            const shipped = CjsGraph.from(CjsCharacterGeneric, { sexes: sexDefaults.sexes });
+            const shipped = CjsGraph.from(CjsCharacterGeneric, CjsCharacterLibraryManager._shippedValues(sexDefaults));
             const sexes = new Map(shipped.sexes.map(entry => [ entry.name, entry ]));
             for (const entry of this._library.generic.sexes) sexes.set(entry.name, entry);
             this._sexes = sexes;
@@ -1477,6 +1532,17 @@ export class CjsCharacterLibraryManager
             operation.catch(() => { if (this._queries.get(key) === operation) this._queries.delete(key); });
         }
         return this._queries.get(key).then(CjsCharacterLibraryManager.copy);
+    }
+
+    /**
+     * A shipped defaults file's values for the generic: every key but its `description`, so a key the generic does not
+     * declare fails the graph's build.
+     * @param {object} file The imported defaults file.
+     * @returns {object} Its values.
+     */
+    static _shippedValues(file)
+    {
+        return Object.fromEntries(Object.entries(file).filter(([ key ]) => key !== "description"));
     }
 
     /**

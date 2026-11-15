@@ -2,7 +2,7 @@ import { meta, type } from "#schema";
 import "./CjsCharacterDataCategory.js";
 import "./CjsCharacterDataShader.js";
 import "./CjsCharacterDataSex.js";
-import { CjsCharacterDataBloodlines } from "./CjsCharacterDataBloodlines.js";
+import "./CjsCharacterDataTextureRole.js";
 
 // Discovery: src/character/discovery/animationdata.yaml
 // Discovery: src/character/discovery/{animation_animinfo,animation_movementstates,animationoffsets,basefemalebindpose,basemalebindpose,basename,blendshapes,face,facetweaksettings,modifiernames,scultpinglimits,trif}.yaml
@@ -101,11 +101,48 @@ export class CjsCharacterGeneric
     sexes = [];
 
     /**
-     * Which name rules give an archetype its bloodline and morph target, each value replacing the shipped default
-     * (`factory/defaults/bloodlines.json`). Empty: the defaults are in force.
+     * The name rule that gives an archetype's bloodline from the head that depends on it, replacing the shipped
+     * default (`factory/defaults/bloodlines.json`, which says what each rule does). Empty: the default is in force.
      */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.object.embed("CjsCharacterDataBloodlines")
-    bloodlines = new CjsCharacterDataBloodlines();
+    @type.string
+    bloodlineRule = "";
+
+    /**
+     * The name rule that gives the morph target an archetype drives, replacing the shipped default
+     * (`factory/defaults/bloodlines.json`). Empty: the default is in force.
+     */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string
+    bloodlineMorphTargetRule = "";
+
+    /**
+     * The paper doll texture tables (`CjsCharacterTextureRoles`): the five members below are one set. An installed
+     * library that holds texture roles (`textureRoles` not empty) replaces the shipped set whole
+     * (`factory/defaults/textureRoles.json`, which says what each value means). Empty: the defaults are in force.
+     */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterDataTextureRole")
+    textureRoles = [];
+
+    /** The regions a texture file name can carry (`head`, `body`, `hair`, `acc`); one set with `textureRoles`. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.list("string")
+    textureRegions = [];
+
+    /** The character atlas's regions, as an area's `TransformUV0` places them, [u0, v0, u1, v1] by region. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.map({ kind: "list", itemType: "float64" })
+    textureAtlas = new Map();
+
+    /** How far an authored rect may lie outside an atlas region and still be placed in it. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.float64
+    textureAtlasTolerance = 0;
+
+    /** The garment map names, by the map they give (`detail`, `normal`), each searched in order. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.map({ kind: "list", itemType: "string" })
+    textureGarmentMaps = new Map();
 
 }

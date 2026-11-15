@@ -121,7 +121,8 @@ export class CjsPaperDollMapDecalSource
         if (part.colorVariant) throw Error("Unsupported map decal type " + option.typePath);
         // One map per name at the character texture quality; the variation's replace the part folder's of that name.
         const { paths } = await build.Ready(library.FetchOptionMaps(option));
-        const roles = paths.map(file => CjsCharacterTextureRoles.lookup(file));
+        const textureRoles = library.GetTextureRoles();
+        const roles = paths.map(file => CjsCharacterTextureRoles.lookup(textureRoles, file));
         // Per region and property, replacements before additions.
         roles.sort((a, b) => (a.plan === "add") - (b.plan === "add"));
         const regions = {};

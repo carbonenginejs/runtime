@@ -1,5 +1,5 @@
 {
-  "description": "Each character sex's resource facts, in the generic's own shape (CjsCharacterGeneric.sexes, a CjsCharacterDataSex each), which only the library loads (CjsCharacterLibraryManager.GetSexFacts): `name`, the sex; `root`, the paper doll content root every category path is relative to; `skeleton`, the master skeleton the character is skinned to; `defaultMorphs`, morph weights every character of the sex starts from, under any sculpt (the eye-missing morphs at these weights seat the eyeball against the lids, which the shipped idle poses leave proud of them; our setting: neither Carbon nor the client has default morph weights). Ours: the client's paper doll is Python. Edit freely: the engine reads this file as data. `genericHead`: the generic head's folder below the root. `body`: the nude body's folder below the root. `bodyFallbacks`: for each foundation texture (`region.Channel`) an archetype does not ship, the folder below the root that supplies it. `eyeWet`, a workaround: the generic head's eye-wet mesh (`mesh`) takes the effect of the matching area of a baked character-select model (`reference`; CjsCharacterLibraryManager.FetchEyeWet).",
+  "description": "Each character sex's resource facts, in the generic's own shape (CjsCharacterGeneric.sexes, a CjsCharacterDataSex each), which only the library loads (CjsCharacterLibraryManager.GetSexFacts): `name`, the sex; `root`, the paper doll content root every category path is relative to; `skeleton`, the master skeleton the character is skinned to; `defaultMorphs`, morph weights every character of the sex starts from, under any sculpt (the eye-missing morphs at these weights seat the eyeball against the lids, which the shipped idle poses leave proud of them; our setting: neither Carbon nor the client has default morph weights). Ours: the client's paper doll is Python. Edit freely: the engine reads this file as data. `genericHead`: the generic head's folder below the root. `body`: the nude body's folder below the root. `bodyFallbacks`: for each foundation texture (`region.Channel`) an archetype does not ship, the folder below the root that supplies it. `eyeWetReference` and `eyeWetMesh`, a workaround: the generic head's eye-wet mesh (`eyeWetMesh`) takes the effect of the matching area of a baked character-select model (`eyeWetReference`; CjsCharacterLibraryManager.FetchEyeWet).",
   "sexes": [
     {
       "name": "female",
@@ -14,10 +14,8 @@
         "body.NormalMap": "head/head_generic",
         "body.SpecularMap": "head/head_generic"
       },
-      "eyeWet": {
-        "reference": "res:/graphics/character/unique/characterselect/deteisfemaleclothing/unique.black",
-        "mesh": "EyeWet_GeoShape"
-      }
+      "eyeWetReference": "res:/graphics/character/unique/characterselect/deteisfemaleclothing/unique.black",
+      "eyeWetMesh": "EyeWet_GeoShape"
     },
     {
       "name": "male",
@@ -33,10 +31,8 @@
         "body.NormalMap": "head/head_generic",
         "body.SpecularMap": "head/head_generic"
       },
-      "eyeWet": {
-        "reference": "res:/graphics/character/unique/characterselect/deteismaleclothing/unique.black",
-        "mesh": "EyeWet_GeoShape"
-      }
+      "eyeWetReference": "res:/graphics/character/unique/characterselect/deteismaleclothing/unique.black",
+      "eyeWetMesh": "EyeWet_GeoShape"
     }
   ]
 }

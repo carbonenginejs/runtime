@@ -119,7 +119,7 @@ test("options come from the index alone, one per .type, per underwear folder, or
     assert.deepEqual(library.GetSexFacts("male"), { root: "res:/graphics/character/male/paperdoll/", skeleton: "res:/graphics/character/male/skeleton/masterskeletonmale.gr2",
         defaultMorphs: { LeftEyeMissingShape: 0.05, RightEyeMissingShape: 0.05 }, genericHead: "head/head_generic",
         body: "topinner/torso_nude", bodyFallbacks: { "body.NormalMap": "head/head_generic", "body.SpecularMap": "head/head_generic" },
-        eyeWet: { reference: "res:/graphics/character/unique/characterselect/deteismaleclothing/unique.black", mesh: "EyeWet_GeoShape" } });
+        eyeWetReference: "res:/graphics/character/unique/characterselect/deteismaleclothing/unique.black", eyeWetMesh: "EyeWet_GeoShape" });
     assert.equal(library.GetSexFacts("female").body, "basenude");
     library.GetSexFacts("male").defaultMorphs.LeftEyeMissingShape = 1;
     assert.equal(library.GetSexFacts("male").defaultMorphs.LeftEyeMissingShape, 0.05, "the caller's own copy");
@@ -276,32 +276,32 @@ test("the sex facts: the shipped defaults, each replaced whole by an installed g
     male.name = "male";
     male.root = "res:/custom/male/";
     male.bodyFallbacks.set("body.NormalMap", "custom/normal");
-    male.eyeWet.mesh = "Custom_GeoShape";
+    male.eyeWetMesh = "Custom_GeoShape";
     const library = new CjsCharacterLibraryManager(installed);
     assert.equal(library.GetSexFacts("male").root, "res:/graphics/character/male/paperdoll/", "nothing installed: the default");
 
     installed.generic.sexes.push(male);
     library.InstallLibrary(installed);
     const facts = library.GetSexFacts("male");
-    assert.deepEqual([ facts.root, facts.bodyFallbacks, facts.defaultMorphs, facts.eyeWet.mesh ],
+    assert.deepEqual([ facts.root, facts.bodyFallbacks, facts.defaultMorphs, facts.eyeWetMesh ],
         [ "res:/custom/male/", { "body.NormalMap": "custom/normal" }, {}, "Custom_GeoShape" ], "installed after a query; replaced whole, not merged");
     assert.equal(library.GetSexFacts("female").body, "basenude", "a sex the generic does not hold is the default");
     assert.deepEqual(installed.GetData().generic.sexes.map(sex => sex.name), [ "male" ], "the installed library is not changed");
 
     const reread = new CjsCharacterLibraryManager(installed.GetData()).GetSexFacts("male");
-    assert.deepEqual([ reread.bodyFallbacks, reread.eyeWet.mesh ], [ { "body.NormalMap": "custom/normal" }, "Custom_GeoShape" ], "and reads back");
+    assert.deepEqual([ reread.bodyFallbacks, reread.eyeWetMesh ], [ { "body.NormalMap": "custom/normal" }, "Custom_GeoShape" ], "and reads back");
 });
 
 test("the bloodline name rules are the generic's: the shipped defaults, an installed value replacing its default", async t =>
 {
     const { library } = fixture(t);
     const installed = library.GetLibrary();
-    installed.generic.bloodlines.rule = "headFolderFirstWord";
+    installed.generic.bloodlineRule = "headFolderFirstWord";
     library.InstallLibrary(installed);
     await assert.rejects(library.FetchBloodline("female", "archetypes/cdshape"), /No bloodline rule headFolderFirstWord/);
     await assert.rejects(new CjsCharacterLibraryManager(installed.GetData()).FetchBloodline("female", "archetypes/cdshape"), /No bloodline rule headFolderFirstWord/, "and reads back");
-    installed.generic.bloodlines.rule = "";
-    installed.generic.bloodlines.morphTarget = "archetypeName";
+    installed.generic.bloodlineRule = "";
+    installed.generic.bloodlineMorphTargetRule = "archetypeName";
     library.InstallLibrary(installed);
     await assert.rejects(library.FetchBloodline("female", "archetypes/cdshape"), /No morph target rule archetypeName/, "an empty rule is the default's");
 });

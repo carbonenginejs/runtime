@@ -1,5 +1,4 @@
 import { meta, type } from "#schema";
-import { CjsCharacterDataEyeWet } from "./CjsCharacterDataEyeWet.js";
 
 /**
  * One character sex's resource facts. The generic holds these in a list keyed by `name` (`CjsCharacterGeneric.sexes`),
@@ -47,9 +46,17 @@ export class CjsCharacterDataSex
     @type.map("float64")
     defaultMorphs = new Map();
 
-    /** Where the generic head's eye-wet effect is borrowed from. */
+    /**
+     * A workaround (`CjsCharacterLibraryManager.FetchEyeWet`): the baked character-select model whose matching area's
+     * effect the generic head's eye-wet mesh borrows.
+     */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.object.embed("CjsCharacterDataEyeWet")
-    eyeWet = new CjsCharacterDataEyeWet();
+    @type.string
+    eyeWetReference = "";
+
+    /** The generic head's eye-wet mesh, which borrows the effect (`eyeWetReference`). */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string
+    eyeWetMesh = "";
 
 }

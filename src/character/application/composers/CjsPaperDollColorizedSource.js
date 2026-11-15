@@ -231,7 +231,8 @@ export class CjsPaperDollColorizedSource
         const dependants = option.metadata ? option.metadata.dependantModifiers : [], carrier = this._type.carrier === true;
         if (option.geometry.length || dependants.length) throw new Error("Unqualified " + this.name + " geometry or dependency " + option.definition);
         if (carrier && option.metadata && ![ -1, 2 ].includes(option.metadata.numColorAreas)) throw new Error("Unqualified " + this.name + " colour areas " + option.definition);
-        const roles = Object.values(option.channels).map(value => CjsCharacterTextureRoles.lookup(value.path));
+        const textureRoles = blue.characterLibrary.GetTextureRoles();
+        const roles = Object.values(option.channels).map(value => CjsCharacterTextureRoles.lookup(textureRoles, value.path));
         // Without a carrier the option is a colourise detail and zone map only; a carrier's material adds n and s.
         const allowed = carrier ? [ "l", "z", "n", "s" ] : [ "l", "z" ];
         if (roles.some(role => !allowed.includes(role.suffix))) throw new Error("Unqualified " + this.name + " material channel " + option.definition);

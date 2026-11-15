@@ -1,5 +1,5 @@
 // The generic head's eye-wet effect is borrowed from a baked character-select model (a workaround the library holds as
-// data: sexes.json eyeWet); the library names the two areas, and fails when either is missing.
+// data: sexes.json eyeWetReference, eyeWetMesh); the library names the two areas, and fails when either is missing.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsCharacterLibraryManager } from "../../../npm/dist/character/index.js";
@@ -11,7 +11,7 @@ import { installPartsLibrary } from "../../support/partsLibrary.js";
 
 const ROOT = "res:/graphics/character/female/paperdoll/";
 const HEAD = ROOT + "head/head_generic/head_generic.black", GEOMETRY = "res:/Graphics/Character/Female/Paperdoll/head/head_generic/Head_Generic.gr2";
-const { eyeWet } = new CjsCharacterLibraryManager().GetSexFacts("female");
+const { eyeWetReference } = new CjsCharacterLibraryManager().GetSexFacts("female");
 const SHADERS = "res:/graphics/effect/managed/interior/avatar/";
 
 /** One mesh with one transparent area, or none. */
@@ -51,16 +51,16 @@ function reference(wetIndex = 8)
 
 test("the eye-wet borrow: the head's eye-wet mesh, and the reference's mesh of the same meshIndex on the head's geometry", async t =>
 {
-    const { library } = installPartsLibrary(t, ROOT, [ HEAD, eyeWet.reference ], { text: { [HEAD]: head(), [eyeWet.reference]: reference() } });
+    const { library } = installPartsLibrary(t, ROOT, [ HEAD, eyeWetReference ], { text: { [HEAD]: head(), [eyeWetReference]: reference() } });
     assert.deepEqual(await library.FetchEyeWet("female"), {
         head: { model: HEAD, mesh: "EyeWet_GeoShape", batchType: TriBatchType.TRIBATCHTYPE_TRANSPARENT, area: 0 },
-        reference: { model: eyeWet.reference, mesh: "head5", batchType: TriBatchType.TRIBATCHTYPE_TRANSPARENT, area: 0 }
+        reference: { model: eyeWetReference, mesh: "head5", batchType: TriBatchType.TRIBATCHTYPE_TRANSPARENT, area: 0 }
     }, "the reference's garment mesh of the same index is passed over: only the geometry tells them apart");
 });
 
 test("the borrow is read once", async t =>
 {
-    const { library } = installPartsLibrary(t, ROOT, [ HEAD, eyeWet.reference ], { text: { [HEAD]: head(), [eyeWet.reference]: reference() } });
+    const { library } = installPartsLibrary(t, ROOT, [ HEAD, eyeWetReference ], { text: { [HEAD]: head(), [eyeWetReference]: reference() } });
     await library.FetchEyeWet("female");
     // resMan's object cache would answer a second load without a read, so count the loads themselves.
     const loads = BlueResMan.resManLoadObjectCalls;
@@ -70,11 +70,11 @@ test("the borrow is read once", async t =>
 
 test("a missing eye-wet area on either side, or a reference of another class, is an error", async t =>
 {
-    const missingHead = installPartsLibrary(t, ROOT, [ HEAD, eyeWet.reference ], { text: { [HEAD]: head(false), [eyeWet.reference]: reference() } }).library;
+    const missingHead = installPartsLibrary(t, ROOT, [ HEAD, eyeWetReference ], { text: { [HEAD]: head(false), [eyeWetReference]: reference() } }).library;
     await assert.rejects(missingHead.FetchEyeWet("female"), /No one eye-wet area EyeWet_GeoShape in .*head\/head_generic\//u);
-    const missingReference = installPartsLibrary(t, ROOT, [ HEAD, eyeWet.reference ], { text: { [HEAD]: head(), [eyeWet.reference]: reference(3) } }).library;
+    const missingReference = installPartsLibrary(t, ROOT, [ HEAD, eyeWetReference ], { text: { [HEAD]: head(), [eyeWetReference]: reference(3) } }).library;
     await assert.rejects(missingReference.FetchEyeWet("female"), /No one eye-wet area of meshIndex 8 in .*unique\.black/u);
     // A reference that is a bare skinned model (the head's own file), with no object around it.
-    const notSkinned = installPartsLibrary(t, ROOT, [ HEAD, eyeWet.reference ], { text: { [HEAD]: head(), [eyeWet.reference]: head() } }).library;
+    const notSkinned = installPartsLibrary(t, ROOT, [ HEAD, eyeWetReference ], { text: { [HEAD]: head(), [eyeWetReference]: head() } }).library;
     await assert.rejects(notSkinned.FetchEyeWet("female"), /is a Tr2SkinnedModel, not a Tr2IntSkinnedObject/u);
 });

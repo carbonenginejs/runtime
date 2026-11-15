@@ -77,7 +77,7 @@ async function areas(installed, category, path = MODEL)
 
 test("an authored rect is placed in the atlas region it lies in, relative to it; the whole image is its own place", () =>
 {
-    const place = CjsCharacterTextureRoles.placeInRegion;
+    const roles = new CjsCharacterLibraryManager().GetTextureRoles(), place = transform => CjsCharacterTextureRoles.placeInRegion(roles, transform);
     assert.deepEqual(place([ 0, 0, 0.5, 1 ]), { region: "body", transform: IDENTITY });
     assert.deepEqual(place([ 0.5, 0, 1, 0.5 ]), { region: "head", transform: IDENTITY });
     assert.deepEqual(place([ 0.75, 0.75, 0.875, 1 ]), { region: "acc", transform: [ 0, 0.5, 0.5, 1 ] });
