@@ -63,7 +63,7 @@ export class CjsCharacterFactory
         if (value === null || typeof value !== "object" || Array.isArray(value)) throw new Error("A character DNA is an object");
         for (const key of Object.keys(value)) if (![ "sex", "description", "parts", "modifiers" ].includes(key)) throw new Error("Unknown character DNA field " + key);
         // A sex the library knows: its facts throw for any other.
-        CjsCharacterLibraryManager.sexFacts(value.sex);
+        blue.characterLibrary.GetSexFacts(value.sex);
         const dna = { sex: value.sex, parts: {} };
         if (value.description !== undefined) dna.description = String(value.description);
         for (const [ name, part ] of Object.entries(value.parts ?? {})) dna.parts[name] = CjsCharacterFactory._readPart(name, part);

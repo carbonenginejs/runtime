@@ -11,7 +11,7 @@ import { installPartsLibrary } from "../../support/partsLibrary.js";
 
 const ROOT = "res:/graphics/character/female/paperdoll/";
 const HEAD = ROOT + "head/head_generic/head_generic.black", GEOMETRY = "res:/Graphics/Character/Female/Paperdoll/head/head_generic/Head_Generic.gr2";
-const { eyeWet } = CjsCharacterLibraryManager.sexFacts("female");
+const { eyeWet } = new CjsCharacterLibraryManager().GetSexFacts("female");
 const SHADERS = "res:/graphics/effect/managed/interior/avatar/";
 
 /** One mesh with one transparent area, or none. */

@@ -24,6 +24,8 @@ import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCo
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { PaperDollPaletteKind } from "./characterPalettes.js";
 import { CjsSchema } from "#schema";
+import { CjsCharacterGeneric } from "../model/source/CjsCharacterGeneric.js";
+import { DictReader } from "../../blue/formats/graph/DictReader.js";
 import { TriBatchType } from "#consts/graphics";
 
 /** The default paper doll of each sex (`defaultPaperDoll`). */
@@ -68,6 +70,17 @@ const defaultPaperDolls = { female: defaultFemalePaperDoll, male: defaultMalePap
  * @typedef {{ model: string, mesh: string, batchType: number, area: number }} CjsCharacterEyeWetArea
  */
 
+/**
+ * Where a sex's generic head borrows its eye-wet effect from, as `GetSexFacts` answers it (`CjsCharacterDataEyeWet`).
+ * @typedef {{ reference: string, mesh: string }} CjsCharacterEyeWetFacts
+ */
+
+/**
+ * A sex's resource facts as `GetSexFacts` answers them (`CjsCharacterDataSex` says what each value means).
+ * @typedef {{ root: string, skeleton: string, genericHead: string, body: string, bodyFallbacks: Object<string, string>,
+ *   defaultMorphs: Object<string, number>, eyeWet: CjsCharacterEyeWetFacts }} CjsCharacterSexFacts
+ */
+
 /** Installs, loads, and queries one combined hydrated character library. */
 export class CjsCharacterLibraryManager
 {
@@ -97,6 +110,11 @@ export class CjsCharacterLibraryManager
 
     /** The indexed paper doll files, sorted, for one install generation (`_PaperDollFiles`). */
     _paperDollFiles = null;
+
+    /** The sex facts in force (`_Sexes`), and the install generation they were built for. */
+    _sexes = null;
+
+    _sexesGeneration = -1;
 
     /**
      * Reads one flat kind through its lazy Blue loader when present.
@@ -245,7 +263,7 @@ export class CjsCharacterLibraryManager
     {
         return this._Query("bodyCarriers|" + sex, async () =>
         {
-            const root = CjsCharacterLibraryManager.sexFacts(sex).root;
+            const root = this.GetSexFacts(sex).root;
             const { parts, garmentDependants, cutMaskClip, meshCopy, shells, backingCutout } = this._bodyCarriers;
             const isModel = name => name.endsWith(".black") && !/_lod\d+\.black$/u.test(name);
             // The dependant categories the data names; any other carrier's category is its first folder.
@@ -303,7 +321,7 @@ export class CjsCharacterLibraryManager
      */
     FetchMeshDependants(sex)
     {
-        const root = CjsCharacterLibraryManager.sexFacts(sex).root;
+        const root = this.GetSexFacts(sex).root;
         return this._Query("meshDependants|" + sex, async () => this._meshDependants.map(entry =>
         {
             const folder = root + entry.path + "/";
@@ -439,25 +457,23 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * A sex's resource facts (`factory/defaults/sexes.json`, which only the library loads): `root`, the paper doll
-     * content root every category path is relative to, with its trailing slash; `skeleton`, the master skeleton;
-     * `defaultMorphs`, the morph weights every character of the sex starts from, by morph name: our setting, as neither
-     * Carbon nor the client has default morph weights; `genericHead`, the generic head's folder below the root;
-     * `body`, the nude body's folder below the root; `bodyFallbacks`, by foundation texture (`region.Channel`), the
-     * folder below the root that supplies it when an archetype ships none; `eyeWet`, where the generic head's eye-wet effect is
-     * borrowed from (`FetchEyeWet`).
+     * A sex's resource facts in force: the installed generic's (`CjsCharacterGeneric.sexes`, a `CjsCharacterDataSex`
+     * each, which says what each value means) over the shipped defaults (`_Sexes`).
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python.
      * @param {string} sex The sex.
-     * @returns {{ root: string, skeleton: string, defaultMorphs: Object<string, number>, genericHead: string,
-     *   body: string, bodyFallbacks: Object<string, string>, eyeWet: { reference: string, mesh: string } }} A copy the
-     *   caller may change.
+     * @returns {CjsCharacterSexFacts} A copy the caller may change.
      * @throws {Error} For a sex the library does not know.
      */
-    static sexFacts(sex)
+    GetSexFacts(sex)
     {
-        if (sex === "description" || !Object.hasOwn(sexDefaults, sex)) throw new Error("Unknown character sex " + sex);
-        return structuredClone(sexDefaults[sex]);
+        const facts = this._Sexes().get(sex);
+        if (facts === undefined) throw new Error("Unknown character sex " + sex);
+        return {
+            root: facts.root, skeleton: facts.skeleton, genericHead: facts.genericHead, body: facts.body,
+            bodyFallbacks: Object.fromEntries(facts.bodyFallbacks), defaultMorphs: Object.fromEntries(facts.defaultMorphs),
+            eyeWet: { reference: facts.eyeWet.reference, mesh: facts.eyeWet.mesh }
+        };
     }
 
     /**
@@ -493,7 +509,7 @@ export class CjsCharacterLibraryManager
         const rule = this._CategoryRule(category, "options");
         return (await this._Query("options|" + sex + "|" + category, async () =>
         {
-            const root = CjsCharacterLibraryManager.sexFacts(sex).root, folder = root + category + "/", files = this._PaperDollFiles(folder);
+            const root = this.GetSexFacts(sex).root, folder = root + category + "/", files = this._PaperDollFiles(folder);
             const option = (id, typePath, typePaths, optionFolder, bloodlines) =>
                 ({ sex, category, id, typePath, typePaths, folder: optionFolder, path: optionFolder.slice(root.length, -1), bloodlines });
             if (rule.options === "self") return [ option(category.split("/").at(-1), null, [], folder, []) ];
@@ -536,7 +552,7 @@ export class CjsCharacterLibraryManager
     async FetchFoldersWithoutOptions(sex, category)
     {
         if (this._CategoryRule(category, "options").options !== "type") throw new Error("The paper doll category " + category + " does not list options by .type");
-        const root = CjsCharacterLibraryManager.sexFacts(sex).root, folder = root + category + "/", files = this._PaperDollFiles(folder);
+        const root = this.GetSexFacts(sex).root, folder = root + category + "/", files = this._PaperDollFiles(folder);
         const typed = new Set(files.filter(path => path.endsWith(".type")).map(path => path.slice(0, path.lastIndexOf("/types/") + 1)));
         return [ ...new Set(files.filter(path => path.indexOf("/", folder.length) >= 0).map(path => path.slice(0, path.indexOf("/", folder.length) + 1))) ]
             .filter(dir => !typed.has(dir))
@@ -560,7 +576,7 @@ export class CjsCharacterLibraryManager
     {
         return this._Query("part|" + CjsCharacterLibraryManager._OptionKey(option), async () =>
         {
-            const root = CjsCharacterLibraryManager.sexFacts(option.sex).root;
+            const root = this.GetSexFacts(option.sex).root;
             let part = option.path, variation = "", colorVariant = "", folders = [ option.folder ];
             if (option.typePath === null && option.variation)
             {
@@ -651,7 +667,7 @@ export class CjsCharacterLibraryManager
         const lower = path.toLowerCase();
         return this._Query("dependant|" + sex + "|" + lower + "|" + variation, async () =>
         {
-            const folder = CjsCharacterLibraryManager.sexFacts(sex).root + lower + "/", files = this._PaperDollFiles(folder);
+            const folder = this.GetSexFacts(sex).root + lower + "/", files = this._PaperDollFiles(folder);
             const metadataPath = [ ...(variation ? [ folder + variation + "/" ] : []), folder ].map(value => value + "metadata.yaml").find(value => files.includes(value));
             if (!metadataPath) return null;
             const metadata = await this.FetchAvatarPartMetaData(metadataPath);
@@ -760,7 +776,7 @@ export class CjsCharacterLibraryManager
                 }
                 return { channels };
             }
-            const maps = CjsCharacterTextureRoles.pickGarmentMaps(facts.folders, files), root = CjsCharacterLibraryManager.sexFacts(option.sex).root;
+            const maps = CjsCharacterTextureRoles.pickGarmentMaps(facts.folders, files), root = this.GetSexFacts(option.sex).root;
             const fromDependants = facts.dependants.filter(path => !/^utilityshapes\//iu.test(path)).map(path =>
             {
                 const dir = root + path.toLowerCase() + "/";
@@ -794,7 +810,7 @@ export class CjsCharacterLibraryManager
     {
         return (await this._Query("palettes|" + CjsCharacterLibraryManager._OptionKey(option), async () =>
         {
-            const shared = CjsCharacterLibraryManager.sexFacts(option.sex).root + option.category + "/colors/";
+            const shared = this.GetSexFacts(option.sex).root + option.category + "/colors/";
             const own = this._PaperDollFiles(option.folder).filter(path => path.endsWith(".color") && path.lastIndexOf("/") === option.folder.length - 1);
             const rule = this._CategoryRule(option.category, "palettes").palettes;
             if (rule === "styles")
@@ -1020,7 +1036,7 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * Where a sex's generic head takes its eye-wet effect from (`sexFacts` `eyeWet`): the generic head's eye-wet area
+     * Where a sex's generic head takes its eye-wet effect from (`GetSexFacts` `eyeWet`): the generic head's eye-wet area
      * (its model, by the folder rule of `FetchOptionAreas`, the mesh the data names and its first transparent area), and
      * the area of the reference model whose effect it takes: the reference's one mesh of the same `meshIndex` on the
      * generic head's geometry, its first transparent area. Read once. The head's areas are set up as a head part's
@@ -1041,7 +1057,7 @@ export class CjsCharacterLibraryManager
     {
         return this._Query("eyeWet|" + sex, async () =>
         {
-            const { root, genericHead, eyeWet } = CjsCharacterLibraryManager.sexFacts(sex);
+            const { root, genericHead, eyeWet } = this.GetSexFacts(sex);
             const TRANSPARENT = TriBatchType.TRIBATCHTYPE_TRANSPARENT;
 
             // The generic head, as an option of its folder: its category is the folder's first.
@@ -1114,7 +1130,7 @@ export class CjsCharacterLibraryManager
     {
         return this._Query("bloodline|" + sex + "|" + archetype, async () =>
         {
-            const heads = CjsCharacterLibraryManager.sexFacts(sex).root + "head/";
+            const heads = this.GetSexFacts(sex).root + "head/";
             const paths = this._PaperDollFiles(heads).filter(path => path.endsWith("/metadata.yaml") && path.indexOf("/", heads.length) === path.length - "/metadata.yaml".length);
             const found = [];
             for (const path of paths)
@@ -1185,7 +1201,7 @@ export class CjsCharacterLibraryManager
     async FetchRecipeOption(sex, category, { path, variation = "" })
     {
         this._CategoryRule(category, "options");
-        const lower = path.toLowerCase(), folder = CjsCharacterLibraryManager.sexFacts(sex).root + lower + "/";
+        const lower = path.toLowerCase(), folder = this.GetSexFacts(sex).root + lower + "/";
         if (!this._PaperDollFiles(folder).length) return null;
         return { sex, category, id: "recipe", typePath: null, typePaths: [], folder, path: lower, bloodlines: [], variation: variation.toLowerCase() };
     }
@@ -1228,7 +1244,7 @@ export class CjsCharacterLibraryManager
     async _AccessoryFolders(option)
     {
         const facts = await this.FetchOptionPart(option), own = await this.FetchPartMetadata([ facts.folders.at(-1) ]);
-        const root = CjsCharacterLibraryManager.sexFacts(option.sex).root, source = own ? own.alternativeTextureSourcePath : "";
+        const root = this.GetSexFacts(option.sex).root, source = own ? own.alternativeTextureSourcePath : "";
         const folders = [ ...facts.folders, ...(source ? [ root + source.toLowerCase().replace(/\/?$/u, "/") ] : []), option.folder ];
         return [ ...new Set(folders) ].filter(folder => this._PaperDollFiles(folder).length);
     }
@@ -1367,6 +1383,27 @@ export class CjsCharacterLibraryManager
         if (!rule) throw new Error("No paper doll category " + category);
         if (rule[kind] === "") throw new Error("No " + kind + " rule for the paper doll category " + category);
         return rule;
+    }
+
+    /**
+     * The sex facts in force, by sex, built once per install as `_Categories` is: the shipped defaults
+     * (`factory/defaults/sexes.json`, read into `CjsCharacterDataSex` records by Blue's dict reader), each replaced
+     * whole by the installed library's generic sex of the same name. The installed library is not changed.
+     * @returns {Map<string, CjsCharacterDataSex>} The facts; not to be changed.
+     */
+    _Sexes()
+    {
+        if (this._sexes === null || this._sexesGeneration !== this._installGeneration)
+        {
+            const shipped = new CjsCharacterGeneric();
+            const values = Object.entries(sexDefaults).filter(([ name ]) => name !== "description").map(([ name, facts ]) => ({ name, ...facts }));
+            new DictReader({ liveLists: true }).ReadInto(shipped, { sexes: values }, null);
+            const sexes = new Map(shipped.sexes.map(entry => [ entry.name, entry ]));
+            for (const entry of this._library.generic.sexes) sexes.set(entry.name, entry);
+            this._sexes = sexes;
+            this._sexesGeneration = this._installGeneration;
+        }
+        return this._sexes;
     }
 
     /**

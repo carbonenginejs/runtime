@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsCharacterLibraryManager, CjsCharacterObjectBuilder } from "../../../npm/dist/character/index.js";
+import { CjsCharacterDataSex, CjsCharacterLibrary, CjsCharacterLibraryManager, CjsCharacterObjectBuilder } from "../../../npm/dist/character/index.js";
 import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
 import "../../support/frameLoop.js";
@@ -115,14 +115,14 @@ test("options come from the index alone, one per .type, per underwear folder, or
     await assert.rejects(library.FetchOptions("female", "head"), /No options rule for the paper doll category head/);
     assert.deepEqual(await library.FetchOptions("female", "hair"), [], "a listed category this build ships nothing in");
     await assert.rejects(library.FetchOptionMaps({ sex: "female", category: "bottominner", id: "long01" }), /No maps rule for the paper doll category bottominner/);
-    assert.throws(() => CjsCharacterLibraryManager.sexFacts("other"), /Unknown character sex/);
-    assert.deepEqual(CjsCharacterLibraryManager.sexFacts("male"), { root: "res:/graphics/character/male/paperdoll/", skeleton: "res:/graphics/character/male/skeleton/masterskeletonmale.gr2",
+    assert.throws(() => library.GetSexFacts("other"), /Unknown character sex/);
+    assert.deepEqual(library.GetSexFacts("male"), { root: "res:/graphics/character/male/paperdoll/", skeleton: "res:/graphics/character/male/skeleton/masterskeletonmale.gr2",
         defaultMorphs: { LeftEyeMissingShape: 0.05, RightEyeMissingShape: 0.05 }, genericHead: "head/head_generic",
         body: "topinner/torso_nude", bodyFallbacks: { "body.NormalMap": "head/head_generic", "body.SpecularMap": "head/head_generic" },
         eyeWet: { reference: "res:/graphics/character/unique/characterselect/deteismaleclothing/unique.black", mesh: "EyeWet_GeoShape" } });
-    assert.equal(CjsCharacterLibraryManager.sexFacts("female").body, "basenude");
-    CjsCharacterLibraryManager.sexFacts("male").defaultMorphs.LeftEyeMissingShape = 1;
-    assert.equal(CjsCharacterLibraryManager.sexFacts("male").defaultMorphs.LeftEyeMissingShape, 0.05, "the caller's own copy");
+    assert.equal(library.GetSexFacts("female").body, "basenude");
+    library.GetSexFacts("male").defaultMorphs.LeftEyeMissingShape = 1;
+    assert.equal(library.GetSexFacts("male").defaultMorphs.LeftEyeMissingShape, 0.05, "the caller's own copy");
 });
 
 test("an option's part: its type's tuple, the variation folder before the part folder, and its metadata decoded", async t =>
@@ -268,4 +268,26 @@ test("the drawn dependant meshes: each entry with its folder's model and one per
     drape.versions.length = 0;
     assert.equal((await library.FetchMeshDependants("female"))[0].versions.length, 3, "the caller's own copy");
     await assert.rejects(library.FetchMeshDependants("male"), /Mesh dependant versions are not the folder and v1\.\.vN: .*standard\.black, .*v2\/loose\.black$/, "a gap in the versions");
+});
+
+test("the sex facts: the shipped defaults, each replaced whole by an installed generic sex of its name", () =>
+{
+    const installed = new CjsCharacterLibrary(), male = new CjsCharacterDataSex();
+    male.name = "male";
+    male.root = "res:/custom/male/";
+    male.bodyFallbacks.set("body.NormalMap", "custom/normal");
+    male.eyeWet.mesh = "Custom_GeoShape";
+    const library = new CjsCharacterLibraryManager(installed);
+    assert.equal(library.GetSexFacts("male").root, "res:/graphics/character/male/paperdoll/", "nothing installed: the default");
+
+    installed.generic.sexes.push(male);
+    library.InstallLibrary(installed);
+    const facts = library.GetSexFacts("male");
+    assert.deepEqual([ facts.root, facts.bodyFallbacks, facts.defaultMorphs, facts.eyeWet.mesh ],
+        [ "res:/custom/male/", { "body.NormalMap": "custom/normal" }, {}, "Custom_GeoShape" ], "installed after a query; replaced whole, not merged");
+    assert.equal(library.GetSexFacts("female").body, "basenude", "a sex the generic does not hold is the default");
+    assert.deepEqual(installed.GetData().generic.sexes.map(sex => sex.name), [ "male" ], "the installed library is not changed");
+
+    const reread = new CjsCharacterLibraryManager(installed.GetData()).GetSexFacts("male");
+    assert.deepEqual([ reread.bodyFallbacks, reread.eyeWet.mesh ], [ { "body.NormalMap": "custom/normal" }, "Custom_GeoShape" ], "and reads back");
 });

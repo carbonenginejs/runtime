@@ -1,6 +1,6 @@
 import { meta, type } from "#schema";
 import { IsMatch } from "#exposure/INotify";
-import { CjsCharacterLibraryManager } from "../library/CjsCharacterLibraryManager.js";
+import { blue } from "#blue";
 
 /**
  * Application-owned foundation selection; prepared records retain resource provenance.
@@ -27,7 +27,7 @@ export class CjsPaperDollArchetype
 
     _sculpt = new Map();
 
-    /** This character's sex's default morph weights (`CjsCharacterLibraryManager.sexFacts`), under any sculpt. */
+    /** This character's sex's default morph weights (`blue.characterLibrary.GetSexFacts`), under any sculpt. */
     _defaultMorphs = {};
 
     /** The configured foundation resolver, or null when every option arrived prepared. */
@@ -70,13 +70,13 @@ export class CjsPaperDollArchetype
      * @param {string} [settings.option] The initial option; it must be prepared.
      * @param {number} [settings.strength=1] The initial strength.
      * @param {?function(string): Promise<object>} [settings.resolve=null] Prepares one foundation record.
-     * @param {?string} [settings.sex=null] The sex whose default morph weights apply (`CjsCharacterLibraryManager.sexFacts`); null for none.
+     * @param {?string} [settings.sex=null] The sex whose default morph weights apply (`blue.characterLibrary.GetSexFacts`); null for none.
      * @returns {void}
      * @throws {Error} For a sex the character library does not know.
      */
     Configure(options, { option, strength = 1, resolve = null, sex = null } = {})
     {
-        this._defaultMorphs = sex === null ? {} : CjsCharacterLibraryManager.sexFacts(sex).defaultMorphs;
+        this._defaultMorphs = sex === null ? {} : blue.characterLibrary.GetSexFacts(sex).defaultMorphs;
         const prepared = new Map();
         for (const entry of options)
         {

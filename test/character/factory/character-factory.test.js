@@ -5,6 +5,9 @@ import { CjsCharacterDataCategory, CjsCharacterFactory, CjsCharacterLibraryManag
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
 import { installPartsLibrary } from "../../support/partsLibrary.js";
 
+// Reading a DNA checks its sex against the library's sex facts; a bare library holds the shipped defaults.
+installBlueServices({ characterLibrary: new CjsCharacterLibraryManager() }, false);
+
 test("the defaults are the clean character: eyebrows, head, body, eyes and underwear on, the underwear not overridable", () =>
 {
   for (const sex of [ "female", "male" ])
@@ -61,7 +64,7 @@ test("the merge lays the DNA over the defaults, switches every other part off an
 /** A definition with a few parts configured, and a library whose palettes are coloured by their path's length. */
 function configuredDefinition(t)
 {
-  const characterLibrary = { FetchPalette: async path => ({ colors: [ 0, 1, 2 ].map(i => Float32Array.of(path.length % 7 / 10, i / 10, 0, 1)), specularColors: null, pattern: null }) };
+  const characterLibrary = Object.assign(new CjsCharacterLibraryManager(), { FetchPalette: async path => ({ colors: [ 0, 1, 2 ].map(i => Float32Array.of(path.length % 7 / 10, i / 10, 0, 1)), specularColors: null, pattern: null }) });
   const previous = installBlueServices({ characterLibrary }, false);
   t.after(() => installBlueServices(previous, previous.running));
   const definition = new CjsPaperDollDefinition();

@@ -1,6 +1,7 @@
 import { meta, type } from "#schema";
 import "./CjsCharacterDataCategory.js";
 import "./CjsCharacterDataShader.js";
+import "./CjsCharacterDataSex.js";
 
 // Discovery: src/character/discovery/animationdata.yaml
 // Discovery: src/character/discovery/{animation_animinfo,animation_movementstates,animationoffsets,basefemalebindpose,basemalebindpose,basename,blendshapes,face,facetweaksettings,modifiernames,scultpinglimits,trif}.yaml
@@ -89,5 +90,13 @@ export class CjsCharacterGeneric
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterDataShader")
     areaShaders = [];
+
+    /**
+     * Each character sex's resource facts, one per sex `name`, each replacing the shipped default of that sex
+     * (`factory/defaults/sexes.json`). Empty: the defaults are in force.
+     */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterDataSex")
+    sexes = [];
 
 }

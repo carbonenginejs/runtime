@@ -1,6 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsPaperDollDefinition, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
+import { CjsCharacterLibraryManager, CjsPaperDollDefinition, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
+import { installBlueServices } from "../../../npm/dist/blue/blue.js";
+
+// The archetype reads its sex's default morphs from the library; a bare library holds the shipped defaults.
+installBlueServices({ characterLibrary: new CjsCharacterLibraryManager() }, false);
 
 /** The smallest foundation the archetype accepts: a head declaring it, a generic head and a body. */
 function Foundation()
