@@ -62,13 +62,13 @@ export class CjsBlueGraph
     const rows = this._getRows(ctor, fields);
 
     // A Blue row whose member values do not carry (a live property, not persisted) still gets its type facts, so
-    // every row of the table is whole; it stays out of the graph's members. Each row with the declaration it was
-    // compiled from, so two declarations with one name and key cannot share a row.
+    // every row of the table is whole; it stays out of the graph's members. Each row is filled from the declaration
+    // it was compiled from.
     const info = ClassInfo.exposeToBlue(ctor), carried = new Set(rows.values());
     for (const row of info.memberTable)
     {
-      const declaration = carried.has(row) ? undefined : info.declarationOf(row);
-      if (declaration !== undefined) CjsGraph.compileMember({ ...this._getMember(declaration), row });
+      if (carried.has(row)) continue;
+      CjsGraph.compileMember({ ...this._getMember(info.declarationOf(row)), row });
     }
 
     return CjsGraph.define(ctor, {
@@ -128,7 +128,8 @@ export class CjsBlueGraph
   }
 
   /**
-   * The row Blue's member table holds for each of a class's own declarations.
+   * The row Blue's member table holds for each of a class's own declarations: its name, key and index, compiled
+   * from a declaration of the same class, so a helper class's member of one name and key keeps its own row.
    * @param {Function} ctor The class.
    * @param {object[]} fields Its own declarations.
    * @returns {Map<object, object>} Declaration to row.
@@ -136,12 +137,13 @@ export class CjsBlueGraph
   static _getRows(ctor, fields)
   {
     const rows = new Map();
-    const table = ClassInfo.exposeToBlue(ctor).memberTable;
+    const info = ClassInfo.exposeToBlue(ctor), table = info.memberTable;
 
     for (const field of fields)
     {
       const key = field.key ?? field.name, index = field.index ?? -1;
-      const row = table.find(each => each.name === field.name && each.key === key && each.index === index);
+      const row = table.find(each => each.name === field.name && each.key === key && each.index === index
+        && info.declarationOf(each).declaringClass === field.declaringClass);
       if (row !== undefined) rows.set(field, row);
     }
 
