@@ -39,27 +39,24 @@ export class CjsCharacterCamera extends CjsCharacterRecord
     @type.object.ref("CjsCharacterHookNames")
     hook_names = null;
 
-    /** Authored 3-component numeric tuple. Plain number storage avoids float32 rounding; source length is 3. */
+    /** The point the camera looks at, at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("float64")
-    point_of_interest = [0, 0, 0];
+    @type.vec3d
+    point_of_interest = new Float64Array(3);
 
-    /** Authored 3-component numeric tuple. Plain number storage avoids float32 rounding; source length is 3. */
+    /** The camera's position, at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("float64")
-    position = [0, 0, 0];
+    @type.vec3d
+    position = new Float64Array(3);
 
     /** Authored numeric value, retained at JavaScript number precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     transform_hook_scale = 0;
 
-    /**
-     * Authored two-component viewport size, with integer components. Plain number storage avoids float32
-     * rounding; source length is 2.
-     */
+    /** The authored viewport size, its components integers, at double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("float64")
-    viewport_size = [0, 0];
+    @type.vec2d
+    viewport_size = new Float64Array(2);
 
 }

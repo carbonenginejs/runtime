@@ -22,11 +22,11 @@ test("content inspection separates camera/post layouts without decoding other re
 {
     const camera = Builder("field_of_view: 0.2\nposition: !!python/tuple [0.1, 0.2, 0.3]\n", "cameras").CreateObject();
     assert.equal(Object.getPrototypeOf(camera), CjsCharacterCamera.prototype);
-    assert.deepEqual(camera.position, [0.1, 0.2, 0.3]);
+    assert.deepEqual(camera.position, Float64Array.of(0.1, 0.2, 0.3), "a point at the authored double precision");
     const positional = Builder("[!!python/tuple [1, 2, 3], !!python/tuple [4, 5, 6], 0.3, 0.1, 200, !!python/tuple ['','','','','']]", "cameras").CreateObject();
     assert.equal(Object.getPrototypeOf(positional), CjsCharacterCamera.prototype, "one class for both layouts");
     assert.deepEqual([ positional.position, positional.point_of_interest, positional.field_of_view, positional.front_clip, positional.back_clip ],
-        [ [ 1, 2, 3 ], [ 4, 5, 6 ], 0.3, 0.1, 200 ]);
+        [ Float64Array.of(1, 2, 3), Float64Array.of(4, 5, 6), 0.3, 0.1, 200 ]);
     assert.deepEqual([ positional.hook_names.name, positional.aspect_ratio ], [ "", 0 ]);
     assert.equal(positional._pdpType, CjsCharacterPdpType.CAMERA_SEQUENCE, "the reader names the file shape it read");
     assert.throws(() => Builder("[!!python/tuple [1, 2, 3], !!python/tuple [4, 5, 6], 1, 2, 3, !!python/tuple [a,b,c,d,e]]", "cameras").CreateObject(), /unread/u);
