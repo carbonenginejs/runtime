@@ -76,12 +76,12 @@ export class CjsCharacterGeneric
     fieldSets = [];
 
     /**
-     * Paper doll category rules by category path, each overriding the shipped default of that name
+     * Paper doll category rules, one per category path `name`, each overriding the shipped default of that name
      * (`factory/defaults/categories.json`). Empty: the defaults are in force.
      */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map("CjsCharacterDataCategory")
-    categories = new Map();
+    @type.list("CjsCharacterDataCategory")
+    categories = [];
 
     /**
      * Area shaders' generic data, each overriding the shipped default for the same shader

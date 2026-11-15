@@ -211,7 +211,7 @@ test("a recipe reads by the category rules in force: a library's generic categor
 
   // A library whose generic says outer is no garment category: no type presets the coat, and no recipe option stands in.
   const installed = library.GetLibrary();
-  installed.generic.categories.set("outer", Object.assign(new CjsCharacterDataCategory(), { options: "type", maps: "name", palettes: "own", areas: "none" }));
+  installed.generic.categories.push(Object.assign(new CjsCharacterDataCategory(), { name: "outer", options: "type", maps: "name", palettes: "own", areas: "none" }));
   library.InstallLibrary(installed);
   await assert.rejects(CjsCharacterFactory.readRecipe(PRS), /outer\/coat01: no outer option presets it \(variation 'v9', colour variation ''\)$/u);
 });

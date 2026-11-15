@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsCharacterDataCategory, CjsCharacterLibraryManager } from "../../../npm/dist/character/index.js";
+import { CjsCharacterDataCategory, CjsCharacterLibrary, CjsCharacterLibraryManager } from "../../../npm/dist/character/index.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { CjsCharacterTextureRoles } from "../../../npm/dist/character/library/CjsCharacterTextureRoles.js";
 import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
@@ -122,10 +123,13 @@ test("a library's generic category overrides the shipped default of that name", 
 {
     const library = fixture(t);
     const installed = library.GetLibrary();
-    installed.generic.categories.set("hair", Object.assign(new CjsCharacterDataCategory(), { options: "type", maps: "", palettes: "own", areas: "none" }));
+    installed.generic.categories.push(Object.assign(new CjsCharacterDataCategory(), { name: "hair", options: "type", maps: "", palettes: "own", areas: "none" }));
     library.InstallLibrary(installed);
     await assert.rejects(library.FetchOptionMaps({ sex: "female", category: "hair", id: "x" }), /No maps rule for the paper doll category hair/);
     assert.equal(library.GetCategoryRules().get("hair").maps, "", "the rules in force are the generic's");
+    const reread = new CjsCharacterLibrary().SetData(installed.GetData()).generic.categories.find(category => category.name === "hair");
+    assert.equal(CjsSchema.getClassName(reread.constructor), "CjsCharacterDataCategory", "an installed category reads back as a record");
+    assert.equal(new CjsCharacterLibraryManager(installed.GetData()).GetCategoryRules().get("hair").maps, "", "and stays in force");
     assert.equal(new CjsCharacterLibraryManager().GetCategoryRules().get("hair").maps, "variation", "the defaults are not changed");
     const rules = library.GetCategoryRules();
     rules.get("outer").maps = "changed";

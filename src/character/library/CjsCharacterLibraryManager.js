@@ -1356,9 +1356,9 @@ export class CjsCharacterLibraryManager
             const rules = new Map(Object.entries(categoryDefaults.categories).map(([ name, rule ]) => [ name, {
                 ...rule, defaultColors: rule.defaultColors ?? [], requiresModel: rule.requiresModel ?? false, skipPatternedPalettes: rule.skipPatternedPalettes ?? false
             } ]));
-            for (const [ name, category ] of this._library.generic.categories)
+            for (const category of this._library.generic.categories)
             {
-                rules.set(name, {
+                rules.set(category.name, {
                     options: category.options, maps: category.maps, palettes: category.palettes, areas: category.areas,
                     defaultColors: category.defaultColors.map(color => Array.from(color)),
                     requiresModel: category.requiresModel, skipPatternedPalettes: category.skipPatternedPalettes
