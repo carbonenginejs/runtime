@@ -15,9 +15,9 @@ Member lookup walks `chainTo`, as Carbon's walks `mParentClassInfo`; the prototy
 mutable instance storage.
 
 A compiled member is a `VarEntry` row, listed in every table and never copied. The graph sets `name`,
-`key` (a field), `index` (-1 for none), `role`, `kind` (the type name), `type` (the VARTYPE),
+`key` (a field), `index` (-1 for none), `role`, `type` (the VARTYPE; the row has no type-name field),
 `handler`, `direct`, `length`, `bits`, `signed`, `ctor`, `item`, `flags`, `options`,
-`edgeKind`, `edgeType`, `collection` and `owner`. `flags` is one integer: Carbon's `EDITFLAGS` from
+`edgeKind`, `edgeType`, `collection` and `owner`; the schema's compile writes `edgeType` and `collection` too. `flags` is one integer: Carbon's `EDITFLAGS` from
 `global/consts`, and above `EDMASK` our `GraphMemberFlags.BINARY` and `RUNTIMEONLY`, which no value
 operation reads, and `NULLABLE`, a value member that may hold null. A member takes a value through WRITE, PERSIST or RPERSIST, or when it has no
 access flags; READ alone refuses one.

@@ -308,7 +308,6 @@ export class CjsGraph
       row.signed = entry.signed === true;
     }
     row.role = member.role ?? "attribute";
-    row.kind = member.type ?? "invalid";
     row.handler = getGraphHandler(entry.handler);
     row.direct = entry.direct === true;
     row.length = member.length ?? entry.length ?? 0;

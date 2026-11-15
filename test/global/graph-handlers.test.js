@@ -66,13 +66,14 @@ test("a script object and a callback are held by reference and never equal", () 
   }
 });
 
-test("a compiled member is Carbon's row: its VARTYPE is type, its type name is kind, and no index is -1", () =>
+test("a compiled member is Carbon's row: its VARTYPE is type, with no type-name field, and no index is -1", () =>
 {
   const row = member("vec3");
 
   assert.equal(row.constructor, VarEntry);
-  assert.equal(row.kind, "vec3");
+  assert.equal("kind" in row, false);
   assert.equal(row.type, VARTYPE.FLOATARRAY);
+  assert.equal(row.length, 3);
   assert.equal(row.key, "value");
   assert.equal(row.index, -1);
   assert.equal(member("float32", { index: 2, key: "stored" }).index, 2);

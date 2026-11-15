@@ -32,7 +32,7 @@ test("a class's definition made when it was declared is the one a second define 
   const differences = [];
   const describe = info => JSON.stringify({
     chainTo: info.declared.chainTo, bases: info.declared.bases, interfaces: info.declared.interfaces,
-    members: info.declared.members.map(row => [ row.name, row.key, row.index, row.kind, row.flags, row.edgeKind, row.edgeType, row.collection ])
+    members: info.declared.members.map(row => [ row.name, row.key, row.index, row.type, row.length, row.handler?.constructor.className ?? null, row.flags, row.edgeKind, row.edgeType, row.collection ])
   });
 
   for (const { name, type } of getClassRegistrations())

@@ -174,5 +174,6 @@ test("a definition that throws leaves the rows handed in as they were", () =>
   same();
 
   assert.equal(info.declared.members[0], row);
-  assert.equal(CjsGraph._FindEntry(info, "value").kind, "float32");
+  // Still the float32 member: its handler is the float one.
+  assert.equal(CjsGraph._FindEntry(info, "value").handler.constructor, CjsGraphTypeFloat);
 });

@@ -118,14 +118,6 @@ export class VarEntry
   role = "attribute";
 
   /**
-   * The member's type name, a key of GRAPH_TYPES ("float32", "vec3", "rootRef").
-   *
-   * @cjs Carbon has the C++ member type; `type` above is the VARTYPE it stores as.
-   * @type {string}
-   */
-  kind = "invalid";
-
-  /**
    * The graph handler for the member's storage kind, or null on a row no value operation reads.
    *
    * @cjs Carbon's readers switch on mType; a handler is that switch's case, found once.
