@@ -5,7 +5,10 @@
 // (CjsPaperDollInstance.applyAreaSetup).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsCharacterDataParameter, CjsCharacterDataShader, CjsCharacterLibraryManager, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
+import { CjsCharacterDataParameter, CjsCharacterDataShader, CjsCharacterGeneric, CjsCharacterLibraryManager, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
+import { CjsGraph } from "../../../npm/dist/global/model/graph/CjsGraph.js";
+import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
+import areaShaderFile from "../../../npm/dist/character/factory/defaults/areaShaders.json.js";
 import { CjsCharacterTextureRoles } from "../../../npm/dist/character/library/CjsCharacterTextureRoles.js";
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
 import { Tr2Effect } from "../../../npm/dist/trinity/index.js";
@@ -183,4 +186,13 @@ test("applying a setup sets each texture and each parameter as a Vector4, over t
     assert.equal(named("TransformUV0").length, 1, "the authored TransformUV0 takes the value; no second one");
     assert.deepEqual(Array.from(named("TransformUV0")[0].value), IDENTITY);
     assert.deepEqual(Array.from(named("DecalClip")[0].value), ONE);
+});
+
+test("the shipped area shaders are in the generic's own shape, built into records by the graph", () =>
+{
+    const { description, ...values } = areaShaderFile;
+    const shipped = CjsGraph.from(CjsCharacterGeneric, values).areaShaders;
+    assert.equal(typeof description, "string");
+    assert.deepEqual(shipped.map(shader => CjsSchema.getClassName(shader.constructor)), shipped.map(() => "CjsCharacterDataShader"));
+    assert.ok(shipped.some(shader => shader.shader === "skinnedavatarbrdf.fx"), "the generic head's shader is shipped");
 });

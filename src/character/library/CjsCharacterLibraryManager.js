@@ -1272,7 +1272,8 @@ export class CjsCharacterLibraryManager
 
     /**
      * The area shaders' generic data in force, by shader file name: the shipped defaults
-     * (`factory/defaults/areaShaders.json`), each replaced by the installed library's generic shader of the same name.
+     * (`factory/defaults/areaShaders.json`, in the generic's own shape, built into `CjsCharacterDataShader` objects by
+     * the graph), each replaced by the installed library's generic shader of the same name, through one compiler.
      * Built once per install, as Carbon compiles its generic data once (`EveSOFDataMgr::GenerateGenericData`,
      * EveSOFDataMgr.cpp:1892-2103).
      * @returns {Map<string, CjsCharacterAreaShaderData>}
@@ -1300,8 +1301,9 @@ export class CjsCharacterLibraryManager
                     parameters: parameters(rule.parameters)
                 }))
             });
-            const shaders = new Map(areaShaderDefaults.shaders.map(shader => [ shader.shader, compile(shader) ]));
-            for (const shader of this._library.generic.areaShaders) shaders.set(shader.shader, compile(shader));
+            const shipped = CjsGraph.from(CjsCharacterGeneric, CjsCharacterLibraryManager._shippedValues(areaShaderDefaults));
+            const shaders = new Map();
+            for (const shader of [ ...shipped.areaShaders, ...this._library.generic.areaShaders ]) shaders.set(shader.shader, compile(shader));
             this._areaShaders = shaders;
             this._areaShadersGeneration = this._installGeneration;
         }
