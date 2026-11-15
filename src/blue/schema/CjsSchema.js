@@ -3022,14 +3022,21 @@ function mergeMemberMetadata(target, source)
     for (const [namespace, value] of Object.entries(source))
     {
         if (namespace === "name") continue;
+        const inherited = target[namespace];
         // The subclass's class-level row is Carbon's complete row for what it defines (edit flags, exposure, declaration): it replaces the
         // inherited value instead of overlaying it. What the row does not define (type, state) stays inherited.
         target[namespace] = source.mapsInherited && value !== null && typeof value === "object" && !Array.isArray(value)
             ? { ...value } : mergeNamespace(target[namespace], value);
-        // A new declared type replaces the inherited one whole: its class, items, wrapper, count, nullability,
-        // ownership and resource facts all belong to the declaration. Edit-only overrides continue to inherit their
-        // original type and its markers.
-        if (namespace === "type" && value?.kind) target[namespace] = { ...value };
+        // A new declared type replaces the inherited one: its class, items, wrapper, count, nullability, ownership,
+        // resource and path facts all belong to the declaration. Two facts of Carbon's exposure row live here too and
+        // stay unless restated: `binary`, and `flags` while the value type is the same. Edit-only overrides continue to
+        // inherit their original type and its markers.
+        if (namespace === "type" && value?.kind)
+        {
+            target[namespace] = { ...value };
+            if (inherited?.binary === true && !Object.hasOwn(value, "binary")) target[namespace].binary = true;
+            if (inherited?.flags === true && inherited.kind === value.kind && !Object.hasOwn(value, "flags")) target[namespace].flags = true;
+        }
     }
     return target;
 }

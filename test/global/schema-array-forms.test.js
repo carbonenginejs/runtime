@@ -143,3 +143,20 @@ test("a subclass that declares a member's type again does not inherit its nullab
   CjsSchema.meta.define("ReferenceAsValue")(ReferenceAsValue);
   assert.deepEqual({ ...CjsSchema.getDeclaredSchema(ReferenceAsValue).members.find(member => member.name === "target").type }, { kind: "float32" });
 });
+
+test("a type re-declared alone keeps the exposure row's flags fact for the same value type", () =>
+{
+  class FlagsBase { mask = 0; }
+  CjsSchema.decorateField(FlagsBase, "mask", type.flags({ A: 1, B: 2 }));
+  CjsSchema.meta.define("FlagsBase")(FlagsBase);
+  class FlagsRedeclared extends FlagsBase {}
+  CjsSchema.decorateField(FlagsRedeclared, "mask", type.uint32);
+  CjsSchema.meta.define("FlagsRedeclared")(FlagsRedeclared);
+  class FlagsAsFloat extends FlagsBase { mask = 0; }
+  CjsSchema.decorateField(FlagsAsFloat, "mask", type.float32);
+  CjsSchema.meta.define("FlagsAsFloat")(FlagsAsFloat);
+
+  const declared = Class => CjsSchema.getDeclaredSchema(Class).members.find(member => member.name === "mask").type;
+  assert.equal(declared(FlagsRedeclared).flags, true);
+  assert.equal(declared(FlagsAsFloat).flags, undefined);
+});

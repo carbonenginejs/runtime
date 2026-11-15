@@ -35,3 +35,10 @@ test("an embedded member that holds nothing reads a dictionary as a new object",
   assert.ok(owner.item instanceof NullEmbedItem);
   assert.equal(owner.item.size, 4);
 });
+
+test("an embedded member that holds nothing reads an explicit undefined as empty, as it reads null", () =>
+{
+  const owner = new NullEmbedOwner();
+  new DictReader().ReadInto(owner, { item: undefined }, null);
+  assert.equal(owner.item, null);
+});
