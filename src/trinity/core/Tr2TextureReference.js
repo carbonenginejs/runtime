@@ -45,7 +45,7 @@ export class Tr2TextureReference extends ITr2TextureProvider
    * Carbon's OnTextureChangeEvent is an alias of Tr2Event<> (ITr2TextureProvider.h:14), so the class is Tr2Event.
    * @type {object|null}
    */
-  @type.rawStruct("Tr2Event")
+  @type.object.embed("Tr2Event")
   onTextureChange = new Tr2Event();
 
   /**

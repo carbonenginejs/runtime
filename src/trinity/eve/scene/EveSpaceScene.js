@@ -541,7 +541,7 @@ export class EveSpaceScene
    * side (GetBatches, GetShadowBatches, GetPickingBatches, GetPickedObject,
    * ReportUsedScreenSizes) is not ported.
    */
-  @type.rawStruct("EveInstancedMeshManager")
+  @type.object.embed("EveInstancedMeshManager")
   instancedMeshManager = new EveInstancedMeshManager();
 
   /** m_objects (PIEveSpaceObject2Vector) [READ, PERSIST] */

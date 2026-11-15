@@ -58,7 +58,7 @@ export class EveSceneStaticParticles extends IRoot
   clusters = [];
 
   /** Double-precision aggregate origin used for camera-relative placement. */
-  @type.rawStruct("Vector3d")
+  @type.vec3d
   centerOfClusters = new Float64Array(3);
 
   /** Local particle bounds rebuilt with the CPU instance data. */

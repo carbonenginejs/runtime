@@ -38,7 +38,7 @@ export class EveInstancedMeshManagerMeshData
   totalVisibleInstances = 0;
 
   /** currentAllocation (InstanceBuffer::Allocation), embedded by value. */
-  @type.rawStruct("EveInstancedMeshManager::InstanceBuffer::Allocation")
+  @type.object.embed("EveInstancedMeshManager::InstanceBuffer::Allocation")
   currentAllocation = new EveInstancedMeshManagerInstanceBufferAllocation();
 
   /**

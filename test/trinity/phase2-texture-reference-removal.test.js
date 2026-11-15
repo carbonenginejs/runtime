@@ -46,7 +46,8 @@ test("texture reference declarations expose live readonly properties in native o
 {
   const info = CjsSchema.getSchema(Tr2TextureReference);
   // The Tr2TextureAL it holds is a plain field: nothing of the abstraction layer is declared to the graph.
-  assert.deepEqual(info.members.map(field => [field.name, field.type.kind]), [["onTextureChange", "rawStruct"]]);
+  // Carbon holds the event by value (Tr2TextureReference.h:41): an embedded Tr2Event.
+  assert.deepEqual(info.members.map(field => [field.name, field.type.kind, field.type.className]), [["onTextureChange", "root", "Tr2Event"]]);
   assert.deepEqual(info.properties.map(field => field.name), ["width", "height", "depth", "type", "mipCount", "format", "arraySize", "name"]);
   for (const field of info.properties)
   {
@@ -111,8 +112,8 @@ test("texture reference exposes native mutable storage and Tr2Event broadcasts",
 test("opaque texture and event state stay outside Blue resources and persisted copies", () =>
 {
   const reference = new Tr2TextureReference();
+  // The texture is a plain field, never walked; the event is an embedded Tr2Event, which is not a resource.
   reference.texture = { isResource: true };
-  reference.onTextureChange = { isResource: true };
   assert.deepEqual(GetResources(reference, []), []);
   const copy = new Copier().CopyTo(reference);
   assert.equal(copy.GetTexture().IsValid(), false);

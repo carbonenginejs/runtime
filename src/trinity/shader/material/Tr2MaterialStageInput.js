@@ -37,7 +37,7 @@ export class Tr2MaterialStageInput
   constantBuffer = new Tr2ConstantBufferAL();
 
   /** m_constantMirror (CcpMallocBuffer) */
-  @type.rawStruct("CcpMallocBuffer")
+  @type.uint8Array
   constantMirror = null;
 
   /**

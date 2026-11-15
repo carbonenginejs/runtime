@@ -290,11 +290,11 @@ export class EveInstancedMeshManager
   _perObjectDataBuffer = null;
 
   /** m_staticInstanceBuffer (InstanceBuffer, h:289), embedded by value. */
-  @type.rawStruct("EveInstancedMeshManager::InstanceBuffer")
+  @type.object.embed("EveInstancedMeshManager::InstanceBuffer")
   _staticInstanceBuffer = new EveInstancedMeshManagerInstanceBuffer();
 
   /** m_dynamicInstanceBuffer (InstanceBuffer, h:290), embedded by value. */
-  @type.rawStruct("EveInstancedMeshManager::InstanceBuffer")
+  @type.object.embed("EveInstancedMeshManager::InstanceBuffer")
   _dynamicInstanceBuffer = new EveInstancedMeshManagerInstanceBuffer();
 
   /** m_instanceCount (size_t, h:292): instances across every mesh group. */

@@ -75,7 +75,7 @@ export class TriGeometryResLodData
 
 }
 
-CjsSchema.decorateField(TriGeometryResLodData, "mesh", type.rawStruct("TriGeometryResMeshData"));
+CjsSchema.decorateField(TriGeometryResLodData, "mesh", type.object.ref.weak("TriGeometryResMeshData"));
 CjsSchema.decorateField(TriGeometryResLodData, "grannyMeshIndex", type.int32);
 CjsSchema.decorateField(TriGeometryResLodData, "name", type.string);
 CjsSchema.decorateField(TriGeometryResLodData, "originalLodIndex", type.int32);

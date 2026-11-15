@@ -26,7 +26,7 @@ export class EveInstancedMeshManagerSphereGroup
   bounds = { center: vec3.create(), radius: -1 };
 
   /** flags (InstanceFlags), embedded by value. */
-  @type.rawStruct("EveInstancedMeshManager::InstanceFlags")
+  @type.object.embed("EveInstancedMeshManager::InstanceFlags")
   flags = new EveInstancedMeshManagerInstanceFlags();
 
   /** count (uint32_t). */
@@ -38,7 +38,7 @@ export class EveInstancedMeshManagerSphereGroup
   boundingSpheres = null;
 
   /** handle (BoundingSphereHandle*). Carbon initializes it to nullptr. */
-  @type.rawStruct("EveInstancedMeshManager::DataHandle")
+  @type.object.ref.weak("EveInstancedMeshManager::DataHandle")
   handle = null;
 
   /** screenSizes (std::vector<float>). */

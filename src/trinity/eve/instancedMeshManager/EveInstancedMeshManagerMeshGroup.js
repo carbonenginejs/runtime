@@ -20,7 +20,7 @@ export class EveInstancedMeshManagerMeshGroup
 {
 
   /** handle (MeshGroupHandle*). Carbon initializes it to nullptr. */
-  @type.rawStruct("EveInstancedMeshManager::DataHandle")
+  @type.object.ref.weak("EveInstancedMeshManager::DataHandle")
   handle = null;
 
   /**

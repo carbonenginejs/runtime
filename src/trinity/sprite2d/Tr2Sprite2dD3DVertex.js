@@ -13,7 +13,7 @@ export class Tr2Sprite2dD3DVertex extends Tr2Sprite2dVertexBase
 {
 
   /** clipRect (Tr2Sprite2dClipRect) */
-  @type.rawStruct("Tr2Sprite2dClipRect")
+  @type.object.embed("Tr2Sprite2dClipRect")
   clipRect = new Tr2Sprite2dClipRect();
 
   /** glowBrightness (float). Carbon leaves it unset. */

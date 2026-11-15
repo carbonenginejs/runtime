@@ -84,7 +84,7 @@ export class EveUpdateContext
   /** m_origin (Vector3d) - double-precision world origin for camera-relative
    * rebasing. Carbon initializes it to UNINITIALIZED_ORIGIN (Infinity sentinel)
    * so the first UpdateOrigin produces no shift. */
-  @type.rawStruct("Vector3d")
+  @type.vec3d
   origin = new Float64Array(3).fill(Infinity);
 
   /** m_originShift (Vector3) */
@@ -92,7 +92,7 @@ export class EveUpdateContext
   originShift = vec3.create();
 
   /** m_originShiftRemainder (Vector3d) */
-  @type.rawStruct("Vector3d")
+  @type.vec3d
   originShiftRemainder = new Float64Array(3);
 
   // --- Runtime composition (NOT in the Carbon schema) ---------------------

@@ -47,13 +47,13 @@ export class Tr2PrimitiveScene extends ITr2PickableScene
   @type.object.ref.weak("Tr2ManipulationTool")
   manipulator = null;
 
-  @type.rawStruct("Tr2PickBuffer")
+  @type.object.embed("Tr2PickBuffer")
   _pickBuffer = new Tr2PickBuffer(PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT, 1);
-  @type.rawStruct("TriPoolAllocator")
+  @type.object.embed("TriPoolAllocator")
   _allocator = new TriPoolAllocator().RegisterCatalog();
-  @type.rawStruct("TriRenderBatchAccumulator")
+  @type.object.embed("ITriRenderBatchAccumulator")
   _opaqueBatches = new TriRenderBatchAccumulator().SetTriPoolAllocator(this._allocator);
-  @type.rawStruct("TriRenderBatchAccumulator")
+  @type.object.embed("ITriRenderBatchAccumulator")
   _pickingBatches = new TriRenderBatchAccumulator().SetTriPoolAllocator(this._allocator);
   _vertexConstants = new Tr2ConstantBufferAL();
   _frameData = RawData.create("Tr2PerFrameVSData");

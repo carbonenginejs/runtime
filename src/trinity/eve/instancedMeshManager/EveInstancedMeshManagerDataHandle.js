@@ -32,7 +32,7 @@ export class EveInstancedMeshManagerDataHandle
   static invalidIndex = 0xFFFFFFFF;
 
   /** owner (EveInstancedMeshManager*, h:89). Carbon initializes it to nullptr. */
-  @type.rawStruct("EveInstancedMeshManager")
+  @type.object.ref.weak("EveInstancedMeshManager")
   owner = null;
 
   /** index (uint32_t, h:90). Carbon initializes it to InvalidIndex. */

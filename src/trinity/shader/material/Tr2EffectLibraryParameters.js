@@ -12,11 +12,11 @@ export class Tr2EffectLibraryParameters
 {
 
   /** m_localInput (Tr2MaterialStageInput) */
-  @type.rawStruct("Tr2MaterialStageInput")
+  @type.object.embed("Tr2MaterialStageInput")
   localInput = new Tr2MaterialStageInput();
 
   /** m_globalInput (Tr2MaterialStageInput) */
-  @type.rawStruct("Tr2MaterialStageInput")
+  @type.object.embed("Tr2MaterialStageInput")
   globalInput = new Tr2MaterialStageInput();
 
   /** m_globalResourceSetDesc (Tr2ResourceSetDescriptionAL) */

@@ -42,7 +42,7 @@ export class Tr2TextureArray extends IRoot
     dimensions = null;
 
     /** m_onTextureChange (OnTextureChangeEvent, an alias of Tr2Event<>: ITr2TextureProvider.h:14) */
-    @type.rawStruct("Tr2Event")
+    @type.object.embed("Tr2Event")
     onTextureChange = new Tr2Event();
 
     /** m_increment (uint32_t) */

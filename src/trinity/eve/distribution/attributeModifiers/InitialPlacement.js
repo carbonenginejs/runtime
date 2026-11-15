@@ -10,7 +10,7 @@ export class InitialPlacement
 {
 
   /** placement (PlacementDataWithIdentifier), embedded by value (IEveDistributionModifier.h:48). */
-  @type.rawStruct("PlacementDataWithIdentifier")
+  @type.object.embed("PlacementDataWithIdentifier")
   placement = new PlacementDataWithIdentifier();
 
   /** timeOutDuration (float) */

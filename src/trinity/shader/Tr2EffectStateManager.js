@@ -373,7 +373,7 @@ export class Tr2EffectStateManager
   static _pendingLinkTimer = null;
 
   /** m_renderContext (Tr2RenderContext&) */
-  @type.rawStruct("Tr2RenderContext")
+  @type.object.ref.weak("Tr2RenderContext")
   renderContext = null;
 
   /** m_perObjectConstantBuffers (Tr2ConstantBufferAL) */
