@@ -17,16 +17,16 @@
 //
 // WHAT A MEMBER IS. Carbon casts the destination to choose list, dict or
 // structure list (IRootReader.cpp:160-187). Ours mostly can too, but a member
-// may hold plain JavaScript storage, so the compiled entry says what it is and
-// the cast decides only between a mapped IList and a plain array.
+// may hold plain JavaScript storage, so the compiled entry's iid (the interface
+// Carbon would cast to) and collection (how JavaScript stores it) say what it is,
+// and the cast decides only between a mapped IList and a plain array.
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { VARTYPE } from "../../../global/model/graph/graphTypes.js";
 import { cast, mappedInterfaces } from "../../compose/interface.js";
 import { IList } from "../../exposure/IList.js";
 import { InvalidAttributeException } from "../../format/InvalidAttributeException.js";
 import { IRootReaderException } from "../../format/IRootReaderException.js";
-import { BLACK_DESTINATION } from "../../../global/model/graph/VarEntry.js";
-import { getWrapperLayout } from "../../../global/model/graph/blueMathWrappers.js";
+import { BLUE_MATH_WRAPPERS, getWrapperLayout } from "../../../global/model/graph/blueMathWrappers.js";
 
 const MAX_SAFE_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
 
@@ -328,47 +328,49 @@ export class IRootReaderBase
     {
         const value = holder[key];
 
-        switch (entry.destination)
+        // Carbon casts the member to IList, IBlueDict, then IBlueStructureList (IRootReader.cpp:160-187): the row's
+        // iid names the interface, and its collection says how JavaScript stores what has none.
+        if (entry.iid === "IBlueStructureList")
         {
-            case BLACK_DESTINATION.LIST:
+            this.ReadStructureList(holder, key, entry);
+            return;
+        }
+        if (entry.iid === "IList")
+        {
+            if (value === null || value === undefined || !mappedInterfaces(value.constructor).has(IList))
             {
-                if (value === null || value === undefined || !mappedInterfaces(value.constructor).has(IList))
-                {
-                    this.ReadArray(holder, key, entry);
-                    return;
-                }
-                this.ReadList(value);
-                break;
-            }
-
-            case BLACK_DESTINATION.ARRAY:
                 this.ReadArray(holder, key, entry);
                 return;
-
-            case BLACK_DESTINATION.SET:
-                this.ReadSet(holder, key, entry);
-                return;
-
-            case BLACK_DESTINATION.DICT:
-                this.ReadDict(holder, key, entry);
-                return;
-
-            case BLACK_DESTINATION.STRUCTURELIST:
-                this.ReadStructureList(holder, key, entry);
-                return;
-
-            case BLACK_DESTINATION.WRAPPER:
-                this.ReadWrapper(value, entry);
-                this._ReplaceNonFiniteElements(value, getWrapperLayout(entry.iid).elements.length, entry.name);
-                break;
-
-            default:
-                if (value === null || value === undefined)
-                {
-                    throw new IRootReaderException(`Embedded ${entry.name} has no existing storage`);
-                }
-                this.ReadIRoot(value);
-                break;
+            }
+            this.ReadList(value);
+        }
+        else if (entry.iid === "IBlueDict")
+        {
+            this.ReadDict(holder, key, entry);
+            return;
+        }
+        else if (entry.collection === "array")
+        {
+            this.ReadArray(holder, key, entry);
+            return;
+        }
+        else if (entry.collection === "set")
+        {
+            this.ReadSet(holder, key, entry);
+            return;
+        }
+        else if (Object.hasOwn(BLUE_MATH_WRAPPERS, entry.iid))
+        {
+            this.ReadWrapper(value, entry);
+            this._ReplaceNonFiniteElements(value, getWrapperLayout(entry.iid).elements.length, entry.name);
+        }
+        else
+        {
+            if (value === null || value === undefined)
+            {
+                throw new IRootReaderException(`Embedded ${entry.name} has no existing storage`);
+            }
+            this.ReadIRoot(value);
         }
 
         // Carbon wrote into the member itself; a property takes it back through its setter.

@@ -1,5 +1,5 @@
 // What BlackReader reads each member as, from the class's compiled ClassInfo (ClassInfo.meta): the VARTYPE,
-// where an IROOT value goes, and a structure list's layout, as Carbon's BlueStructureDefinitions give it.
+// the interface and storage of an IROOT member, and a structure list's layout, as Carbon's BlueStructureDefinitions give it.
 // The facts the retired plain-data reader pinned for its own registry (blue/dropped/black/test).
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -9,7 +9,6 @@ import "../../npm/dist/sof/index.js";
 import { CjsSchema } from "../../npm/dist/blue/schema/CjsSchema.js";
 import { type } from "../../npm/dist/blue/schema/index.js";
 import { ClassInfo } from "../../npm/dist/global/model/graph/ClassInfo.js";
-import { BLACK_DESTINATION } from "../../npm/dist/global/model/graph/VarEntry.js";
 import { declaredMemberType, structureLayout } from "../../npm/dist/blue/schema/compileClassInfo.js";
 import { VARTYPE } from "../../npm/dist/global/consts/blue.js";
 import { exposure as be } from "../../npm/dist/blue/exposure/be.js";
@@ -23,14 +22,22 @@ const entry = (className, name) =>
 const layout = (className, name) => entry(className, name).structure;
 const offsets = structure => structure.fields.map(field => [ field.name, field.offset ]);
 
-test("declared kinds give Carbon's VARTYPE and destination", () =>
+test("declared kinds give Carbon's VARTYPE, a container's interface and its storage", () =>
 {
   assert.equal(declaredMemberType({ kind: "root" }).type, VARTYPE.IROOT);
   assert.equal(declaredMemberType({ kind: "rootRef" }).type, VARTYPE.IROOTPTR);
   assert.equal(declaredMemberType({ kind: "rootWeak" }).type, VARTYPE.IROOTWEAKREF);
-  assert.equal(declaredMemberType({ kind: "list", itemType: { kind: "rootRef" } }).destination, BLACK_DESTINATION.LIST);
-  assert.equal(declaredMemberType({ kind: "map", valueType: { kind: "rootRef" } }).destination, BLACK_DESTINATION.DICT);
-  assert.equal(declaredMemberType({ kind: "set", itemType: { kind: "rootRef" } }).destination, BLACK_DESTINATION.SET);
+  // A container's IID is the interface Carbon's reader casts it to (BlueTypeTraits.h:376-389, IRootReader.cpp:160-187).
+  const facts = declared => { const { type, collection, iid } = declaredMemberType(declared); return { type, collection, iid }; };
+  assert.deepEqual(facts({ kind: "list", itemType: { kind: "rootRef" } }), { type: VARTYPE.IROOT, collection: "list", iid: "IList" });
+  assert.deepEqual(facts({ kind: "map", valueType: { kind: "rootRef" } }), { type: VARTYPE.IROOT, collection: "map", iid: "IBlueDict" });
+  assert.deepEqual(facts({ kind: "set", itemType: { kind: "rootRef" } }), { type: VARTYPE.IROOT, collection: "set", iid: null });
+  assert.deepEqual(facts({ kind: "array", itemType: "EveLocator" }), { type: VARTYPE.IROOT, collection: "array", iid: null });
+  assert.deepEqual(facts({ kind: "structList", className: "EveLocator" }), { type: VARTYPE.IROOT, collection: "list", iid: "IBlueStructureList" });
+  // A list of values is not a list of objects: Carbon has no VARTYPE for it.
+  assert.deepEqual(facts({ kind: "array", itemType: "vec4" }), { type: VARTYPE.INVALID, collection: "array", iid: null });
+  assert.equal(declaredMemberType({ kind: "array", itemType: "uint32", length: 4 }).length, 4);
+  assert.deepEqual(facts({ kind: "list", itemType: { kind: "float32" } }), { type: VARTYPE.INVALID, collection: "list", iid: null });
   assert.equal(declaredMemberType({ kind: "path" }).type, VARTYPE.STDSTRING);
   assert.equal(declaredMemberType({ kind: "wpath" }).type, VARTYPE.STDWSTRING);
   // MAP_ATTRIBUTE_AS_CUSTOM_BINARY_BLOCK is the only binary block (BlueExposureMacros.h:157-161).
@@ -66,7 +73,7 @@ test("structure-list offsets match Carbon's BlueStructureDefinitions", () =>
 {
   // LocatorStructureDef, EveLocatorSets.cpp:32-39 (partTag from trinity a9a60056).
   const locator = layout("EveLocatorSets", "locators");
-  assert.equal(entry("EveLocatorSets", "locators").destination, BLACK_DESTINATION.STRUCTURELIST);
+  assert.equal(entry("EveLocatorSets", "locators").iid, "IBlueStructureList");
   assert.deepEqual(offsets(locator), [ [ "position", 0 ], [ "direction", 12 ], [ "scale", 28 ], [ "boneIndex", 40 ], [ "partTag", 44 ] ]);
   assert.equal(locator.size, 48);
   // The list before a9a60056 ends at 44, a member boundary (EveDistributionPlacementGeneratorLocators.cpp:6-12).

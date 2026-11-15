@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { GraphMemberFlags, GraphOperation, VARTYPE } from "../../npm/dist/global/model/graph/index.js";
 import { EDITFLAGS } from "../../npm/dist/global/consts/blue.js";
-import { BLUE_MATH_WRAPPERS } from "../../npm/dist/global/model/graph/blueMathWrappers.js";
 import { blue } from "../../npm/dist/blue/index.js";
 import { CjsBlueGraph } from "../../npm/dist/blue/formats/graph/index.js";
 import { CjsGraph } from "../../npm/dist/global/model/graph/index.js";
@@ -14,34 +13,21 @@ CjsBlueGraph.register(blue.classes);
 
 // What the readers read: each class's ClassInfo record (its persisted VarEntry rows).
 const { ClassInfo } = await import("../../npm/dist/global/model/graph/ClassInfo.js");
-const { BLACK_DESTINATION } = await import("../../npm/dist/global/model/graph/VarEntry.js");
-const { compileClassInfo } = await import("../../npm/dist/blue/schema/compileClassInfo.js");
+const { CjsSchema } = await import("../../npm/dist/blue/schema/CjsSchema.js");
+const { compileClassInfo, declaredMemberType } = await import("../../npm/dist/blue/schema/compileClassInfo.js");
 const { IRootReaderBase } = await import("../../npm/dist/blue/format/IRootReaderBase.js");
 
-const DESTINATIONS = BLACK_DESTINATION && {
-  [BLACK_DESTINATION.LIST]: "list", [BLACK_DESTINATION.ARRAY]: "array", [BLACK_DESTINATION.SET]: "set",
-  [BLACK_DESTINATION.DICT]: "dict", [BLACK_DESTINATION.STRUCTURELIST]: "structureList", [BLACK_DESTINATION.WRAPPER]: "wrapper"
-};
-
-/** What the readers' record says, in the compiled definition's terms. */
-function expected(entry)
+/**
+ * What the schema's compile writes on a row from its member's declared type, which the graph's compile then writes
+ * over: the nearest class's exposed declaration under the row's name, key and index.
+ */
+function declaredOf(type, row)
 {
-  return {
-    vartype: entry.type,
-    destination: DESTINATIONS[entry.destination] ?? null
-  };
-}
-
-/** Where a reader would put a graph-declared member's value, from the row's own facts. */
-function destinationOf(member)
-{
-  // A value member persisted as a Blue math wrapper names it in iid; an embedded wrapper object has an edge.
-  if (member.edgeKind === null && member.iid !== null && Object.hasOwn(BLUE_MATH_WRAPPERS, member.iid)) return "wrapper";
-  if (member.collection === "array" || member.collection === "set") return member.collection;
-  if (member.edgeKind === null) return member.kind === "values" ? "list" : member.kind === "valuesMap" ? "dict" : null;
-  if (member.collection === "map") return "dict";
-  if (member.collection !== null) return member.edgeKind === "embed" ? "structureList" : "list";
-  return null;
+  const schema = CjsSchema.getSchema(type);
+  const matches = [ ...schema.members, ...schema.properties ].filter(member => member.exposure && member.name === row.name &&
+    (member.key ?? member.name) === row.key && (member.index ?? -1) === row.index);
+  const nearest = matches.find(member => !matches.some(other => other !== member && member.declaringClass.isPrototypeOf(other.declaringClass)));
+  return nearest === undefined ? null : declaredMemberType(nearest.type);
 }
 
 /** The row a reader finds under each name: the nearest class's that is persisted or runtime-only. */
@@ -53,15 +39,6 @@ function persisted(type)
     if ((member.flags & (EDITFLAGS.PERSIST | GraphMemberFlags.RUNTIMEONLY)) !== 0 && !Object.hasOwn(byName, member.name)) byName[member.name] = member;
   }
   return byName;
-}
-
-/** What the compiled definition says, for the same comparison. */
-function compiled(member)
-{
-  return {
-    vartype: member.type,
-    destination: destinationOf(member)
-  };
 }
 
 test("a persisted member the graph compiled is the readers' own row, not a copy", () =>
@@ -144,6 +121,49 @@ test("a name a class declares again is answered by its own row in every table, o
   assert.deepEqual(served, []);
 });
 
+// Character members the schema and the graph store differently until the character library holds no maps (four
+// maps) and the tuple form is ruled (Tris).
+const AWAITING_CHARACTER = new Set([
+  "CjsCharacterAnimationInfoEntry.ControlParameters", "CjsCharacterBlendShapes.value", "CjsCharacterFaceTweakSettings.gammaCurves",
+  "CjsCharacterField.Tris", "CjsCharacterMaterial.Textures"
+]);
+
+// Before any recompile: the schema's compile writes the row again, over what the graph wrote.
+test("the graph's compile writes the storage the schema's compile wrote on every persisted row", () =>
+{
+  const differences = [];
+  let compared = 0;
+
+  for (const { name, type } of getClassRegistrations())
+  {
+    const entries = ClassInfo.exposeToBlue(type).entries;
+    const members = persisted(type);
+
+    for (const [ member, entry ] of entries)
+    {
+      const definition = members[member];
+      if (!definition)
+      {
+        differences.push(`${name}.${member}: no compiled member`);
+        continue;
+      }
+
+      const declared = declaredOf(type, entry);
+      if (declared === null)
+      {
+        differences.push(`${name}.${member}: no exposed declaration`);
+        continue;
+      }
+      compared++;
+      if (AWAITING_CHARACTER.has(`${name}.${member}`)) continue;
+      if (declared.collection !== definition.collection) differences.push(`${name}.${member}: ${declared.collection} / ${definition.collection}`);
+    }
+  }
+
+  assert.ok(compared > 4000, `compared ${compared}`);
+  assert.deepEqual(differences.slice(0, 40), [], `${differences.length} of ${compared} differ`);
+});
+
 test("a recompile keeps every row, so the graph's definition still lists the readers' rows", () =>
 {
   const swapped = [];
@@ -170,37 +190,4 @@ test("a recompile keeps every row, so the graph's definition still lists the rea
 
   assert.ok(kept > 4000, `kept ${kept}`);
   assert.deepEqual(swapped.slice(0, 40), []);
-});
-
-test("every persisted member compiles to what the readers' ClassInfo record says it is", () =>
-{
-  const differences = [];
-  let compared = 0;
-
-  for (const { name, type } of getClassRegistrations())
-  {
-    const entries = ClassInfo.exposeToBlue(type).entries;
-    const members = persisted(type);
-
-    for (const [ member, entry ] of entries)
-    {
-
-      const definition = members[member];
-      if (!definition)
-      {
-        differences.push(`${name}.${member}: no compiled member`);
-        continue;
-      }
-
-      // Our own character classes never reach Black, and their Maps of leaf values are not built.
-      if (name.startsWith("CjsCharacter")) continue;
-
-      compared++;
-      const want = expected(entry), got = compiled(definition);
-      if (JSON.stringify(want) !== JSON.stringify(got)) differences.push(`${name}.${member}: ${JSON.stringify(want)} / ${JSON.stringify(got)}`);
-    }
-  }
-
-  assert.ok(compared > 4000, `compared ${compared}`);
-  assert.deepEqual(differences.slice(0, 40), [], `${differences.length} of ${compared} differ`);
 });

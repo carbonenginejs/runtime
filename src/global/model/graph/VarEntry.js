@@ -2,22 +2,6 @@
 import { EDITFLAGS, VARTYPE } from "../../consts/blue.js";
 
 /**
- * What an IROOT member is. Carbon casts the destination to find out; a plain
- * record, and plain JavaScript storage, cannot be cast.
- *
- * @enum {number}
- */
-export const BLACK_DESTINATION = Object.freeze({
-  OBJECT: 0,
-  LIST: 1,
-  ARRAY: 2,
-  SET: 3,
-  DICT: 4,
-  STRUCTURELIST: 5,
-  WRAPPER: 6
-});
-
-/**
  * One row of a class's member table: Carbon's `Be::VarEntry`, which
  * `MAP_ATTRIBUTE` and `MAP_PROPERTY*` push into the table `EXPOSURE_BEGIN`
  * starts (BlueExposureMacrosPython.h:35). Filled once per class by the
@@ -75,8 +59,9 @@ export class VarEntry
   origin = null;
 
   /**
-   * `mIID`: the interface or class a reference member holds, or the Blue math wrapper a wrapped member is
-   * persisted as, by registered name, or null.
+   * `mIID`: the interface or class a reference member holds, the interface a container member is (`IList`,
+   * `IBlueDict`, `IBlueStructureList`), or the Blue math wrapper a wrapped member is persisted as, by registered
+   * name, or null.
    *
    * @implemented
    */
@@ -109,15 +94,6 @@ export class VarEntry
    * @cjs Carbon reads the sign from the C++ member type (IRootReader.cpp:130-138).
    */
   signed = false;
-
-  /**
-   * What an IROOT member is (see `BLACK_DESTINATION`). Only the schema's compile sets it, and only
-   * Blue's readers read it: a row the graph compiled keeps the default, which says nothing.
-   *
-   * @cjs Carbon casts the live member to IList, IBlueDict or IBlueStructureList (IRootReader.cpp:160-187).
-   * @type {number}
-   */
-  destination = BLACK_DESTINATION.OBJECT;
 
   /**
    * Whether a null item stays in the member's collection.
@@ -247,9 +223,12 @@ export class VarEntry
   edgeType = null;
 
   /**
-   * The collection an object member is: "list", "array", "set", "map", or null.
+   * How JavaScript stores a container member: "list" (a BlueList or a plain array, and a structure list's
+   * records), "array" (a ported std::vector), "set", "map", or null. The schema's compile writes it, and the
+   * graph's writes the same value when it compiles the row.
    *
-   * @cjs Carbon casts the live member to find out (IRootReader.cpp:160-187).
+   * @cjs Carbon casts the live member to find out (IRootReader.cpp:160-187); a plain JavaScript array cannot be
+   * cast, so the row says.
    * @type {string|null}
    */
   collection = null;

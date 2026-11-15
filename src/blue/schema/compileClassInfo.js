@@ -16,7 +16,7 @@ import { baseList, exposureChainTo, mappedInterfaces, ownMappedInterfaces, setEx
 import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { getRegisteredConstructor, registerClass } from "../exposure/classes/registry.js";
 import { ClassInfo } from "../../global/model/graph/ClassInfo.js";
-import { BLACK_DESTINATION, VarEntry } from "../../global/model/graph/VarEntry.js";
+import { VarEntry } from "../../global/model/graph/VarEntry.js";
 import { GRAPH_TYPES } from "../../global/model/graph/graphTypes.js";
 import { blueEnums } from "../enums/CjsBlueEnumRegistry.js";
 
@@ -75,28 +75,41 @@ export function getEditFlags(member)
 /** The VARTYPEs that hold an object. A trait with one is an object member, which `declaredMemberType` works out itself. */
 const OBJECT_STORAGE = new Set([ VARTYPE.IROOT, VARTYPE.IROOTPTR, VARTYPE.IROOTWEAKREF ]);
 
-/** A declared container kind's destination. */
-const CONTAINERS = Object.freeze({
-  list: BLACK_DESTINATION.LIST,
-  array: BLACK_DESTINATION.ARRAY,
-  set: BLACK_DESTINATION.SET,
-  map: BLACK_DESTINATION.DICT
-});
+/**
+ * A declared container's interface, the member's IID in Carbon (BlueTypeTraits.h:376-389), which Carbon's reader
+ * casts the member to (IRootReader.cpp:160-187). A std::vector or std::set member has no Blue interface.
+ */
+const CONTAINER_IIDS = Object.freeze({ list: "IList", array: null, set: null, map: "IBlueDict" });
+
+/**
+ * Whether a declared item names a value type (`type.vec4.array()` holds `vec4`), not a class.
+ *
+ * @param {object|string|Function|undefined} itemType The declared item.
+ * @returns {boolean} Whether its trait stores a value.
+ */
+function isValueItem(itemType)
+{
+  const kind = typeof itemType === "string" ? itemType : typeof itemType === "object" && itemType !== null ? itemType.kind : undefined;
+  return typeof kind === "string" && Object.hasOwn(GRAPH_TYPES, kind) && !OBJECT_STORAGE.has(GRAPH_TYPES[kind].storage);
+}
 
 /**
  * A declared type as Carbon's member type gives it: VARTYPE, sign, element count,
  * and for an IROOT member what it holds. A type with no VARTYPE gives INVALID,
  * so reading it gives Carbon's "Invalid attribute type".
  *
+ * `collection` is how JavaScript stores a container member ("list", "array", "set", "map"), the same field the
+ * graph writes on the row; `iid` is the interface Carbon's member has, or the wrapper class of a wrapped member.
+ *
  * @param {object|string|Function|undefined} declared The member's declared type.
- * @returns {{type: number, signed: boolean, length: number, destination: number, iid: (string|null), structClass: (string|Function|null)}} The member type.
+ * @returns {{type: number, signed: boolean, length: number, collection: (string|null), iid: (string|null), structClass: (string|Function|null)}} The member type.
  */
 export function declaredMemberType(declared)
 {
   let type = declared;
   if (typeof type === "function") type = { kind: "rootRef", className: type };
   if (typeof type === "string") type = { kind: type };
-  const result = { type: VARTYPE.INVALID, signed: false, length: 0, destination: BLACK_DESTINATION.OBJECT, iid: null, structClass: null };
+  const result = { type: VARTYPE.INVALID, signed: false, length: 0, collection: null, iid: null, structClass: null };
   if (!type || type.runtimeOnly === true) return result;
 
   // type.binary is Carbon's BINARYBLOCK, whatever value the member holds.
@@ -109,7 +122,6 @@ export function declaredMemberType(declared)
   if (type.wrapped)
   {
     result.type = VARTYPE.IROOT;
-    result.destination = BLACK_DESTINATION.WRAPPER;
     // Carbon's member is a P-class of the wrapper, whose IID is the wrapper's (GetBlueIID, BlueTypeTraits.h:391-411).
     result.iid = type.wrapped;
     // The count of the value the member holds, which the graph writes too.
@@ -134,19 +146,27 @@ export function declaredMemberType(declared)
   else if (kind === "structList")
   {
     result.type = VARTYPE.IROOT;
-    result.destination = BLACK_DESTINATION.STRUCTURELIST;
+    result.collection = "list";
+    result.iid = "IBlueStructureList";
     result.structClass = type.className;
   }
-  else if (Object.hasOwn(CONTAINERS, kind))
+  else if (Object.hasOwn(CONTAINER_IIDS, kind))
   {
-    // A list, array, set or dict holds object references only.
     let itemType = kind === "map" ? type.valueType : type.itemType;
+    // A list of values (`type.vec4.array()`) has no VARTYPE: Carbon exposes no container of values.
+    if (isValueItem(itemType))
+    {
+      result.collection = kind;
+      result.length = type.length ?? 0;
+      return result;
+    }
     // A string item names a class, except `unknown` (`type.array("unknown")`), which has no VARTYPE.
     if (typeof itemType === "function" || (typeof itemType === "string" && itemType !== "unknown")) itemType = { kind: "rootRef" };
     if (itemType?.kind === "rootRef" || itemType?.kind === "rootWeak")
     {
       result.type = VARTYPE.IROOT;
-      result.destination = CONTAINERS[kind];
+      result.collection = kind;
+      result.iid = CONTAINER_IIDS[kind];
     }
   }
   return result;
@@ -233,7 +253,7 @@ function varEntryOf(Constructor, member, entry)
   entry.signed = declared.signed;
   // The one count field; the graph's define writes the same value when it loads (Blue alone must still read).
   entry.length = declared.length;
-  entry.destination = declared.destination;
+  entry.collection = declared.collection;
   entry.keepsNulls = type?.kind === "array";
   entry.accepts = declared.type === VARTYPE.INVALID ? [] : type?.accepts ?? (type?.className ? [ type.className ] : []);
   entry.structClass = declared.structClass;
@@ -488,7 +508,7 @@ export function structureLayout(itemClass)
     const type = declaredMemberType({ kind: field.type });
     return {
       name: field.name, key: declaration.key, index: declaration.index ?? -1, type: type.type, notify: false, isProperty: false,
-      signed: type.signed, length: type.length, iids: [], destination: type.destination, keepsNulls: false,
+      signed: type.signed, length: type.length, iids: [], iid: type.iid, collection: type.collection, keepsNulls: false,
       structure: null, offset: field.offset
     };
   });

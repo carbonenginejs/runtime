@@ -7,7 +7,6 @@ import { DictReader, CreateAnchorTable } from "../../npm/dist/blue/formats/graph
 import { IInitialize } from "../../npm/dist/blue/exposure/IInitialize.js";
 import { INotify } from "../../npm/dist/blue/exposure/INotify.js";
 import { ClassInfo } from "../../npm/dist/global/model/graph/ClassInfo.js";
-import { BLACK_DESTINATION } from "../../npm/dist/global/model/graph/VarEntry.js";
 import "../../npm/dist/trinity/index.js";
 import { composeStubResMan } from "../support/stubResMan.js";
 import { exposure as be } from "../../npm/dist/blue/exposure/be.js";
@@ -46,7 +45,8 @@ test("structList declares a BlueStructureList of its item class", () =>
 test("Black reads a structure list with the item class's layout", () =>
 {
     const entry = ClassInfo.exposeToBlue(StructListOwner).entries.get("records");
-    assert.equal(entry.destination, BLACK_DESTINATION.STRUCTURELIST);
+    assert.equal(entry.iid, "IBlueStructureList");
+    assert.equal(entry.collection, "list");
     assert.equal(entry.structClass, "StructListRecord");
     assert.equal(entry.structure.size, 24);
     assert.equal(entry.structure.Item, StructListRecord);

@@ -14,8 +14,7 @@ import { BlackReader } from "./BlackReader.js";
 import { cast } from "../../compose/interface.js";
 import { BeClasses } from "../../exposure/classes/registry.js";
 import { ClassInfo } from "../../../global/model/graph/ClassInfo.js";
-import { BLACK_DESTINATION } from "../../../global/model/graph/VarEntry.js";
-import { getWrapperLayout } from "../../../global/model/graph/blueMathWrappers.js";
+import { BLUE_MATH_WRAPPERS, getWrapperLayout } from "../../../global/model/graph/blueMathWrappers.js";
 import { IRootReaderBase } from "./IRootReaderBase.js";
 
 /** The record field that names the class. */
@@ -242,33 +241,29 @@ export class CjsBlackRecordReader extends BlackReader
      */
     HandlePropertyIRoot(holder, key, entry)
     {
-        switch (entry.destination)
+        if (entry.iid === "IBlueStructureList")
         {
-            case BLACK_DESTINATION.LIST:
-            case BLACK_DESTINATION.ARRAY:
-            case BLACK_DESTINATION.SET:
-                this.ReadArray(holder, key, entry);
-                return;
-
-            case BLACK_DESTINATION.DICT:
-                this.ReadDict(holder, key, entry);
-                return;
-
-            case BLACK_DESTINATION.STRUCTURELIST:
-                this.ReadStructureList(holder, key, entry);
-                return;
-
-            case BLACK_DESTINATION.WRAPPER:
-            {
-                const value = getWrapperLayout(entry.iid).defaults.slice();
-                this._ReadWrapperElements(value, entry);
-                this._ReplaceNonFiniteElements(value, value.length, entry.name);
-                holder[key] = value;
-                return;
-            }
-
-            default:
-                holder[key] = this._ReadRecord();
+            this.ReadStructureList(holder, key, entry);
+        }
+        else if (entry.iid === "IBlueDict")
+        {
+            this.ReadDict(holder, key, entry);
+        }
+        else if (entry.collection !== null)
+        {
+            // A list, a std::vector or a set: a record holds each as an array.
+            this.ReadArray(holder, key, entry);
+        }
+        else if (Object.hasOwn(BLUE_MATH_WRAPPERS, entry.iid))
+        {
+            const value = getWrapperLayout(entry.iid).defaults.slice();
+            this._ReadWrapperElements(value, entry);
+            this._ReplaceNonFiniteElements(value, value.length, entry.name);
+            holder[key] = value;
+        }
+        else
+        {
+            holder[key] = this._ReadRecord();
         }
     }
 
