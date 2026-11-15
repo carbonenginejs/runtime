@@ -19,6 +19,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { Tr2CurveLineSetLineData } from "./Tr2CurveLineSetLineData.js";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2PickType, TR2_PICK_TYPE_DEFAULT } from "#consts/graphics/tr2PickType";
 import { ITr2Renderable } from "../ITr2Renderable.js";
@@ -144,8 +145,8 @@ function sphericalToCartesian(value, center)
 export class Tr2CurveLineSet
 {
 
-  /** Carbon LineData records tessellated into the owned AL vertex buffer. */
-  @type.array({ kind: "rawStruct", className: "Tr2CurveLineSet::LineData" })
+  /** m_lines: LineData records (h:205) tessellated into the owned AL vertex buffer. */
+  @type.object.embed.array("Tr2CurveLineSet::LineData")
   lines = [];
 
   /** Reusable invalid line slots, matching Carbon's stable ID behavior. */
@@ -987,21 +988,19 @@ export class Tr2CurveLineSet
    */
   _createLine(type, position1, color1, position2, color2, intermediatePosition, width, numOfSegments)
   {
-    return {
-      type,
-      position1: vec3.clone(position1),
-      color1: vec4.clone(color1),
-      position2: vec3.clone(position2),
-      color2: vec4.clone(color2),
-      intermediatePosition: vec3.clone(intermediatePosition),
-      width,
-      multiColor: vec4.create(),
-      multiColorBorder: -1,
-      overlayColor: vec4.create(),
-      animationSpeed: 0,
-      animationScale: 1,
-      numOfSegments
-    };
+    // Carbon fills a LineData the same way in each Add method (cpp:723-742).
+    const newLine = new Tr2CurveLineSetLineData();
+    newLine.type = type;
+    vec3.copy(newLine.position1, position1);
+    vec4.copy(newLine.color1, color1);
+    vec3.copy(newLine.position2, position2);
+    vec4.copy(newLine.color2, color2);
+    vec3.copy(newLine.intermediatePosition, intermediatePosition);
+    newLine.width = width;
+    newLine.multiColorBorder = -1;
+    newLine.animationScale = 1;
+    newLine.numOfSegments = numOfSegments;
+    return newLine;
   }
 
   /**
