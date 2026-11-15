@@ -103,6 +103,8 @@ export const EDITFLAGS = Object.freeze({
  * Python entries retain their native identities; declaring them does not
  * provide Python value handling in JavaScript.
  *
+ * @cjs Ours from 100 (the typed integer arrays Carbon has none for); Carbon's own end at VARTYPE_MAX.
+ *
  * Carbon: Be::VARTYPE (blueexposure/include/BlueTypes.h:216-262)
  */
 export const VARTYPE = Object.freeze({
@@ -138,7 +140,15 @@ export const VARTYPE = Object.freeze({
   ULONG: 36,
   UINT64: 37,
   VARTYPE_MAX: 37,
-  VARTYPE_FORCELONG: 0xFFFFFFFF
+  VARTYPE_FORCELONG: 0xFFFFFFFF,
+  // Ours, from 100: the typed-array storage Carbon has no VARTYPE for. Carbon's one integer array, INTARRAY, is
+  // `int[]`; a JavaScript member may hold any typed array. Blue's readers have no handler for these and throw.
+  INT8ARRAY: 100,
+  UINT8ARRAY: 101,
+  UINT8CLAMPEDARRAY: 102,
+  INT16ARRAY: 103,
+  UINT16ARRAY: 104,
+  UINT32ARRAY: 105
 });
 
 // Source: blueexposure/include/BlueTypes.h:421-425 (Be::LOADOBJECT_INIT_FLAG)

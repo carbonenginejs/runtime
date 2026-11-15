@@ -21,7 +21,7 @@ const scalar = (storage, handler, fields) => ({ storage, handler, ...fields });
 const integer = (storage, bits, signed) => ({ storage, handler: "long", direct: true, bits, signed });
 const floats = length => ({ storage: VARTYPE.FLOATARRAY, handler: "floatArray", length });
 const doubles = length => ({ storage: VARTYPE.DOUBLEARRAY, handler: "doubleArray", length });
-const integers = (ctor, bits, signed, length = 0) => ({ storage: VARTYPE.INTARRAY, handler: "intArray", length, ctor, bits, signed });
+const integers = (storage, ctor, bits, signed, length = 0) => ({ storage, handler: "intArray", length, ctor, bits, signed });
 
 /**
  * Every type name, as data: its storage kind, its handler, and what differs from others of that
@@ -67,14 +67,14 @@ export const GRAPH_TYPES = {
   vec3d: doubles(3),
   vec4d: doubles(4),
   float64Array: doubles(0),
-  vec3i: integers(Int32Array, 32, true, 3),
-  int8Array: integers(Int8Array, 8, true),
-  uint8Array: integers(Uint8Array, 8, false),
-  uint8ClampedArray: integers(Uint8ClampedArray, 8, false),
-  int16Array: integers(Int16Array, 16, true),
-  uint16Array: integers(Uint16Array, 16, false),
-  int32Array: integers(Int32Array, 32, true),
-  uint32Array: integers(Uint32Array, 32, false),
+  vec3i: integers(VARTYPE.INTARRAY, Int32Array, 32, true, 3),
+  int8Array: integers(VARTYPE.INT8ARRAY, Int8Array, 8, true),
+  uint8Array: integers(VARTYPE.UINT8ARRAY, Uint8Array, 8, false),
+  uint8ClampedArray: integers(VARTYPE.UINT8CLAMPEDARRAY, Uint8ClampedArray, 8, false),
+  int16Array: integers(VARTYPE.INT16ARRAY, Int16Array, 16, true),
+  uint16Array: integers(VARTYPE.UINT16ARRAY, Uint16Array, 16, false),
+  int32Array: integers(VARTYPE.INTARRAY, Int32Array, 32, true),
+  uint32Array: integers(VARTYPE.UINT32ARRAY, Uint32Array, 32, false),
   rootRef: scalar(VARTYPE.IROOTPTR, "object"),
   rootWeak: scalar(VARTYPE.IROOTWEAKREF, "object"),
   root: scalar(VARTYPE.IROOT, "iroot"),
