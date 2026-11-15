@@ -15,6 +15,7 @@ import morphCorrectionDefaults from "../factory/defaults/morphCorrections.json" 
 import bodyCarrierDefaults from "../factory/defaults/bodyCarriers.json" with { type: "json" };
 import meshDependantDefaults from "../factory/defaults/meshDependants.json" with { type: "json" };
 import categoryDefaults from "../factory/defaults/categories.json" with { type: "json" };
+import partCategoryDefaults from "../factory/defaults/partCategories.json" with { type: "json" };
 import defaultFemalePaperDoll from "../factory/defaults/defaultFemalePaperDoll.json" with { type: "json" };
 import defaultMalePaperDoll from "../factory/defaults/defaultMalePaperDoll.json" with { type: "json" };
 import { LOADOBJECT_INIT_FLAG } from "#consts/blue";
@@ -437,7 +438,7 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * The category a paper doll part reads (`factory/defaults/categories.json`, `parts`): the path below the sex's paper
+     * The category a paper doll part reads (`factory/defaults/partCategories.json`): the path below the sex's paper
      * doll root of its options. The parts' own classes declare none; the library answers. The shipped defaults only: a
      * library's generic overrides category rules (`GetCategoryRules`), not which category a part reads.
      *
@@ -448,7 +449,7 @@ export class CjsCharacterLibraryManager
      */
     static partCategory(member)
     {
-        const category = categoryDefaults.parts[member];
+        const category = partCategoryDefaults.parts[member];
         if (category === undefined) throw new Error("No paper doll part " + member);
         return category;
     }
@@ -1363,20 +1364,20 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * The paper doll category rules in force, by category path: the shipped defaults
-     * (`factory/defaults/categories.json`), each replaced by the installed library's generic category of the same name.
-     * Built once per install. A default that lists no `defaultColors` has none; one that lists no `requiresModel` or
-     * `skipPatternedPalettes` has them off.
+     * The paper doll category rules in force, by category path: the shipped defaults (`factory/defaults/categories.json`,
+     * in the generic's own shape, built into `CjsCharacterDataCategory` objects by the graph), each replaced by the
+     * installed library's generic category of the same name. Built once per install. A category that lists no
+     * `defaultColors` has none; one that lists no `requiresModel` or `skipPatternedPalettes` has them off (the record's
+     * defaults).
      * @returns {Map<string, CjsCharacterCategoryRule>} The rules; not to be changed.
      */
     _Categories()
     {
         if (this._categories === null || this._categoriesGeneration !== this._installGeneration)
         {
-            const rules = new Map(Object.entries(categoryDefaults.categories).map(([ name, rule ]) => [ name, {
-                ...rule, defaultColors: rule.defaultColors ?? [], requiresModel: rule.requiresModel ?? false, skipPatternedPalettes: rule.skipPatternedPalettes ?? false
-            } ]));
-            for (const category of this._library.generic.categories)
+            const shipped = CjsGraph.from(CjsCharacterGeneric, CjsCharacterLibraryManager._shippedValues(categoryDefaults));
+            const rules = new Map();
+            for (const category of [ ...shipped.categories, ...this._library.generic.categories ])
             {
                 rules.set(category.name, {
                     options: category.options, maps: category.maps, palettes: category.palettes, areas: category.areas,

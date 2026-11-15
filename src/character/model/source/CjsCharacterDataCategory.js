@@ -23,17 +23,17 @@ export class CjsCharacterDataCategory
     @type.string
     options = "";
 
-    /** How an option's maps are found: `name`, `composed`, `catalog` or `garment`. */
+    /** How an option's maps are found: `name`, `composed`, `variation`, `accessory`, `catalog` or `garment`. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     maps = "";
 
-    /** Where an option's palettes are: `own` or `shared`. */
+    /** Where an option's palettes are: `own`, `shared`, `variant`, `folders` or `styles`. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     palettes = "";
 
-    /** How an option's colour areas are found: `zone`, `detail` or `none`. */
+    /** How an option's colour areas are found: `zone`, `detail`, `count`, `stated` or `none`. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     areas = "";
