@@ -29,6 +29,27 @@ function fixture(t)
         [ "outer/coat01/acoat01_nosim.black", OPAQUE ],
         [ "outer/coat01/coat01_lod1.black", OPAQUE ],
         [ "dependants/mask01/comp_body_m.png", OPAQUE ],
+        // The body carriers: the nude parts, the torso's own sleeves, and the garments' body pieces.
+        [ "topinner/torso_nude/torso_nude.black", OPAQUE ],
+        [ "topinner/torso_nude/torso_nude_lod1.black", OPAQUE ],
+        [ "topinner/torso_nude/metadata.yaml", META + "dependantModifiers: [dependants/sleevesupper/Standard, dependants/drape/standard, utilityshapes/tuck###0.5]\noccludesModifiers: [hands/gloves#2]\n" ],
+        [ "bottominner/legs_nude/legs_nude.black", OPAQUE ],
+        [ "hands/hands_nude/hands_nude.black", OPAQUE ],
+        [ "feet/feet_nude/feet_nude.black", OPAQUE ],
+        [ "feet/feet_nude/a/nested.black", OPAQUE ],
+        [ "feet/feet_nude/afeet_lod2.black", OPAQUE ],
+        [ "dependants/sleevesupper/standard/standard.black", OPAQUE ],
+        [ "dependants/sleevesupper/tshirt_01/tshirt_01_lod1.black", OPAQUE ],
+        [ "dependants/sleevesupper/tshirt_01/tshirt_01.black", OPAQUE ],
+        [ "dependants/sleevesupper/lodonly/lodonly_lod1.black", OPAQUE ],
+        [ "dependants/collar/standard/standard.black", OPAQUE ],
+        // The drape: its own model and one per version folder.
+        [ "dependants/drape/standard/wide.black", OPAQUE ],
+        [ "dependants/drape/standard/v2/bunchedup.black", OPAQUE ],
+        [ "dependants/drape/standard/v1/tuck.black", OPAQUE ],
+        // A male drape with a gap: its own model and v2, no v1.
+        [ "res:/graphics/character/male/paperdoll/dependants/drape/standard/standard.black", OPAQUE ],
+        [ "res:/graphics/character/male/paperdoll/dependants/drape/standard/v2/loose.black", OPAQUE ],
         [ "bottomunderwear/boxers01/types/boxers01_civire.type", "!!python/tuple [bottomunderwear/boxers01, '', default]\n" ],
         [ "bottomunderwear/boxers01/types/boxers01_deteis.type", "!!python/tuple [bottomunderwear/boxers01, '', default]\n" ],
         [ "bottomunderwear/boxers01/default.color", COLOR(0.5) ],
@@ -52,7 +73,7 @@ function fixture(t)
         [ "head/caldari_civire/metadata.yaml", META + "dependantModifiers: [archetypes/ccshape###1.0]\noccludesModifiers: null\n" ],
         [ "archetypes/cdshape/types/deites.type", "!!python/tuple [archetypes/cdshape, '', '']\n" ],
         [ "skintone/basic/default.color", COLOR(0.5) ]
-    ].map(([ path, value ]) => [ ROOT + path, value ]));
+    ].map(([ path, value ]) => [ path.startsWith("res:") ? path : ROOT + path, value ]));
     const cache = new RemoteFileCache();
     cache.AddFileIndex([ ...text.keys() ].map((path, index) => `${path},synthetic/${index},checksum,1`).join("\n"));
     const paths = new BluePaths();
@@ -205,4 +226,44 @@ test("an option's model: the first folder's .black that is not a LOD, else none;
         kind("skinnedavatarbrdflinear.fx", 0, null), kind("skinnedavatarbrdf.fx", 0, null), kind("skinnedavatarhair_detailed.fx", null, null),
         kind("glassshader.fx", 0, null), kind("eyeshader.fx", 0, 4), kind("portraitbasic.fx", null, null), kind("other.fx", 1, 1)
     ], [ "skin", "skin", "cloth", null, "own", "hair", "glass", "eyes", "portrait", null ]);
+});
+
+test("the body carriers: the nude parts, the dependants they name, then the garments' body pieces, each with its model", async t =>
+{
+    const { library } = fixture(t);
+    const answer = await library.FetchBodyCarriers("female");
+    assert.deepEqual(answer.carriers.map(carrier => [ carrier.path, carrier.category, carrier.garment, carrier.model.slice(ROOT.length) ]), [
+        [ "topinner/torso_nude", "topinner", false, "topinner/torso_nude/torso_nude.black" ],
+        [ "bottominner/legs_nude", "bottominner", false, "bottominner/legs_nude/legs_nude.black" ],
+        [ "hands/hands_nude", "hands", false, "hands/hands_nude/hands_nude.black" ],
+        [ "feet/feet_nude", "feet", false, "feet/feet_nude/feet_nude.black" ],
+        [ "dependants/sleevesupper/standard", "dependants/sleevesupper", false, "dependants/sleevesupper/standard/standard.black" ],
+        [ "dependants/sleevesupper/tshirt_01", "dependants/sleevesupper", true, "dependants/sleevesupper/tshirt_01/tshirt_01.black" ],
+        [ "dependants/collar/standard", "dependants/collar", true, "dependants/collar/standard/standard.black" ]
+    ], "the torso's drape is not in its carrier categories; a folder holding only a LOD model is no carrier");
+    const [ torso, legs ] = answer.carriers;
+    assert.deepEqual(torso.occludes, [ "hands/gloves" ]);
+    assert.deepEqual(torso.shapes.requests.map(request => request.weight), [ 0.5 ]);
+    assert.deepEqual([ legs.occludes, legs.shapes ], [ [], { requests: [], occlusions: [] } ], "a carrier without metadata");
+    const { parts, garmentDependants, ...rules } = library.GetBodyCarriers();
+    assert.deepEqual({ cutMaskClip: answer.cutMaskClip, meshCopy: answer.meshCopy, shells: answer.shells, backingCutout: answer.backingCutout }, rules);
+    answer.carriers.length = 0;
+    assert.equal((await library.FetchBodyCarriers("female")).carriers.length, 7, "the caller's own copy");
+    await assert.rejects(library.FetchBodyCarriers("male"), /No body carrier model in res:\/graphics\/character\/male\/paperdoll\/topinner\/torso_nude\//);
+});
+
+test("the drawn dependant meshes: each entry with its folder's model and one per version folder, in version order", async t =>
+{
+    const { library, reads } = fixture(t);
+    const [ drape, ...rest ] = await library.FetchMeshDependants("female");
+    assert.deepEqual(rest, []);
+    const { versions, ...entry } = drape;
+    assert.deepEqual([ entry ], library.GetMeshDependants());
+    assert.deepEqual(versions.map(version => [ version.index, version.name, version.model.slice(ROOT.length) ]), [
+        [ 0, "wide", "dependants/drape/standard/wide.black" ],
+        [ 1, "tuck", "dependants/drape/standard/v1/tuck.black" ],
+        [ 2, "bunchedup", "dependants/drape/standard/v2/bunchedup.black" ]
+    ]);
+    assert.deepEqual(reads, [], "listing reads no file");
+    await assert.rejects(library.FetchMeshDependants("male"), /Mesh dependant versions are not the folder and v1\.\.vN: .*standard\.black, .*v2\/loose\.black$/, "a gap in the versions");
 });

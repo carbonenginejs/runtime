@@ -196,6 +196,99 @@ export class CjsCharacterLibraryManager
     }
 
     /**
+     * One sex's body carriers, read once: each carrier with its model and decoded metadata, and the carrier rules in
+     * force (`_bodyCarriers`). The carriers, in order: the nude parts; the dependants each names in its own carrier
+     * categories (the torso's sleeves, from its metadata); then every other model folder in the garments' dependant
+     * categories (`garmentDependants`), a garment's own body piece (`garment` true). A carrier's model is the first
+     * `.black` directly in its folder other than a lower LOD (`_lodN`); its category is the dependant category the data
+     * names that holds it, else its first folder. Derived: no content record lists the carriers; the folder rules are the ones Graphene's
+     * body carriers used, moved here.
+     *
+     * Ours, as `FetchOptions`.
+     *
+     * @param {string} sex The paper doll's sex (`female`).
+     * @returns {Promise<{ carriers: Array<{ path: string, category: string, garment: boolean, model: string, occludes: string[], shapes: { requests: object[], occlusions: object[] } }>, cutMaskClip: { resource: string, influence: string, above: number, clip: string }, meshCopy: { share: number, positionScale: number }, shells: { draw: boolean }, backingCutout: { parameter: string, alpha: number } }>}
+     *   The carriers and the rules, the caller's own copy.
+     * @throws {Error} For a carrier folder without a model, or a metadata entry no rule reads (`decodeModifiers`).
+     */
+    FetchBodyCarriers(sex)
+    {
+        return this._Query("bodyCarriers|" + sex, async () =>
+        {
+            const root = CjsCharacterLibraryManager.sexFacts(sex).root;
+            const { parts, garmentDependants, cutMaskClip, meshCopy, shells, backingCutout } = this._bodyCarriers;
+            const isModel = name => name.endsWith(".black") && !/_lod\d+\.black$/u.test(name);
+            // The dependant categories the data names; any other carrier's category is its first folder.
+            const categories = [ ...parts.flatMap(part => part.dependants), ...garmentDependants ];
+
+            // The nude parts, then the dependants each names in its own carrier categories.
+            const own = parts.map(part => part.path);
+            for (const part of parts.filter(value => value.dependants.length))
+            {
+                const metadata = await this.FetchPartMetadata([ root + part.path + "/" ]);
+                for (const dependant of metadata ? metadata.dependants.map(value => value.toLowerCase()) : [])
+                    if (part.dependants.some(category => dependant.startsWith(category + "/"))) own.push(dependant);
+            }
+
+            // The garments' own body pieces: every model folder in their dependant categories.
+            const paths = new Set(own);
+            for (const category of garmentDependants)
+            {
+                const folder = root + category + "/";
+                for (const file of this._PaperDollFiles(folder))
+                {
+                    const rest = file.slice(folder.length).split("/");
+                    if (rest.length === 2 && isModel(rest[1])) paths.add(category + "/" + rest[0]);
+                }
+            }
+
+            const carriers = [];
+            for (const path of paths)
+            {
+                const folder = root + path + "/";
+                const model = this._PaperDollFiles(folder).find(file => !file.slice(folder.length).includes("/") && isModel(file));
+                if (!model) throw new Error("No body carrier model in " + folder);
+                const metadata = await this.FetchPartMetadata([ folder ]);
+                carriers.push({
+                    path, category: categories.find(category => path.startsWith(category + "/")) ?? path.slice(0, path.indexOf("/")), garment: !own.includes(path), model,
+                    occludes: metadata ? metadata.occludes : [], shapes: metadata ? metadata.shapes : { requests: [], occlusions: [] }
+                });
+            }
+            return { carriers, cutMaskClip, meshCopy, shells, backingCutout };
+        });
+    }
+
+    /**
+     * One sex's drawn dependant meshes, read once: each entry in force (`_meshDependants`) with its versions, each
+     * model its folder holds: its own as version 0 and each `vN/` folder's as version N, in version order (the
+     * drape's tuck states: `standard`, then `v1/tuck`, `v2/bunchedup`, ...). Derived: no content record lists a
+     * dependant's versions; the folder names are the rule Graphene's drape used, moved here.
+     *
+     * Ours, as `FetchOptions`.
+     *
+     * @param {string} sex The paper doll's sex (`female`).
+     * @returns {Promise<Array<{ path: string, owner: string, state: string, parameters: Object<string, number|number[]>, diffuseSize: number[], versions: Array<{ index: number, name: string, model: string }> }>>}
+     *   The entries (`model` the `.black` path, `name` its file name), the caller's own copy.
+     * @throws {Error} For an entry whose models are not its folder's own and `v1`..`vN`.
+     */
+    FetchMeshDependants(sex)
+    {
+        const root = CjsCharacterLibraryManager.sexFacts(sex).root;
+        return this._Query("meshDependants|" + sex, async () => this._meshDependants.map(entry =>
+        {
+            const folder = root + entry.path + "/";
+            const versions = this._PaperDollFiles(folder).filter(file => file.endsWith(".black")).map(model =>
+            {
+                const relative = model.slice(folder.length), version = /^v(\d+)\//u.exec(relative);
+                return { index: version ? Number(version[1]) : 0, name: relative.slice(relative.lastIndexOf("/") + 1, -".black".length), model };
+            }).sort((a, b) => a.index - b.index);
+            if (!versions.length || versions.some((version, index) => version.index !== index))
+                throw new Error("Mesh dependant versions are not the folder and v1..vN: " + folder + " " + versions.map(version => version.model).join(", "));
+            return { ...entry, versions };
+        }));
+    }
+
+    /**
      * Lists part folders represented by indexed source files, including those with no metadata.
      * Type files belong to the folder above their explicit types subdirectory.
      * @returns {Array<string>} Canonical folder identities, without fetching bytes.
