@@ -12,6 +12,7 @@ import { Tr2RuntimeInstanceData } from "../../../core/mesh/Tr2RuntimeInstanceDat
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { EveSceneStaticParticlesClusterData } from "./EveSceneStaticParticlesClusterData.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 
@@ -53,8 +54,8 @@ const OFFSET_SCRATCH = vec3.create();
 export class EveSceneStaticParticles extends IRoot
 {
 
-  /** Carbon ClusterData records retained on the CPU. */
-  @type.array("ClusterData")
+  /** m_clusters: ClusterData records (h:89) retained on the CPU. */
+  @type.object.embed.array("EveSceneStaticParticles::ClusterData")
   clusters = [];
 
   /** Double-precision aggregate origin used for camera-relative placement. */
@@ -322,20 +323,19 @@ export class EveSceneStaticParticles extends IRoot
   }
 
   /**
-   * Carbon method AddCluster (MAP_METHOD_AND_WRAP).
+   * Carbon method AddCluster (MAP_METHOD_AND_WRAP; cpp:49-58): a ClusterData holding the cluster.
    *
-   * @adapted Carbon's native ClusterData/Vector3d value is represented by a plain record
-   *   with a Float64Array position.
+   * @implemented
    */
   AddCluster(position, radius, color1, color2, randomSeed)
   {
-    this.clusters.push({
-      position: new Float64Array(position),
-      radius,
-      color1: vec4.clone(color1),
-      color2: vec4.clone(color2),
-      randomSeed: randomSeed >>> 0
-    });
+    const cd = new EveSceneStaticParticlesClusterData();
+    cd.position.set(position);
+    cd.radius = radius;
+    vec4.copy(cd.color1, color1);
+    vec4.copy(cd.color2, color2);
+    cd.randomSeed = randomSeed >>> 0;
+    this.clusters.push(cd);
   }
 
   /**
