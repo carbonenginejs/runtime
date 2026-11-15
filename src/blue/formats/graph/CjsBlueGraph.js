@@ -101,7 +101,8 @@ export class CjsBlueGraph
    * Read from the declared schema, which resolves no enum: a class is defined when it is declared, and an enum
    * its members name may register after it.
    * @param {Function} ctor The class.
-   * @param {boolean} [transportedOnly=true] Whether to leave out what values do not carry.
+   * @param {boolean} [transportedOnly=true] Values' view: leave out what values do not carry, and keep each name once.
+   *   False gives every own declaration, for filling rows.
    * @returns {object[]} Schema declarations.
    */
   static _getOwnDeclarations(ctor, transportedOnly = true)
@@ -118,7 +119,7 @@ export class CjsBlueGraph
     {
       for (const field of declarations)
       {
-        if (!own.has(field.declaringClass) || names.has(field.name) || (transportedOnly && !isTransportedDeclaration(field))) continue;
+        if (!own.has(field.declaringClass) || (transportedOnly && (names.has(field.name) || !isTransportedDeclaration(field)))) continue;
         names.add(field.name);
         fields.push(field);
       }
