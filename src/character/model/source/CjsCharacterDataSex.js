@@ -6,8 +6,7 @@ import { CjsCharacterDataEyeWet } from "./CjsCharacterDataEyeWet.js";
  * as Carbon's generic holds its named items in vectors; the shipped defaults are `factory/defaults/sexes.json`, which
  * also says what each value means.
  *
- * Modelled on: EveSOFDataGenericHullCategory (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:2317-2334), a named
- * item of EveSOFDataGeneric's vectors (:2389-2392). Carbon's generic has no per-sex section, so every field is ours.
+ * Ours (no Carbon counterpart): Carbon's generic has no per-sex section, and the client's paper doll is Python.
  */
 @meta.define("CjsCharacterDataSex")
 export class CjsCharacterDataSex

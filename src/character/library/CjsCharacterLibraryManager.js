@@ -19,13 +19,14 @@ import defaultFemalePaperDoll from "../factory/defaults/defaultFemalePaperDoll.j
 import defaultMalePaperDoll from "../factory/defaults/defaultMalePaperDoll.json" with { type: "json" };
 import { LOADOBJECT_INIT_FLAG } from "#consts/blue";
 import sexDefaults from "../factory/defaults/sexes.json" with { type: "json" };
+import bloodlineDefaults from "../factory/defaults/bloodlines.json" with { type: "json" };
 import areaShaderDefaults from "../factory/defaults/areaShaders.json" with { type: "json" };
 import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCorrections.js";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { PaperDollPaletteKind } from "./characterPalettes.js";
 import { CjsSchema } from "#schema";
 import { CjsCharacterGeneric } from "../model/source/CjsCharacterGeneric.js";
-import { DictReader } from "../../blue/formats/graph/DictReader.js";
+import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { TriBatchType } from "#consts/graphics";
 
 /** The default paper doll of each sex (`defaultPaperDoll`). */
@@ -71,6 +72,11 @@ const defaultPaperDolls = { female: defaultFemalePaperDoll, male: defaultMalePap
  */
 
 /**
+ * The bloodline name rules in force (`CjsCharacterDataBloodlines` says what each names).
+ * @typedef {{ rule: string, morphTarget: string }} CjsCharacterBloodlineRules
+ */
+
+/**
  * Where a sex's generic head borrows its eye-wet effect from, as `GetSexFacts` answers it (`CjsCharacterDataEyeWet`).
  * @typedef {{ reference: string, mesh: string }} CjsCharacterEyeWetFacts
  */
@@ -110,6 +116,11 @@ export class CjsCharacterLibraryManager
 
     /** The indexed paper doll files, sorted, for one install generation (`_PaperDollFiles`). */
     _paperDollFiles = null;
+
+    /** The bloodline name rules in force (`_Bloodlines`), and the install generation they were built for. */
+    _bloodlines = null;
+
+    _bloodlinesGeneration = -1;
 
     /** The sex facts in force (`_Sexes`), and the install generation they were built for. */
     _sexes = null;
@@ -1116,7 +1127,8 @@ export class CjsCharacterLibraryManager
      * `archetypes/cdshape` is `CDShape`). The archetype's own `types/<bloodline>.type` is not used: the male
      * archetypes ship none, and two female ones are spelled apart from every other file (`deites`, `verokior`).
      * Derived: no content record names an archetype's head, bloodline or morph; the two name rules are the code
-     * Graphene's foundation used, moved here behind this query.
+     * Graphene's foundation used, moved here behind this query, and the generic names which are in force
+     * (`CjsCharacterGeneric.bloodlines`: `headFolderLastWord`, `archetypeCodeUpperShape`).
      *
      * Ours, as `FetchOptions`.
      *
@@ -1124,12 +1136,16 @@ export class CjsCharacterLibraryManager
      * @param {string} archetype The archetype folder below the root (`archetypes/cdshape`).
      * @returns {Promise<?{ bloodline: string, head: string, morphTarget: string }>} The bloodline, or null for an
      *   archetype no head depends on.
-     * @throws {Error} For an archetype more than one head depends on.
+     * @throws {Error} For an archetype more than one head depends on, or a rule name the library has no rule for.
      */
     FetchBloodline(sex, archetype)
     {
         return this._Query("bloodline|" + sex + "|" + archetype, async () =>
         {
+            const { rule, morphTarget } = this._Bloodlines();
+            if (rule !== "headFolderLastWord") throw new Error("No bloodline rule " + rule);
+            if (morphTarget !== "archetypeCodeUpperShape") throw new Error("No morph target rule " + morphTarget);
+
             const heads = this.GetSexFacts(sex).root + "head/";
             const paths = this._PaperDollFiles(heads).filter(path => path.endsWith("/metadata.yaml") && path.indexOf("/", heads.length) === path.length - "/metadata.yaml".length);
             const found = [];
@@ -1386,18 +1402,36 @@ export class CjsCharacterLibraryManager
     }
 
     /**
+     * The bloodline name rules in force, built once per install as `_Sexes` is: the shipped defaults
+     * (`factory/defaults/bloodlines.json`, in the generic's own shape, built into a `CjsCharacterDataBloodlines` by the
+     * graph), each value the installed library's generic sets (`CjsCharacterGeneric.bloodlines`, not empty) replacing
+     * its default.
+     * @returns {CjsCharacterBloodlineRules} The rule names; not to be changed.
+     */
+    _Bloodlines()
+    {
+        if (this._bloodlines === null || this._bloodlinesGeneration !== this._installGeneration)
+        {
+            const shipped = CjsGraph.from(CjsCharacterGeneric, { bloodlines: bloodlineDefaults.bloodlines }).bloodlines;
+            const installed = this._library.generic.bloodlines;
+            this._bloodlines = { rule: installed.rule || shipped.rule, morphTarget: installed.morphTarget || shipped.morphTarget };
+            this._bloodlinesGeneration = this._installGeneration;
+        }
+        return this._bloodlines;
+    }
+
+    /**
      * The sex facts in force, by sex, built once per install as `_Categories` is: the shipped defaults
-     * (`factory/defaults/sexes.json`, read into `CjsCharacterDataSex` records by Blue's dict reader), each replaced
-     * whole by the installed library's generic sex of the same name. The installed library is not changed.
+     * (`factory/defaults/sexes.json`, in the generic's own shape, built into `CjsCharacterDataSex` objects by the
+     * graph), each replaced whole by the installed library's generic sex of the same name. The installed library is
+     * not changed.
      * @returns {Map<string, CjsCharacterDataSex>} The facts; not to be changed.
      */
     _Sexes()
     {
         if (this._sexes === null || this._sexesGeneration !== this._installGeneration)
         {
-            const shipped = new CjsCharacterGeneric();
-            const values = Object.entries(sexDefaults).filter(([ name ]) => name !== "description").map(([ name, facts ]) => ({ name, ...facts }));
-            new DictReader({ liveLists: true }).ReadInto(shipped, { sexes: values }, null);
+            const shipped = CjsGraph.from(CjsCharacterGeneric, { sexes: sexDefaults.sexes });
             const sexes = new Map(shipped.sexes.map(entry => [ entry.name, entry ]));
             for (const entry of this._library.generic.sexes) sexes.set(entry.name, entry);
             this._sexes = sexes;

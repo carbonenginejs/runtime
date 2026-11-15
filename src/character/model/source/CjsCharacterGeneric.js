@@ -2,6 +2,7 @@ import { meta, type } from "#schema";
 import "./CjsCharacterDataCategory.js";
 import "./CjsCharacterDataShader.js";
 import "./CjsCharacterDataSex.js";
+import { CjsCharacterDataBloodlines } from "./CjsCharacterDataBloodlines.js";
 
 // Discovery: src/character/discovery/animationdata.yaml
 // Discovery: src/character/discovery/{animation_animinfo,animation_movementstates,animationoffsets,basefemalebindpose,basemalebindpose,basename,blendshapes,face,facetweaksettings,modifiernames,scultpinglimits,trif}.yaml
@@ -98,5 +99,13 @@ export class CjsCharacterGeneric
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterDataSex")
     sexes = [];
+
+    /**
+     * Which name rules give an archetype its bloodline and morph target, each value replacing the shipped default
+     * (`factory/defaults/bloodlines.json`). Empty: the defaults are in force.
+     */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.object.embed("CjsCharacterDataBloodlines")
+    bloodlines = new CjsCharacterDataBloodlines();
 
 }

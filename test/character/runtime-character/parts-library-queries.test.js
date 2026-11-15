@@ -291,3 +291,17 @@ test("the sex facts: the shipped defaults, each replaced whole by an installed g
     const reread = new CjsCharacterLibraryManager(installed.GetData()).GetSexFacts("male");
     assert.deepEqual([ reread.bodyFallbacks, reread.eyeWet.mesh ], [ { "body.NormalMap": "custom/normal" }, "Custom_GeoShape" ], "and reads back");
 });
+
+test("the bloodline name rules are the generic's: the shipped defaults, an installed value replacing its default", async t =>
+{
+    const { library } = fixture(t);
+    const installed = library.GetLibrary();
+    installed.generic.bloodlines.rule = "headFolderFirstWord";
+    library.InstallLibrary(installed);
+    await assert.rejects(library.FetchBloodline("female", "archetypes/cdshape"), /No bloodline rule headFolderFirstWord/);
+    await assert.rejects(new CjsCharacterLibraryManager(installed.GetData()).FetchBloodline("female", "archetypes/cdshape"), /No bloodline rule headFolderFirstWord/, "and reads back");
+    installed.generic.bloodlines.rule = "";
+    installed.generic.bloodlines.morphTarget = "archetypeName";
+    library.InstallLibrary(installed);
+    await assert.rejects(library.FetchBloodline("female", "archetypes/cdshape"), /No morph target rule archetypeName/, "an empty rule is the default's");
+});
