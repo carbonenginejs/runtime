@@ -11,6 +11,11 @@ import { meta, type } from "#schema";
 export class CjsCharacterAnimationDataEntry
 {
 
+    /** The entry name, its key in the file. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string
+    name = "";
+
     /** Authored female settings. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.object.ref("CjsCharacterFemale")

@@ -9,7 +9,7 @@ const PYTHON_OBJECT = "tag:yaml.org,2002:python/object:";
  * exact-tag lookup. Call after the desired classes and aliases are registered.
  * No Python code is evaluated and no character classes are imported here.
  *
- * @param {Object<string, Object<string, string[]>>} sourceLists The caller's list forms, by record class
+ * @param {Object<string, Object<string, (string|string[]|object)>>} sourceLists The caller's list forms, by record class
  *   (`normalizeCharacterYamlValues`).
  * @returns {Map<string, Function>} Exact tags sharing the same handler.
  */
@@ -30,7 +30,7 @@ export function createCharacterYamlTagHandlers(sourceLists)
  *
  * @param {object} values Authored mapping, with children already converted.
  * @param {{tag:string,sourceName:string|null}} context YAML tag and source.
- * @param {Object<string, Object<string, string[]>>} sourceLists The caller's list forms, by record class.
+ * @param {Object<string, Object<string, (string|string[]|object)>>} sourceLists The caller's list forms, by record class.
  * @returns {object} A newly populated registered instance.
  * @throws {TypeError} If the tag, class name or mapping is invalid.
  */
@@ -70,8 +70,14 @@ export function readCharacterYamlObject(values, context, sourceLists)
  * - `{ list, pattern }`: the key's value is a list of tuples and numbers (the character format has read a recipe's
  *   Python repr text, `CjsCharacterYamlFormat.decodeRepr`); with the record's `pattern` set its items fill the
  *   `pattern` fields in order, else they are the `list` field's colours.
+ * - `{ keyed?, value?, tuple?, rest? }`: the key's value becomes the field's list of records (`ReadRecordList`). With
+ *   `keyed` the file holds a mapping and each key fills that field of its record (a whole-number field takes the key
+ *   as a number); without it the file holds a list. Each value fills its record by `tuple` (field names by position;
+ *   where a file mixes tuple shapes, the names for each tuple length; `rest` takes the items after the names as one
+ *   list), else whole into the `value` field, else, a mapping, field by field.
  * Tuples are colours (an RGB tuple gains alpha 1) or a vec4. The model classes hold the fields; how a file lays them
- * out is the format's.
+ * out is the format's. A list of records is the library's shape for a keyed collection: values hold no maps
+ * (model-values-interchange.md § Collections).
  *
  * Ours (non-carbon-extensions.md § *Character source YAML values*): the game's files write colours as tuple
  * lists, and the records hold one named colour per value, as Carbon exposes
@@ -79,7 +85,7 @@ export function readCharacterYamlObject(values, context, sourceLists)
  *
  * @param {Function} Constructor Registered target declaration.
  * @param {object} values Authored plain values.
- * @param {Object<string, Object<string, (string|string[]|{ list: string, pattern: string[] })>>} sourceLists
+ * @param {Object<string, Object<string, (string|string[]|{ list: string, pattern: string[] }|{ keyed?: string, value?: string, tuple?: (string[]|Object<number, string[]>), rest?: string })>>} sourceLists
  *   The caller's list forms, by record class.
  * @returns {object} Values suitable for the target's existing transport.
  */
@@ -116,6 +122,14 @@ export function normalizeCharacterYamlValues(Constructor, values, sourceLists)
         delete result[key];
         if (value === null) continue;
         if (Array.isArray(form)) TranslateSourceList(className + "." + key, value, form, result);
+        else if (form.list === undefined)
+        {
+            // A whole-number field takes a keyed mapping's keys as numbers (a vertex index).
+            const Item = RecordClass(fields.get(key)?.itemType);
+            const keyKind = Item && form.keyed !== undefined ? CjsSchema.getSchema(Item).fields.find(field => field.name === form.keyed)?.type.kind : undefined;
+            const numeric = [ "int8", "int16", "int32", "uint8", "uint16", "uint32" ].includes(keyKind);
+            result[key] = ReadRecordList(className + "." + key, value, form, numeric);
+        }
         else if (value !== "")
         {
             if (!Array.isArray(value)) throw new TypeError(className + "." + key + " must be a list of tuples");
@@ -170,6 +184,59 @@ function RecordClass(type)
 function IsPlainRecord(value)
 {
     return value !== null && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype && !Object.hasOwn(value, "_ref");
+}
+
+/**
+ * A file's keyed mapping or list as a list of records' values, each then read by the list's record class (its own list
+ * forms apply in the nested pass).
+ * @param {string} label The file key, for errors.
+ * @param {*} value The file's mapping (`keyed`) or list.
+ * @param {{ keyed?: string, value?: string, tuple?: (string[]|Object<number, string[]>), rest?: string }} form The
+ *   list form.
+ * @param {boolean} numeric Whether the `keyed` field is a whole number.
+ * @returns {object[]} The records' values, in file order, except that whole-number keys come first, ascending, as a
+ *   JavaScript object holds them.
+ * @throws {TypeError} For a value of another shape, a key that is not a whole number for a whole-number field, a
+ *   mapping value that writes the `keyed` field itself, or a tuple whose length its form does not name.
+ */
+function ReadRecordList(label, value, form, numeric)
+{
+    let entries;
+    if (form.keyed !== undefined)
+    {
+        if (!IsPlainRecord(value)) throw new TypeError(label + " must be a mapping");
+        entries = Object.entries(value);
+    }
+    else
+    {
+        if (!Array.isArray(value)) throw new TypeError(label + " must be a list");
+        entries = value.map(item => [ null, item ]);
+    }
+    return entries.map(([ key, item ], index) =>
+    {
+        const at = label + (key === null ? "[" + index + "]" : "." + key);
+        const record = {};
+        if (form.tuple !== undefined)
+        {
+            if (!Array.isArray(item)) throw new TypeError(at + " must be a tuple");
+            const names = Array.isArray(form.tuple) ? form.tuple : form.tuple[item.length];
+            if (!names || item.length < names.length || (form.rest === undefined && item.length !== names.length))
+                throw new TypeError(`${at} has ${item.length} items; its form names no tuple of that length`);
+            for (let i = 0; i < names.length; i++) record[names[i]] = item[i];
+            if (form.rest !== undefined) record[form.rest] = item.slice(names.length);
+        }
+        else if (form.value !== undefined) record[form.value] = item;
+        else if (IsPlainRecord(item)) Object.assign(record, item);
+        else throw new TypeError(at + " must be a mapping");
+        if (form.keyed !== undefined)
+        {
+            if (Object.hasOwn(record, form.keyed)) throw new TypeError(`${at} writes ${form.keyed}, which its key fills`);
+            const name = numeric ? Number(key) : key;
+            if (numeric && !(Number.isInteger(name) && String(name) === key)) throw new TypeError(at + " must be keyed by a whole number");
+            record[form.keyed] = name;
+        }
+        return record;
+    });
 }
 
 /**

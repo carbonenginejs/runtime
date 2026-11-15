@@ -51,11 +51,11 @@ function fixture(t)
     return { builder, resMan, paths, reads };
 }
 
-test("library values are its items by kind, version 1, and keep their source identities", () =>
+test("library values are its items by kind, version 2, and keep their source identities", () =>
 {
     const library = new CjsCharacterLibrary();
-    assert.equal(library.GetData().schemaVersion, 1);
-    assert.throws(() => new CjsCharacterLibrary().SetData({ ...library.GetData(), schemaVersion: 13 }), /schema version 1/u, "earlier formats are not read");
+    assert.equal(library.GetData().schemaVersion, 2);
+    assert.throws(() => new CjsCharacterLibrary().SetData({ ...library.GetData(), schemaVersion: 1 }), /schema version 2/u, "earlier formats are not read");
     const camera = new CjsCharacterCamera();
     camera.field_of_view = 0.123456789;
     library.AddKind("cameras", CAMERA, camera);

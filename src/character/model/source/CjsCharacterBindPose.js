@@ -19,9 +19,9 @@ export class CjsCharacterBindPose extends CjsCharacterRecord
     @type.string
     name = "";
 
-    /** Authored bone keys and bind-pose records. */
+    /** The bind pose's bone records, each named by its bone. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map({ kind: "rootRef", className: "CjsCharacterPoseTransform" })
-    value = new Map();
+    @type.list("CjsCharacterPoseTransform")
+    value = [];
 
 }

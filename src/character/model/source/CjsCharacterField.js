@@ -11,6 +11,11 @@ import { meta, type } from "#schema";
 export class CjsCharacterField
 {
 
+    /** The field name, its key in the file. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string
+    name = "";
+
     /** Authored attribute names. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("string")

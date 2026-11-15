@@ -25,7 +25,7 @@ export class CjsCharacterObjectBuilder
 
     _path = "";
 
-    /** The caller's configuration: its kinds and their list forms. @type {{ kinds: Object<string, object>, sourceLists: Object<string, Object<string, string[]>> }} */
+    /** The caller's configuration: its kinds and their list forms. @type {{ kinds: Object<string, object>, sourceLists: Object<string, Object<string, (string|string[]|object)>> }} */
     _configuration = null;
 
     /**
@@ -33,7 +33,7 @@ export class CjsCharacterObjectBuilder
      * @param {string|ArrayBuffer|ArrayBufferView} bytes Original YAML input.
      * @param {string} kind Configured source family.
      * @param {string} path Original logical source path.
-     * @param {{ kinds: Object<string, object>, sourceLists: Object<string, Object<string, string[]>> }} configuration
+     * @param {{ kinds: Object<string, object>, sourceLists: Object<string, Object<string, (string|string[]|object)>> }} configuration
      *   The kinds the caller reads (`className`, `envelope`, `items`: the class of an envelope list's mapping
      *   entries; `slots`, `leading`, `list`: the fields an envelope list splits into, `ReadEnvelope`) and their list forms
      *   (`normalizeCharacterYamlValues`).
@@ -188,7 +188,7 @@ export class CjsCharacterObjectBuilder
      *
      * @param {object} resMan The resource manager.
      * @param {function(string): (string|null)} kindOf A canonical source path's configured kind, or null.
-     * @param {{ kinds: Object<string, object>, sourceLists: Object<string, Object<string, string[]>>, getRows: function(): Array<{match: string, kind: string}> }} configuration
+     * @param {{ kinds: Object<string, object>, sourceLists: Object<string, Object<string, (string|string[]|object)>>, getRows: function(): Array<{match: string, kind: string}> }} configuration
      *   The kinds, their list forms and their path rows (`CjsCharacterLibraryConfiguration`).
      * @returns {void}
      */
@@ -307,7 +307,7 @@ function ReadPositionalCamera(raw, path)
  * A light rig's values: the lights of the `Tr2InteriorScene` the file saves them in. The scene itself is not made.
  * @param {*} raw The file's value.
  * @param {string} path The file's path.
- * @param {Object<string, Object<string, string[]>>} sourceLists The caller's list forms, by record class.
+ * @param {Object<string, Object<string, (string|string[]|object)>>} sourceLists The caller's list forms, by record class.
  * @returns {{ lights: Array<object> }} The rig's values.
  * @throws {TypeError} For a file that is not a scene holding only lights.
  */
@@ -322,7 +322,7 @@ function ReadLightRig(raw, path, sourceLists)
 /**
  * Hydrates the existing light YAML's native type records without initialization.
  * @param {*} value Parsed light source value.
- * @param {Object<string, Object<string, string[]>>} sourceLists The caller's list forms, by record class.
+ * @param {Object<string, Object<string, (string|string[]|object)>>} sourceLists The caller's list forms, by record class.
  * @param {Map<object,object>} [memo=new Map()] Source aliases already encountered.
  * @returns {*} Converted value, preserving aliases and scalar spelling.
  */

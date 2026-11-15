@@ -11,6 +11,11 @@ import { meta, type } from "#schema";
 export class CjsCharacterAnimationInfoEntry
 {
 
+    /** The animation name, its key in the file. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string
+    name = "";
+
     /** Authored string, retained without normalization of spelling. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string

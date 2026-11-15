@@ -40,19 +40,25 @@ test("content inspection separates camera/post layouts without decoding other re
     assert.throws(() => Builder("lut: true\nlut_influence: 1\n", "posts").CreateObject(), /Unrecognized/);
 });
 
-test("root dictionaries hydrate typed records and preserve Number precision", () =>
+test("a keyed root reads as a list of named typed records and preserves Number precision", () =>
 {
-    const builder = Builder("Jaw:\n  orientation: !!python/tuple [0.1, 0.2, 0.3]\n  rotation: !!python/tuple [0.4, 0.5, 0.6]\n  translation: [0.7, 0.8, 0.9]\n", "poses");
+    const builder = Builder("Jaw:\n  orientation: !!python/tuple [0.1, 0.2, 0.3]\n  rotation: !!python/tuple [0.4, 0.5, 0.6]\n  translation: [0.7, 0.8, 0.9]\nNeck:\n  rotation: [1, 2, 3]\n", "poses");
     const pose = builder.CreateObject();
     assert.equal(Object.getPrototypeOf(pose), CjsCharacterPose.prototype);
-    assert.equal(Object.getPrototypeOf(pose.value.get("Jaw")), CjsCharacterPoseTransform.prototype, "each map value is a record");
-    assert.deepEqual(pose.value.get("Jaw").rotation, Float64Array.of(0.4, 0.5, 0.6), "a record's vec3d, at the authored double precision");
+    assert.ok(Array.isArray(pose.value), "values hold no maps: a keyed collection is a list");
+    assert.deepEqual(pose.value.map(transform => transform.name), [ "Jaw", "Neck" ], "each key names its record, in file order");
+    const jaw = pose.value[0];
+    assert.equal(Object.getPrototypeOf(jaw), CjsCharacterPoseTransform.prototype, "each entry is a record");
+    assert.deepEqual(jaw.rotation, Float64Array.of(0.4, 0.5, 0.6), "a record's vec3d, at the authored double precision");
     const second = builder.CreateObject();
     assert.notEqual(second, pose);
-    assert.notEqual(second.value.get("Jaw"), pose.value.get("Jaw"));
-    pose.value.get("Jaw").rotation[0] = 99;
-    assert.equal(second.value.get("Jaw").rotation[0], 0.4);
+    assert.notEqual(second.value[0], jaw);
+    jaw.rotation[0] = 99;
+    assert.equal(second.value[0].rotation[0], 0.4);
     assert.equal(builder.GetSourceDocument().getIn(["Jaw", "rotation", 0]), 0.4);
+    assert.throws(() => Builder("- Jaw\n", "poses").CreateObject(), /CjsCharacterPose\.value must be a mapping/u);
+    assert.throws(() => Builder("Jaw: [1, 2]\n", "poses").CreateObject(), /CjsCharacterPose\.value\.Jaw must be a mapping/u);
+    assert.throws(() => Builder("Jaw:\n  name: Neck\n", "poses").CreateObject(), /CjsCharacterPose\.value\.Jaw writes name, which its key fills/u);
 });
 
 test("recipes retain leading sex, typed modifiers, source refs and embedded decal spelling", () =>
@@ -146,6 +152,8 @@ test("GetPost answers a post in either layout; ListPostNames lists both", async 
 test("records the file nests take their own list forms: a material set's materials, each with its attributes' colours", () =>
 {
     const source = "Materials:\n  C_Test:\n    Attributes:\n      color:\n      - !!python/tuple [0.5, 0.5, 0.5]\n      incandescence:\n      - !!python/tuple [0.1, 0.2, 0.3]\n    Textures: {}\n";
-    const attributes = Builder(source, "materialSets").CreateObject().Materials.get("C_Test").Attributes;
+    const materials = Builder(source, "materialSets").CreateObject().Materials;
+    assert.deepEqual(materials.map(material => material.name), [ "C_Test" ]);
+    const attributes = materials[0].Attributes;
     assert.deepEqual([ Array.from(attributes.color), Array.from(attributes.incandescence) ], [ [ 0.5, 0.5, 0.5, 1 ], [ 0.1, 0.2, 0.3, 1 ].map(Math.fround) ]);
 });

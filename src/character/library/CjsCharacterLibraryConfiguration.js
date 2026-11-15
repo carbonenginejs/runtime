@@ -170,8 +170,9 @@ export class CjsCharacterLibraryConfiguration
     ];
 
     /**
-     * The list forms of the kinds' files, by record class: each listed key of a file holds one tuple or number per
-     * named field (`normalizeCharacterYamlValues`). The `.prs` recipes are the character factory's
+     * The list forms of the kinds' files, by record class (`normalizeCharacterYamlValues`): a key holding one tuple or
+     * number per named field, or a keyed mapping read as a list of records, each key its record's `name` (an envelope
+     * kind's file is its `value`). The `.prs` recipes are the character factory's
      * (`CjsCharacterFactory.recipeConfiguration`), so their modifier's list forms are too.
      */
     static sourceLists = {
@@ -185,7 +186,13 @@ export class CjsCharacterLibraryConfiguration
             color: [ "color" ],
             incandescence: [ "incandescence" ],
             transparency: [ "transparency" ]
-        }
+        },
+        CjsCharacterPose: { value: { keyed: "name" } },
+        CjsCharacterBindPose: { value: { keyed: "name" } },
+        CjsCharacterAnimationData: { value: { keyed: "name" } },
+        CjsCharacterAnimationInfo: { value: { keyed: "name" } },
+        CjsCharacterFieldSet: { Fields: { keyed: "name" } },
+        CjsCharacterMaterialSet: { Materials: { keyed: "name" } }
     };
 
     /** Non-data and unestablished opaque inputs, relative to each configured root. */

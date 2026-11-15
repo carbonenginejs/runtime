@@ -13,9 +13,9 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterFieldSet extends CjsCharacterRecord
 {
 
-    /** Authored field identifiers and records. */
+    /** The file's fields, each named by its key. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map({ kind: "rootRef", className: "CjsCharacterField" })
-    Fields = new Map();
+    @type.list("CjsCharacterField")
+    Fields = [];
 
 }

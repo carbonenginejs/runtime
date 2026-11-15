@@ -18,9 +18,9 @@ export class CjsCharacterAnimationInfo extends CjsCharacterRecord
     @type.string
     name = "";
 
-    /** Authored identifier keys and records. */
+    /** The file's animations, each named by its key. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map({ kind: "rootRef", className: "CjsCharacterAnimationInfoEntry" })
-    value = new Map();
+    @type.list("CjsCharacterAnimationInfoEntry")
+    value = [];
 
 }

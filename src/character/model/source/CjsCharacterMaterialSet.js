@@ -13,9 +13,9 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterMaterialSet extends CjsCharacterRecord
 {
 
-    /** Authored material identifiers and their records. */
+    /** The file's materials, each named by its key. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map({ kind: "rootRef", className: "CjsCharacterMaterial" })
-    Materials = new Map();
+    @type.list("CjsCharacterMaterial")
+    Materials = [];
 
 }

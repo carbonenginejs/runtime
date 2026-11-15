@@ -18,9 +18,9 @@ export class CjsCharacterPose extends CjsCharacterRecord
     @type.string
     name = "";
 
-    /** Authored bone keys and pose records; not a SOF transform. */
+    /** The pose's bone records, each named by its bone; not a SOF transform. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map({ kind: "rootRef", className: "CjsCharacterPoseTransform" })
-    value = new Map();
+    @type.list("CjsCharacterPoseTransform")
+    value = [];
 
 }

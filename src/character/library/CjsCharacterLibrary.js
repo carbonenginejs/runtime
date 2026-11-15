@@ -163,10 +163,13 @@ export class CjsCharacterLibrary
     @type.string
     schema = "carbonenginejs.characterLibrary";
 
-    /** The data format's version: 1 since 2026-11-10 (the earlier document schemas are gone, not migrated). */
+    /**
+     * The data format's version: 2 since 2026-11-16, when keyed collections became lists of named records (values hold
+     * no maps); 1 from 2026-11-10. Earlier versions are not read, nor migrated: `validateData` refuses them.
+     */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.uint32
-    schemaVersion = 1;
+    schemaVersion = 2;
 
     /**
      * The library's data: every item's, by kind, written by Blue's dict writer (persisted members, with type tags).
@@ -208,8 +211,8 @@ export class CjsCharacterLibrary
     static validateData(value)
     {
         RequirePlainObject(value, "Character library");
-        if (value.schema !== "carbonenginejs.characterLibrary" || value.schemaVersion !== 1)
-            throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 1");
+        if (value.schema !== "carbonenginejs.characterLibrary" || value.schemaVersion !== 2)
+            throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 2");
         RequirePlainObject(value.generic, "Character generic holdings");
         RequirePlainObject(value.sourceNames, "Character source names");
         for (const key of Object.keys(value.sourceNames))

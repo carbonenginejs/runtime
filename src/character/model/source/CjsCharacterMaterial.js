@@ -11,6 +11,11 @@ import { meta, type } from "#schema";
 export class CjsCharacterMaterial
 {
 
+    /** The material name, its key in the file. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string
+    name = "";
+
     /** Authored material attribute record. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.object.ref("CjsCharacterAttributes")

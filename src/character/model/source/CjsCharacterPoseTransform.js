@@ -12,6 +12,11 @@ import { meta, type } from "#schema";
 export class CjsCharacterPoseTransform
 {
 
+    /** The bone name, its key in the file. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string
+    name = "";
+
     /** Authored 3-component numeric tuple. Kept at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.vec3d
