@@ -2,7 +2,7 @@
   "outRoot": "src/trinity/generated",
   "classes": {
     "written": 8,
-    "skipped": 728
+    "skipped": 734
   },
   "enums": {
     "written": 15,
@@ -1961,6 +1961,11 @@
     },
     {
       "family": "include",
+      "className": "ITriTextureRes",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "include",
       "className": "ITriVector",
       "reason": "hand-maintained source exists"
     },
@@ -3001,6 +3006,11 @@
     },
     {
       "family": "trinityCore",
+      "className": "ITr2WorldTransformUpdater",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "ITriRenderBatchAccumulator",
       "reason": "hand-maintained source exists"
     },
@@ -3012,6 +3022,11 @@
     {
       "family": "trinityCore",
       "className": "IWorldPosition",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "LineData",
       "reason": "hand-maintained source exists"
     },
     {
@@ -3456,6 +3471,16 @@
     },
     {
       "family": "trinityCore",
+      "className": "Triangle",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
+      "className": "TriangleData",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "trinityCore",
       "className": "TriColor",
       "reason": "hand-maintained source exists"
     },
@@ -3647,6 +3672,11 @@
     {
       "family": "utilities",
       "className": "Vector4d",
+      "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "videoPlayer",
+      "className": "ITriTextureRes",
       "reason": "hand-maintained source exists"
     }
   ],
