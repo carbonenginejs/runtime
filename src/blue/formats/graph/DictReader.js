@@ -1005,6 +1005,8 @@ export class DictReader extends IRootReaderBase
     for (let i = 0; i < entries.length; i++)
     {
       const [ key, item ] = entries[i];
+      // Carbon adds a value only when it read one (`if( p )`, DictReader.cpp:517-521): a null leaves its key out.
+      if (item === null || item === undefined) continue;
       this._contextStack.push(`${parent} ['${key}' - ${i}]`);
       let value = item;
       if (DictReader._IsReference(item))

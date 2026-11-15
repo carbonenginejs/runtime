@@ -49,11 +49,12 @@ test("map values keep the reader's anchors, aliases, nulls and live references",
     later: { _id: 2, rotation: [ 4, 5, 6 ] }
   } }, null);
 
-  assert.deepEqual([ ...owner.value.keys() ], [ "first", "back", "ahead", "none", "live", "later" ]);
+  // A null value leaves its key out, as Carbon's ReadDict adds only a value it read (DictReader.cpp:517-521).
+  assert.deepEqual([ ...owner.value.keys() ], [ "first", "back", "ahead", "live", "later" ]);
   assert.equal(owner.value.get("back"), owner.value.get("first"));
   assert.equal(owner.value.get("ahead"), owner.value.get("later"), "a forward alias resolves when the read ends");
   assert.ok(owner.value.get("later") instanceof DictMapRecordProbe);
-  assert.equal(owner.value.get("none"), null);
+  assert.equal(owner.value.has("none"), false);
   assert.equal(owner.value.get("live"), live);
 });
 
