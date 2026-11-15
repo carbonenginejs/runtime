@@ -13,7 +13,7 @@ export class EveSceneStaticParticlesClusterData
 
   /** position (Vector3d): the cluster's centre, in double precision. */
   @type.vec3d
-  position = new Float64Array(3);
+  position = new Float64Array(3); // alloc: Carbon Vector3d; no double-precision math type
 
   /** radius (float) */
   @type.float32

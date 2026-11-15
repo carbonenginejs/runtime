@@ -13,7 +13,7 @@ export class EveTacticalTrailsPostion
 
   /** position (Vector3d) */
   @type.vec3d
-  position = new Float64Array(3);
+  position = new Float64Array(3); // alloc: Carbon Vector3d; no double-precision math type
 
   /** time (Be::Time) */
   @type.float64
