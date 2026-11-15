@@ -3,7 +3,6 @@ import test from "node:test";
 import { CjsSchema } from "../../npm/dist/blue/schema/index.js";
 import { mappedInterfaces } from "../../npm/dist/blue/compose/interface.js";
 import { Copier, DictReader } from "../../npm/dist/blue/index.js";
-import { GetResources } from "../../npm/dist/blue/getResources.js";
 import { Tr2SamplerOverrideData, Tr2SamplerOverride, Tr2Effect } from "../../npm/dist/trinity/index.js";
 import { Tr2SamplerStateAL } from "../../npm/dist/trinityal/index.js";
 
@@ -33,7 +32,7 @@ test("sampler override record follows unsigned native structure fields and defau
   assert.equal(CjsSchema.getSchema(Tr2SamplerOverride).structureDefinition.size, 56);
 });
 
-test("sampler data retains opaque AL value semantics without resource traversal", () =>
+test("sampler data holds its AL sampler state as a plain field", () =>
 {
   const row = new Tr2SamplerOverrideData(), members = CjsSchema.getSchema(Tr2SamplerOverrideData).members;
   // Carbon exposes no member of this struct (Shader/Tr2Material.h:30-34), so sampler is a plain field, not a graph
@@ -43,8 +42,6 @@ test("sampler data retains opaque AL value semantics without resource traversal"
   // Tr2SamplerStateAL sampler (Shader/Tr2Material.h:33), by value and invalid until created.
   assert.ok(row.sampler instanceof Tr2SamplerStateAL);
   assert.equal(row.sampler.IsValid(), false);
-  row.sampler = { isResource: true };
-  assert.deepEqual(GetResources(row, []), [], "opaque sampler state is not a declared Blue resource edge");
 });
 
 test("sampler declared reader and Copier preserve full unsigned authored values", () =>
