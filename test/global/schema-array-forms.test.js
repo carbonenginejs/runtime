@@ -95,3 +95,42 @@ test("a nullable value member carries GraphMemberFlags.NULLABLE; a plain one doe
   assert.equal(nullable.type, VARTYPE.FLOATARRAY);
   assert.equal(graphRow(NullableValueProbe, "color2").flags & GraphMemberFlags.NULLABLE, 0);
 });
+
+test("a double vector read from plain data is a Float64Array of the exact doubles", async () =>
+{
+  const { DictReader } = await ImportDist("blue/formats/graph/DictReader.js");
+  class DoubleVectorRead
+  {
+    position = new Float64Array(3);
+    size = new Float64Array(2);
+  }
+  CjsSchema.decorateField(DoubleVectorRead, "position", be.mapAttribute(be.READWRITE | be.PERSIST), type.vec3d);
+  CjsSchema.decorateField(DoubleVectorRead, "size", be.mapAttribute(be.READWRITE | be.PERSIST), type.vec2d);
+  be.define("DoubleVectorRead")(DoubleVectorRead);
+
+  const object = new DoubleVectorRead();
+  new DictReader().ReadInto(object, { position: [ 0.1, 0.2, 0.3 ], size: [ 640, 480 ] }, null);
+  assert.ok(object.position instanceof Float64Array);
+  assert.deepEqual(Array.from(object.position), [ 0.1, 0.2, 0.3 ]);
+  assert.ok(object.size instanceof Float64Array);
+});
+
+test("a subclass that declares a member's type again does not inherit its nullability or count", () =>
+{
+  class NullableBase
+  {
+    color1 = null;
+    planes = [];
+  }
+  CjsSchema.decorateField(NullableBase, "color1", type.color.nullable);
+  CjsSchema.decorateField(NullableBase, "planes", type.vec4.array(6));
+  CjsSchema.meta.define("NullableBase")(NullableBase);
+  class NullableRedeclared extends NullableBase {}
+  CjsSchema.decorateField(NullableRedeclared, "color1", type.color);
+  CjsSchema.decorateField(NullableRedeclared, "planes", type.vec4.array());
+  CjsSchema.meta.define("NullableRedeclared")(NullableRedeclared);
+
+  const declared = name => CjsSchema.getDeclaredSchema(NullableRedeclared).members.find(member => member.name === name).type;
+  assert.equal(declared("color1").nullable, undefined);
+  assert.equal(declared("planes").length, undefined);
+});

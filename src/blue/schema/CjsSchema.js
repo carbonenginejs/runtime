@@ -1626,8 +1626,8 @@ function createComponentsNamespace()
  * A value-type decorator that also offers `.array(length)`: a list of that value, `length` of them when given
  * (`@type.vec3.array(3)` is three vec3), any number when not. The list is declared as `type.array(kind)` was, with
  * its count, so the graph reads it as a values list and its row's `length` holds the count. `.nullable` is the
- * same value that may also hold null, which only object members may otherwise (graph plan 2.2); its row carries
- * GraphMemberFlags.NULLABLE.
+ * same value that may also hold null; its row carries GraphMemberFlags.NULLABLE. Graph plan 2.2 lets only object
+ * members hold null otherwise; `set` and `from` do not refuse it yet.
  *
  * @param {string} kind The value type.
  * @returns {Function} The decorator, with `array(length)` and `nullable`.
@@ -1648,8 +1648,9 @@ function valueTypeDecorator(kind)
  * A typed-array decorator, bare (`@type.float32Array`, any length) or counted (`@type.float32Array(6 * 16)`, one
  * flat array of that many elements; the row's `length` holds it).
  *
- * @adapted decorator syntax gives the two forms one name, so the first argument tells them apart: a number is the
- *   count, anything else is the decorated field
+ * Decorator syntax gives the two forms one name, so the first argument tells them apart: a number is the count,
+ * anything else is the decorated field.
+ *
  * @param {string} arrayType The typed array's constructor name.
  * @returns {Function} The decorator.
  */
@@ -3025,15 +3026,11 @@ function mergeMemberMetadata(target, source)
         // inherited value instead of overlaying it. What the row does not define (type, state) stays inherited.
         target[namespace] = source.mapsInherited && value !== null && typeof value === "object" && !Array.isArray(value)
             ? { ...value } : mergeNamespace(target[namespace], value);
-        // A new declared type replaces the resource and ownership facts; edit-only
-        // overrides continue to inherit their original type and its markers.
-        if (namespace === "type" && value?.kind && !Object.hasOwn(value, "runtimeOnly"))
+        // A new declared type replaces the facts that belong to a type: resource, ownership, nullability, wrapper and
+        // count. Edit-only overrides continue to inherit their original type and its markers.
+        if (namespace === "type" && value?.kind)
         {
-            delete target[namespace].runtimeOnly;
-        }
-        if (namespace === "type" && value?.kind && !Object.hasOwn(value, "owned"))
-        {
-            delete target[namespace].owned;
+            for (const fact of [ "runtimeOnly", "owned", "nullable", "wrapped", "length" ]) if (!Object.hasOwn(value, fact)) delete target[namespace][fact];
         }
     }
     return target;
@@ -3561,6 +3558,7 @@ function normalizeCanonicalDeclarations(definitions, role)
  * @param {*} definition Declared metadata.
  * @param {string} memberType Either "fields" or "methods", for messages.
  * @returns {object} Internal member record.
+ * @throws {TypeError} For a declaration that is not one of these, or a wrapper that cannot hold the member's value type.
  */
 function normalizeManualMember(name, definition, memberType)
 {
@@ -3594,7 +3592,8 @@ function normalizeManualMember(name, definition, memberType)
         }
     }
     // A data-form wrapped member meets the check `.wrapped(className)` makes.
-    if (isPlainObject(member.type) && member.type.wrapped !== undefined) requireWrapperHolds(member.type.wrapped, member.type.kind);
+    // The same test the Blue compile makes for a wrapped member.
+    if (isPlainObject(member.type) && member.type.wrapped) requireWrapperHolds(member.type.wrapped, member.type.kind);
 
     return member;
 }

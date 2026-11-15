@@ -91,7 +91,12 @@ const TYPE_DEFINITIONS = {
     // BlueStructureList: packed records described by the item class's meta.struct layout.
     [CARBON_TYPE.STRUCT_LIST]: { kind: CARBON_TYPE.STRUCT_LIST, js: "Array" },
     [CARBON_TYPE.TYPED_ARRAY]: { kind: CARBON_TYPE.TYPED_ARRAY, js: "TypedArray" },
-    ...FLOAT32_VECTOR_DEFINITIONS
+    ...FLOAT32_VECTOR_DEFINITIONS,
+    // Carbon's Vector2d, Vector3d and Vector4d (BlueTypeTraits.h:66-71, DOUBLEARRAY): the vector kinds, stored in
+    // Float64Array. Keyed by the decorator names, so a vec3d member reads as a vector of doubles.
+    vec2d: { ...FLOAT32_VECTOR_DEFINITIONS[CARBON_TYPE.VECTOR2], js: "vec2d", scalar: CARBON_TYPE.FLOAT64 },
+    vec3d: { ...FLOAT32_VECTOR_DEFINITIONS[CARBON_TYPE.VECTOR3], js: "vec3d", scalar: CARBON_TYPE.FLOAT64 },
+    vec4d: { ...FLOAT32_VECTOR_DEFINITIONS[CARBON_TYPE.VECTOR4], js: "vec4d", scalar: CARBON_TYPE.FLOAT64 }
 };
 
 const TYPE_ALIASES = {

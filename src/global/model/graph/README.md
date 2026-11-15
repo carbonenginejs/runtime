@@ -18,8 +18,8 @@ A compiled member is a `VarEntry` row, listed in every table and never copied. T
 `key` (a field), `index` (-1 for none), `role`, `kind` (the type name), `type` (the VARTYPE),
 `handler`, `direct`, `length`, `bits`, `signed`, `ctor`, `item`, `flags`, `options`,
 `edgeKind`, `edgeType`, `collection` and `owner`. `flags` is one integer: Carbon's `EDITFLAGS` from
-`global/consts`, and above `EDMASK` `GraphMemberFlags.BINARY` and `RUNTIMEONLY`, which are ours and which
-no value operation reads. A member takes a value through WRITE, PERSIST or RPERSIST, or when it has no
+`global/consts`, and above `EDMASK` our `GraphMemberFlags.BINARY` and `RUNTIMEONLY`, which no value
+operation reads, and `NULLABLE`, a value member that may hold null. A member takes a value through WRITE, PERSIST or RPERSIST, or when it has no
 access flags; READ alone refuses one.
 `edgeType` is always a list, the declared class first; empty is dynamic. A definition's member may name
 `row`, a row the record already holds (Blue's own, from its member table): the graph fills its fields on

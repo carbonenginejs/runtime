@@ -93,7 +93,7 @@ export const GRAPH_METADATA_KEY = "__bluemetadata__";
 /**
  * A compiled member's own bits, above Be::EDMASK, in the integer that holds its Be::EDITFLAGS.
  * BINARY is a block its class reads and writes itself, RUNTIMEONLY claims a name and is never read, and NULLABLE
- * is a value member that may hold null (graph plan 2.2: only object members hold null otherwise).
+ * is a value member that may hold null (graph plan 2.2: only object members will otherwise; not enforced yet).
  * @cjs Carbon's binary block is a VARTYPE on a PERSISTONLY row, it has no runtime-only member, and a C++ value
  *   member cannot be null.
  */
