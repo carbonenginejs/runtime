@@ -281,8 +281,8 @@ export class IRootReaderBase
     HandlePropertyFloatArray(holder, key, entry)
     {
         const value = holder[key];
-        this.ReadFloatArray(value, entry.floatArraySize);
-        this._ReplaceNonFiniteElements(value, entry.floatArraySize, entry.name);
+        this.ReadFloatArray(value, entry.length);
+        this._ReplaceNonFiniteElements(value, entry.length, entry.name);
         if (entry.isProperty) holder[key] = value;
     }
 

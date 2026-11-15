@@ -89,14 +89,14 @@ const CONTAINERS = Object.freeze({
  * so reading it gives Carbon's "Invalid attribute type".
  *
  * @param {object|string|Function|undefined} declared The member's declared type.
- * @returns {{type: number, signed: boolean, floatArraySize: number, destination: number, wrapperClass: (string|null), structClass: (string|Function|null)}} The member type.
+ * @returns {{type: number, signed: boolean, length: number, destination: number, wrapperClass: (string|null), structClass: (string|Function|null)}} The member type.
  */
 export function declaredMemberType(declared)
 {
   let type = declared;
   if (typeof type === "function") type = { kind: "rootRef", className: type };
   if (typeof type === "string") type = { kind: type };
-  const result = { type: VARTYPE.INVALID, signed: false, floatArraySize: 0, destination: BLACK_DESTINATION.OBJECT, wrapperClass: null, structClass: null };
+  const result = { type: VARTYPE.INVALID, signed: false, length: 0, destination: BLACK_DESTINATION.OBJECT, wrapperClass: null, structClass: null };
   if (!type || type.runtimeOnly === true) return result;
 
   // type.binary is Carbon's BINARYBLOCK, whatever value the member holds.
@@ -121,7 +121,7 @@ export function declaredMemberType(declared)
   {
     result.type = trait.storage;
     result.signed = trait.signed === true;
-    result.floatArraySize = trait.storage === VARTYPE.FLOATARRAY ? trait.length : 0;
+    result.length = trait.storage === VARTYPE.FLOATARRAY ? trait.length : 0;
     return result;
   }
   if (kind === "rootRef") result.type = VARTYPE.IROOTPTR;
@@ -227,7 +227,8 @@ function varEntryOf(Constructor, member, entry)
   // Ours, beside Carbon's: what the readers need that a JavaScript property cannot say.
   entry.index = member.index ?? -1;
   entry.signed = declared.signed;
-  entry.floatArraySize = declared.floatArraySize;
+  // The one count field; the graph's define writes the same value when it loads (Blue alone must still read).
+  entry.length = declared.length;
   entry.destination = declared.destination;
   entry.keepsNulls = type?.kind === "array";
   entry.wrapperClass = declared.wrapperClass;
@@ -485,7 +486,7 @@ export function structureLayout(itemClass)
     const type = declaredMemberType({ kind: field.type });
     return {
       name: field.name, key: declaration.key, index: declaration.index ?? -1, type: type.type, notify: false, isProperty: false,
-      signed: type.signed, floatArraySize: type.floatArraySize, iids: [], destination: type.destination, keepsNulls: false,
+      signed: type.signed, length: type.length, iids: [], destination: type.destination, keepsNulls: false,
       wrapperClass: null, wrapperKind: null, structure: null, offset: field.offset
     };
   });

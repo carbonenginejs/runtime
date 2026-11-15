@@ -27,7 +27,6 @@ function expected(entry)
 {
   return {
     vartype: entry.type,
-    length: entry.floatArraySize,
     wrapper: entry.wrapperClass,
     destination: DESTINATIONS[entry.destination] ?? null
   };
@@ -60,7 +59,6 @@ function compiled(member)
 {
   return {
     vartype: member.type,
-    length: member.type === VARTYPE.FLOATARRAY ? member.length : 0,
     wrapper: member.wrapped === null ? null : member.wrapped.wireClass,
     destination: destinationOf(member)
   };

@@ -110,13 +110,6 @@ export class VarEntry
   signed = false;
 
   /**
-   * A FLOATARRAY member's element count.
-   *
-   * @cjs Carbon's GetFloatArraySize() divides mSize (BlueTypes.h:339-349); a JavaScript member has no byte size.
-   */
-  floatArraySize = 0;
-
-  /**
    * What an IROOT member is (see `BLACK_DESTINATION`). Only the schema's compile sets it, and only
    * Blue's readers read it: a row the graph compiled keeps the default, which says nothing.
    *
@@ -193,7 +186,8 @@ export class VarEntry
   direct = false;
 
   /**
-   * An array member's element count, 0 for any length.
+   * An array member's element count, 0 for any length. Carbon's GetFloatArraySize, GetDoubleArraySize and
+   * GetIntArraySize read it.
    *
    * @cjs Carbon divides mSize; a JavaScript member has no byte size.
    * @type {number}
@@ -329,6 +323,39 @@ export class VarEntry
   get isProperty()
   {
     return this.getProperty !== null || this.setProperty !== null;
+  }
+
+  /**
+   * Carbon: VarEntry::GetFloatArraySize (blueexposure/include/BlueTypes.h:339-349)
+   *
+   * @adapted Carbon divides mSize by sizeof(float); ours returns the element count the row holds.
+   * @returns {number} The float count of a FLOATARRAY member, else 1.
+   */
+  GetFloatArraySize()
+  {
+    return this.type === VARTYPE.FLOATARRAY ? this.length : 1;
+  }
+
+  /**
+   * Carbon: VarEntry::GetDoubleArraySize (blueexposure/include/BlueTypes.h:351-361)
+   *
+   * @adapted Carbon divides mSize by sizeof(double); ours returns the element count the row holds.
+   * @returns {number} The double count of a DOUBLEARRAY member, else 1.
+   */
+  GetDoubleArraySize()
+  {
+    return this.type === VARTYPE.DOUBLEARRAY ? this.length : 1;
+  }
+
+  /**
+   * Carbon: VarEntry::GetIntArraySize (blueexposure/include/BlueTypes.h:363-373)
+   *
+   * @adapted Carbon divides mSize by sizeof(int); ours returns the element count the row holds.
+   * @returns {number} The int count of an INTARRAY member, else 1.
+   */
+  GetIntArraySize()
+  {
+    return this.type === VARTYPE.INTARRAY ? this.length : 1;
   }
 
   /**

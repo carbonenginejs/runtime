@@ -186,11 +186,11 @@ export class CjsBlackRecordReader extends BlackReader
     HandlePropertyFloatArray(holder, key, entry)
     {
         const value = [];
-        for (let i = 0; i < entry.floatArraySize; i++)
+        for (let i = 0; i < entry.length; i++)
         {
             value[i] = this.ReadValue__Float();
         }
-        this._ReplaceNonFiniteElements(value, entry.floatArraySize, entry.name);
+        this._ReplaceNonFiniteElements(value, entry.length, entry.name);
         holder[key] = value;
     }
 
