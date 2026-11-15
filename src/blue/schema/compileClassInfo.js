@@ -82,6 +82,34 @@ const OBJECT_STORAGE = new Set([ VARTYPE.IROOT, VARTYPE.IROOTPTR, VARTYPE.IROOTW
 const CONTAINER_IIDS = Object.freeze({ list: "IList", array: null, set: null, map: "IBlueDict" });
 
 /**
+ * The class a declared object type holds: a reference's or embed's class, a container's item or value class.
+ *
+ * @param {object} type The declared type.
+ * @returns {string|Function|null} The class or its registered name, or null.
+ */
+function heldClass(type)
+{
+  const item = type.kind === "list" || type.kind === "array" || type.kind === "set" ? type.itemType : type.kind === "map" ? type.valueType : undefined;
+  if (item === undefined) return type.className ?? null;
+  return typeof item === "string" || typeof item === "function" ? item : item?.className ?? null;
+}
+
+/**
+ * The class names an object member may hold, the declared one first, as declared: whether each is registered is
+ * asked when the member is used, so a class may name classes registered after it. Empty when any is held: no
+ * class declared, or `unknown` (`type.unknown`). The graph's compile writes the same list.
+ *
+ * @param {object} type The declared type.
+ * @returns {string[]} The class names.
+ */
+export function declaredTypes(type)
+{
+  const item = type.itemType !== null && typeof type.itemType === "object" ? type.itemType : null;
+  const names = (type.accepts ?? item?.accepts ?? [ heldClass(type) ]).map(name => typeof name === "function" ? Schema.getClassName(name) : name);
+  return names.every(name => name && name !== "unknown") ? names : [];
+}
+
+/**
  * Whether a declared item names a value type (`type.vec4.array()` holds `vec4`), not a class.
  *
  * @param {object|string|Function|undefined} itemType The declared item.
@@ -255,7 +283,7 @@ function varEntryOf(Constructor, member, entry)
   entry.length = declared.length;
   entry.collection = declared.collection;
   entry.keepsNulls = type?.kind === "array";
-  entry.accepts = declared.type === VARTYPE.INVALID ? [] : type?.accepts ?? (type?.className ? [ type.className ] : []);
+  entry.edgeType = OBJECT_STORAGE.has(declared.type) ? declaredTypes(type) : [];
   entry.structClass = declared.structClass;
   entry.iid = declared.iid ?? (typeof reference === "function" ? Schema.getClassName(reference) : reference || null);
   entry.description = member.jessica && member.jessica.description ? member.jessica.description : "";

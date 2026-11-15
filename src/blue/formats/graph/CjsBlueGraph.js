@@ -8,7 +8,7 @@ import { CjsSchema } from "#schema";
 import { getRegisteredClassName } from "../../compose/className.js";
 import { isTransportedDeclaration } from "../../compose/fieldFlags.js";
 import { baseList, exposureChainTo, mappedInterfaces } from "../../compose/interface.js";
-import { getDeclaredEditFlags, installGraphDefine } from "../../schema/compileClassInfo.js";
+import { declaredTypes, getDeclaredEditFlags, installGraphDefine } from "../../schema/compileClassInfo.js";
 import { ICustomPersist } from "../../exposure/ICustomPersist.js";
 import { IInitialize } from "../../exposure/IInitialize.js";
 import { IList } from "../../exposure/IList.js";
@@ -256,9 +256,7 @@ export class CjsBlueGraph
    */
   static _getDeclaredTypes(type)
   {
-    const names = (type.accepts ?? type.itemType?.accepts ?? [ DeclaredClassName(type) ]).map(name => typeof name === "function" ? CjsSchema.getClassName(name) : name);
-
-    return names.every(name => name && name !== "unknown") ? names : [];
+    return declaredTypes(type);
   }
 
   /**

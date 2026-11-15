@@ -14,7 +14,7 @@ CjsBlueGraph.register(blue.classes);
 // What the readers read: each class's ClassInfo record (its persisted VarEntry rows).
 const { ClassInfo } = await import("../../npm/dist/global/model/graph/ClassInfo.js");
 const { CjsSchema } = await import("../../npm/dist/blue/schema/CjsSchema.js");
-const { compileClassInfo, declaredMemberType } = await import("../../npm/dist/blue/schema/compileClassInfo.js");
+const { compileClassInfo, declaredMemberType, declaredTypes } = await import("../../npm/dist/blue/schema/compileClassInfo.js");
 const { IRootReaderBase } = await import("../../npm/dist/blue/format/IRootReaderBase.js");
 
 /**
@@ -27,7 +27,10 @@ function declaredOf(type, row)
   const matches = [ ...schema.members, ...schema.properties ].filter(member => member.exposure && member.name === row.name &&
     (member.key ?? member.name) === row.key && (member.index ?? -1) === row.index);
   const nearest = matches.find(member => !matches.some(other => other !== member && member.declaringClass.isPrototypeOf(other.declaringClass)));
-  return nearest === undefined ? null : declaredMemberType(nearest.type);
+  if (nearest === undefined) return null;
+  const declared = declaredMemberType(nearest.type);
+  const holdsObjects = declared.type === VARTYPE.IROOT || declared.type === VARTYPE.IROOTPTR || declared.type === VARTYPE.IROOTWEAKREF;
+  return { collection: declared.collection, edgeType: holdsObjects ? declaredTypes(nearest.type) : [] };
 }
 
 /** The row a reader finds under each name: the nearest class's that is persisted or runtime-only. */
@@ -122,7 +125,7 @@ test("a name a class declares again is answered by its own row in every table, o
 });
 
 // The graph's compile runs after the schema's on every compile, so the row holds the graph's value.
-test("the graph's compile writes the storage the schema's compile wrote on every persisted row", () =>
+test("the graph's compile writes the storage and classes the schema's compile wrote on every persisted row", () =>
 {
   const differences = [];
   let compared = 0;
@@ -148,7 +151,8 @@ test("the graph's compile writes the storage the schema's compile wrote on every
         continue;
       }
       compared++;
-      if (declared.collection !== definition.collection) differences.push(`${name}.${member}: ${declared.collection} / ${definition.collection}`);
+      const got = { collection: definition.collection, edgeType: definition.edgeType };
+      if (JSON.stringify(declared) !== JSON.stringify(got)) differences.push(`${name}.${member}: ${JSON.stringify(declared)} / ${JSON.stringify(got)}`);
     }
   }
 

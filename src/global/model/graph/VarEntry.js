@@ -15,7 +15,7 @@ import { EDITFLAGS, VARTYPE } from "../../consts/blue.js";
  *
  * Ours, on the same row: what Carbon reads from the C++ member type and a
  * JavaScript property cannot say - the element index, the sign, the float
- * count, what an IROOT member is, and the classes it accepts. The readers read
+ * count, what an IROOT member is, and the classes it may hold. The readers read
  * them here; names the compile cannot resolve yet resolve on first read. And what
  * the graph's value operations and walks need: the type name, its handler, and
  * how the member holds another object. A row belongs to one class; every table
@@ -101,13 +101,6 @@ export class VarEntry
    * @cjs Ours only: Carbon always drops a null list item (BlackReader.cpp:497-502).
    */
   keepsNulls = false;
-
-  /**
-   * The classes an object member accepts, as declared: classes or registered names.
-   *
-   * @cjs Carbon's row has one mIID; ours may accept several.
-   */
-  accepts = [];
 
   /**
    * A structure list's item class, or its registered name, or null.
@@ -214,8 +207,9 @@ export class VarEntry
   edgeKind = null;
 
   /**
-   * The class names an object member may hold, the declared one first; empty means any. The graph's
-   * compile always sets a list; null only on a row it has not compiled.
+   * The class names an object member may hold, the declared one first; empty means any, and a value member
+   * holds none. The schema's compile writes it and the graph's writes it again; null only on a row neither
+   * compiled.
    *
    * @cjs Carbon's row has one mIID; ours may accept several.
    * @type {string[]|null}
@@ -242,8 +236,11 @@ export class VarEntry
    */
   owner = null;
 
-  /** The resolved accepted classes, once every name has resolved. */
+  /** The resolved classes, once every name has resolved. */
   _iids = null;
+
+  /** The `edgeType` list `_iids` resolved. */
+  _iidsOf = null;
 
   /** The structure layout, once asked for. */
   _structure = undefined;
@@ -318,24 +315,28 @@ export class VarEntry
   }
 
   /**
-   * The accepted classes that are registered; empty means any object. Kept once
-   * every declared name has resolved, so a class registered later still counts.
+   * The classes in `edgeType` that are registered; empty means any object. Kept once
+   * every name has resolved, so a class registered later still counts.
    *
    * @cjs
    * @returns {Function[]} The classes.
    */
   get iids()
   {
-    if (this._iids !== null) return this._iids;
+    if (this._iids !== null && this._iidsOf === this.edgeType) return this._iids;
     const found = [];
     let complete = true;
-    for (const accepted of this.accepts)
+    for (const accepted of this.edgeType ?? [])
     {
       const Class = typeof accepted === "function" ? accepted : VarEntry.classResolver(accepted);
       if (Class) found.push(Class);
       else complete = false;
     }
-    if (complete) this._iids = found;
+    if (complete)
+    {
+      this._iids = found;
+      this._iidsOf = this.edgeType;
+    }
     return found;
   }
 
