@@ -36,11 +36,9 @@ test("sampler override record follows unsigned native structure fields and defau
 test("sampler data retains opaque AL value semantics without resource traversal", () =>
 {
   const row = new Tr2SamplerOverrideData(), members = CjsSchema.getSchema(Tr2SamplerOverrideData).members;
-  assert.deepEqual(members.map(field => field.name), ["registerIndex", "sampler"]);
-  assert.equal(members[0].type.kind, "uint32");
-  assert.equal(members[1].type.kind, "rawStruct");
-  assert.equal(members[1].type.className, "Tr2SamplerStateAL");
-  assert.notEqual(members[1].type.runtimeOnly, true);
+  // Carbon exposes no member of this struct (Shader/Tr2Material.h:30-34), so sampler is a plain field, not a graph
+  // member (graph plan § 5 item 17).
+  assert.equal(members.some(field => field.name === "sampler"), false);
   assert.equal(row.registerIndex, 0);
   // Tr2SamplerStateAL sampler (Shader/Tr2Material.h:33), by value and invalid until created.
   assert.ok(row.sampler instanceof Tr2SamplerStateAL);
