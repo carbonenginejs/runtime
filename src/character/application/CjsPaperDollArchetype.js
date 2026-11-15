@@ -1,5 +1,6 @@
 import { meta, type } from "#schema";
 import { IsMatch } from "#exposure/INotify";
+import { CjsCharacterLibraryManager } from "../library/CjsCharacterLibraryManager.js";
 
 /**
  * Application-owned foundation selection; prepared records retain resource provenance.
@@ -26,18 +27,8 @@ export class CjsPaperDollArchetype
 
     _sculpt = new Map();
 
-    /** This character's entry in `defaultMorphOverrides`. */
+    /** This character's sex's default morph weights (`CjsCharacterLibraryManager.sexFacts`), under any sculpt. */
     _defaultMorphs = {};
-
-    /**
-     * Our default morph weights by sex, under any sculpt. The eye-missing morphs at these weights
-     * seat the eyeball against the lids, which the shipped idle poses leave proud of them.
-     * @cjs Our setting; Carbon has no default morph weights.
-     */
-    static defaultMorphOverrides = {
-        female: { BothEyeMissingShape: .2 },
-        male: { LeftEyeMissingShape: .05, RightEyeMissingShape: .05 }
-    };
 
     /** The configured foundation resolver, or null when every option arrived prepared. */
     _resolve = null;
@@ -79,12 +70,13 @@ export class CjsPaperDollArchetype
      * @param {string} [settings.option] The initial option; it must be prepared.
      * @param {number} [settings.strength=1] The initial strength.
      * @param {?function(string): Promise<object>} [settings.resolve=null] Prepares one foundation record.
-     * @param {?string} [settings.sex=null] Selects the `defaultMorphOverrides` entry.
+     * @param {?string} [settings.sex=null] The sex whose default morph weights apply (`CjsCharacterLibraryManager.sexFacts`); null for none.
      * @returns {void}
+     * @throws {Error} For a sex the character library does not know.
      */
     Configure(options, { option, strength = 1, resolve = null, sex = null } = {})
     {
-        this._defaultMorphs = CjsPaperDollArchetype.defaultMorphOverrides[sex] ?? {};
+        this._defaultMorphs = sex === null ? {} : CjsCharacterLibraryManager.sexFacts(sex).defaultMorphs;
         const prepared = new Map();
         for (const entry of options)
         {

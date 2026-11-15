@@ -418,17 +418,19 @@ export class CjsCharacterLibraryManager
 
     /**
      * A sex's resource facts (`factory/defaults/sexes.json`, which only the library loads): `root`, the paper doll
-     * content root every category path is relative to, with its trailing slash; `skeleton`, the master skeleton.
+     * content root every category path is relative to, with its trailing slash; `skeleton`, the master skeleton;
+     * `defaultMorphs`, the morph weights every character of the sex starts from, by morph name: our setting, as neither
+     * Carbon nor the client has default morph weights.
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python.
      * @param {string} sex The sex.
-     * @returns {{ root: string, skeleton: string }} A copy the caller may change.
+     * @returns {{ root: string, skeleton: string, defaultMorphs: Object<string, number> }} A copy the caller may change.
      * @throws {Error} For a sex the library does not know.
      */
     static sexFacts(sex)
     {
         if (sex === "description" || !Object.hasOwn(sexDefaults, sex)) throw new Error("Unknown character sex " + sex);
-        return { ...sexDefaults[sex] };
+        return structuredClone(sexDefaults[sex]);
     }
 
     /**

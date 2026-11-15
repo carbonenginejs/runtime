@@ -1,11 +1,18 @@
 {
-  "description": "Each character sex's resource facts, which only the library loads (CjsCharacterLibraryManager.sexFacts): `root`, the paper doll content root every category path is relative to; `skeleton`, the master skeleton the character is skinned to. Ours: the client's paper doll is Python. Edit freely: the engine reads this file as data.",
+  "description": "Each character sex's resource facts, which only the library loads (CjsCharacterLibraryManager.sexFacts): `root`, the paper doll content root every category path is relative to; `skeleton`, the master skeleton the character is skinned to; `defaultMorphs`, morph weights every character of the sex starts from, under any sculpt (the eye-missing morphs at these weights seat the eyeball against the lids, which the shipped idle poses leave proud of them; our setting: neither Carbon nor the client has default morph weights). Ours: the client's paper doll is Python. Edit freely: the engine reads this file as data.",
   "female": {
     "root": "res:/graphics/character/female/paperdoll/",
-    "skeleton": "res:/graphics/character/female/skeleton/masterskeletonfemale.gr2"
+    "skeleton": "res:/graphics/character/female/skeleton/masterskeletonfemale.gr2",
+    "defaultMorphs": {
+      "BothEyeMissingShape": 0.2
+    }
   },
   "male": {
     "root": "res:/graphics/character/male/paperdoll/",
-    "skeleton": "res:/graphics/character/male/skeleton/masterskeletonmale.gr2"
+    "skeleton": "res:/graphics/character/male/skeleton/masterskeletonmale.gr2",
+    "defaultMorphs": {
+      "LeftEyeMissingShape": 0.05,
+      "RightEyeMissingShape": 0.05
+    }
   }
 }
