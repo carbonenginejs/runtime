@@ -349,21 +349,6 @@ export class CjsPaperDollInstance
     }
 
     /**
-     * Sets a drawn dependant mesh's effect parameters (an entry's `parameters`), each through `SetParameter__Vector4`,
-     * as area setups are (`applyAreaSetup`): it replaces a parameter of the name or adds one (`DecalClip`, which the
-     * drape does not author).
-     *
-     * Ours (no Carbon counterpart): the client's paper doll is Python.
-     * @param {object} effect The area's `Tr2Effect`.
-     * @param {Object<string, number[]>} parameters The entry's parameters, each four components.
-     * @returns {void}
-     */
-    static applyEffectParameters(effect, parameters)
-    {
-        for (const [ name, value ] of Object.entries(parameters)) effect.SetParameter__Vector4(name, Float32Array.from(value));
-    }
-
-    /**
      * Sets one area's effect to the values the library resolved for it (`CjsCharacterLibraryManager.FetchModelAreas`,
      * an area's `setup`): each texture through `SetResourceTexture2D`, each parameter through `SetParameter__Vector4`.
      * The library has resolved and merged them, leaving out what the area already holds; this sets them.

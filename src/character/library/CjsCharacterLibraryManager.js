@@ -352,9 +352,8 @@ export class CjsCharacterLibraryManager
      * The dependant meshes the paper doll draws with their owner's diffuse (`CjsPaperDollInstance.meshDependantStates`),
      * built once per install as `_Sexes` is: the shipped defaults (`factory/defaults/generic.js`, built into
      * `CjsCharacterDataMeshDependant` objects by the graph), each replaced whole by the installed library's generic
-     * dependant of the same `path`. Each is its path, owner member, the owner's state field, its effect parameters by
-     * name (each a Vector4) and its diffuse size.
-     * @returns {Array<{ path: string, owner: string, state: string, parameters: Object<string, number[]>, diffuseSize: number[] }>}
+     * dependant of the same `path`. Each is its path, owner member, the owner's state field and its diffuse size.
+     * @returns {Array<{ path: string, owner: string, state: string, diffuseSize: number[] }>}
      *   The entries; not to be changed.
      */
     _MeshDependants()
@@ -365,9 +364,7 @@ export class CjsCharacterLibraryManager
             for (const entry of [ ...this._ShippedGeneric().meshDependants, ...this._library.generic.meshDependants ])
             {
                 dependants.set(entry.path, {
-                    path: entry.path, owner: entry.owner, state: entry.state,
-                    parameters: Object.fromEntries(entry.parameters.map(parameter => [ parameter.name, Array.from(parameter.value) ])),
-                    diffuseSize: Array.from(entry.diffuseSize)
+                    path: entry.path, owner: entry.owner, state: entry.state, diffuseSize: Array.from(entry.diffuseSize)
                 });
             }
             this._meshDependants = [ ...dependants.values() ];
@@ -448,7 +445,7 @@ export class CjsCharacterLibraryManager
      * Ours, as `FetchOptions`.
      *
      * @param {string} sex The paper doll's sex (`female`).
-     * @returns {Promise<Array<{ path: string, owner: string, state: string, parameters: Object<string, number[]>, diffuseSize: number[], category: string, versions: Array<{ index: number, name: string, model: string }> }>>}
+     * @returns {Promise<Array<{ path: string, owner: string, state: string, diffuseSize: number[], category: string, versions: Array<{ index: number, name: string, model: string }> }>>}
      *   The entries (`model` the `.black` path, `name` its file name), the caller's own copy.
      * @throws {Error} For an entry whose models are not its folder's own and `v1`..`vN`.
      */

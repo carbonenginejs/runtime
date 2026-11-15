@@ -594,19 +594,15 @@ export default {
     // The dependant meshes the paper doll draws with their owner's diffuse. Ours: no content states which dependant
     // meshes draw, with whose diffuse or with which overrides, and the client's paper doll is Python. Each entry: path,
     // the dependant's modifier path; owner, the definition member whose worn garment lists it; state, the owner's field
-    // naming the version to draw (0 the folder's own model, n its vN); parameters, effect parameters set on each of its
-    // areas, each as a Vector4 (SetParameter__Vector4); diffuseSize, the width and height
-    // of the target its owner's colourised detail is drawn into. The drape (a top's lower edge) samples the body atlas
-    // whole (TransformUV0 identity) and clips as a decal (DecalClip 1: the shader discards where the top's coverage is
-    // below 192/255; the drape authors none and the compiled value 0 drew the black below the hem). 2048 is the old
-    // body target's size. DecalClip is one component in the drape's shader, so its value is [ 1, 0, 0, 0 ]. Edit freely:
-    // the library reads this as data.
+    // naming the version to draw (0 the folder's own model, n its vN); diffuseSize, the width and height of the target
+    // its owner's colourised detail is drawn into (2048, the old body target's size). Its areas take the setup the
+    // library resolves for its category (FetchModelAreas over `areaShaders`, whose drape rule sets TransformUV0 and
+    // DecalClip). Edit freely: the library reads this as data.
     meshDependants: [
         {
             path: "dependants/drape/standard",
             owner: "topMiddle",
             state: "tuck",
-            parameters: [ { name: "TransformUV0", value: [ 0, 0, 1, 1 ] }, { name: "DecalClip", value: [ 1, 0, 0, 0 ] } ],
             diffuseSize: [ 2048, 2048 ]
         }
     ],

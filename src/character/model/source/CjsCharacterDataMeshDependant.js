@@ -1,11 +1,11 @@
 import { meta, type } from "#schema";
 import { vec2 } from "#math/vec2";
-import "./CjsCharacterDataParameter.js";
 
 /**
  * One dependant mesh the paper doll draws with its owner's diffuse (the drape; `CjsPaperDollInstance.meshDependantStates`).
  * The generic holds these in a list keyed by `path` (`CjsCharacterGeneric.meshDependants`); the shipped defaults are
- * `factory/defaults/generic.js`.
+ * `factory/defaults/generic.js`. Its areas take the setup the library resolves for its category
+ * (`CjsCharacterLibraryManager.FetchModelAreas`).
  *
  * Ours (no Carbon counterpart): the client's paper doll is Python.
  */
@@ -27,11 +27,6 @@ export class CjsCharacterDataMeshDependant
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
     state = "";
-
-    /** The effect parameters its areas take, each set as a Vector4 (a one-component one as [ value, 0, 0, 0 ]). */
-    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("CjsCharacterDataParameter")
-    parameters = [];
 
     /** The size of the owner's diffuse it draws with, in pixels. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
