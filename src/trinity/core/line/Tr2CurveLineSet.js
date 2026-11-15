@@ -1043,6 +1043,10 @@ export class Tr2CurveLineSet
     LINETYPE_PARTICLE: 4,
   });
 
+
+  /** Carbon Tr2CurveLineSet::LineData (private, h:106-121). */
+  static LineData = Tr2CurveLineSetLineData;
+
 }
 
 // ITr2Pickable is not yet a registered JS contract; keep its existing methods.

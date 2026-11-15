@@ -533,4 +533,11 @@ export class EveTacticalTrails
     vec3_2: new Float64Array(3),
     vec3d_0: new Float64Array(3)
   };
+
+  /** Carbon EveTacticalTrails::Postion (private, h:48-52; Carbon's spelling). */
+  static Postion = EveTacticalTrailsPostion;
+
+  /** Carbon EveTacticalTrails::TrackedObject (private, h:54-58). */
+  static TrackedObject = EveTacticalTrailsTrackedObject;
+
 }

@@ -482,4 +482,8 @@ export class EveSceneStaticParticles extends IRoot
     return data;
   }
 
+
+  /** Carbon EveSceneStaticParticles::ClusterData (private, h:31-38). */
+  static ClusterData = EveSceneStaticParticlesClusterData;
+
 }
