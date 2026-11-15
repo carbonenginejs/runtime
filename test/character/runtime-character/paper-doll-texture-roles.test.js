@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsCharacterDataTextureRole, CjsCharacterLibrary, CjsCharacterLibraryManager, CjsCharacterTextureRoles } from "../../../npm/dist/character/index.js";
+import { CjsCharacterDataNamedValue, CjsCharacterDataParameter, CjsCharacterDataString, CjsCharacterDataTextureRole, CjsCharacterLibrary, CjsCharacterLibraryManager, CjsCharacterTextureRoles } from "../../../npm/dist/character/index.js";
 
 const ROOT = "res:/graphics/character/female/paperdoll/";
 
@@ -42,19 +42,19 @@ test("the texture tables are the generic's: the shipped set, or an installed lib
 {
   const installed = new CjsCharacterLibrary(), role = new CjsCharacterDataTextureRole();
   role.name = "d";
-  role.families = [ "comp" ];
+  role.families = [ Object.assign(new CjsCharacterDataString(), { str: "comp" }) ];
   role.property = "DiffuseMap";
   role.operation = "Simple";
   role.plan = "replace";
   role.source = "test";
   installed.generic.textureRoles.push(role);
-  installed.generic.textureRegions.push("head");
+  installed.generic.textureRegions.push(Object.assign(new CjsCharacterDataString(), { str: "head" }));
   const library = new CjsCharacterLibraryManager(installed);
   assert.throws(() => library.GetTextureRoles(), /texture roles need their regions, atlas, atlas tolerance and garment names/, "an installed set is complete");
 
-  installed.generic.textureAtlas.set("head", [ 0, 0, 1, 1 ]);
+  installed.generic.textureAtlas.push(Object.assign(new CjsCharacterDataParameter(), { name: "head", value: Float32Array.of(0, 0, 1, 1) }));
   installed.generic.textureAtlasTolerance = 0.01;
-  installed.generic.textureGarmentMaps.set("detail", [ "comp_body_d" ]);
+  installed.generic.textureGarmentMaps.push(Object.assign(new CjsCharacterDataNamedValue(), { name: "detail", value: "comp_body_d" }));
   library.InstallLibrary(installed);
   const roles = library.GetTextureRoles();
   assert.deepEqual([ Object.keys(roles.table), roles.regions, roles.atlas, roles.atlasTolerance, roles.garment ],

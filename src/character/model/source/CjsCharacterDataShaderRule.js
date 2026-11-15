@@ -1,4 +1,5 @@
 import { meta, type } from "#schema";
+import "./CjsCharacterDataString.js";
 import "./CjsCharacterDataParameter.js";
 
 /**
@@ -16,17 +17,17 @@ export class CjsCharacterDataShaderRule
 
     /** The part categories it applies to (`hair`, `topinner`); empty for any. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("string")
+    @type.list("CjsCharacterDataString")
     categories = [];
 
     /** The batches it applies to, by `TriBatchType` name (`TRIBATCHTYPE_DECAL`); empty for any. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("string")
+    @type.list("CjsCharacterDataString")
     batches = [];
 
     /** The atlas regions it applies to (the texture atlas, `CjsCharacterLibraryManager.GetTextureRoles`: `body`, `head`, `hair`, `acc`); empty for any. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("string")
+    @type.list("CjsCharacterDataString")
     regions = [];
 
     /** The parameters it sets. */

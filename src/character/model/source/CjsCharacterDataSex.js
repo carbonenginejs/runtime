@@ -1,4 +1,6 @@
 import { meta, type } from "#schema";
+import "./CjsCharacterDataNamedValue.js";
+import "./CjsCharacterDataParameterFloat.js";
 
 /**
  * One character sex's resource facts. The generic holds these in a list keyed by `name` (`CjsCharacterGeneric.sexes`),
@@ -36,15 +38,15 @@ export class CjsCharacterDataSex
     @type.string
     body = "";
 
-    /** By foundation texture (`region.Channel`), the folder below the root that supplies it when an archetype ships none. */
+    /** By foundation texture `name` (`region.Channel`), the folder below the root that supplies it when an archetype ships none. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map("string")
-    bodyFallbacks = new Map();
+    @type.list("CjsCharacterDataNamedValue")
+    bodyFallbacks = [];
 
-    /** The morph weights every character of the sex starts from, by morph name, under any sculpt. */
+    /** The morph weights every character of the sex starts from, by morph `name`, under any sculpt. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map("float64")
-    defaultMorphs = new Map();
+    @type.list("CjsCharacterDataParameterFloat")
+    defaultMorphs = [];
 
     /**
      * A workaround (`CjsCharacterLibraryManager.FetchEyeWet`): the baked character-select model whose matching area's

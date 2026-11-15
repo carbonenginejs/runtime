@@ -4,13 +4,21 @@
     {
       "name": "d",
       "families": [
-        "comp"
+        {
+          "str": "comp"
+        }
       ],
       "property": "DiffuseMap",
-      "channels": {
-        "rgb": "colour",
-        "a": "coverage"
-      },
+      "channels": [
+        {
+          "name": "rgb",
+          "value": "colour"
+        },
+        {
+          "name": "a",
+          "value": "coverage"
+        }
+      ],
       "operation": "Simple",
       "inputOf": "",
       "plan": "replace",
@@ -21,14 +29,24 @@
     {
       "name": "l",
       "families": [
-        "colorize",
-        "comp"
+        {
+          "str": "colorize"
+        },
+        {
+          "str": "comp"
+        }
       ],
       "property": "DiffuseMap",
-      "channels": {
-        "rgb": "detail, multiplied by the colour areas",
-        "a": "coverage (UseMask 0 keeps the detail's alpha)"
-      },
+      "channels": [
+        {
+          "name": "rgb",
+          "value": "detail, multiplied by the colour areas"
+        },
+        {
+          "name": "a",
+          "value": "coverage (UseMask 0 keeps the detail's alpha)"
+        }
+      ],
       "operation": "Colorized",
       "inputOf": "",
       "plan": "replace",
@@ -39,15 +57,29 @@
     {
       "name": "z",
       "families": [
-        "colorize"
+        {
+          "str": "colorize"
+        }
       ],
       "property": "DiffuseMap",
-      "channels": {
-        "r": "colour area 1 weight",
-        "g": "colour area 2 weight",
-        "b": "colour area 3 weight",
-        "a": "where colourising applies"
-      },
+      "channels": [
+        {
+          "name": "r",
+          "value": "colour area 1 weight"
+        },
+        {
+          "name": "g",
+          "value": "colour area 2 weight"
+        },
+        {
+          "name": "b",
+          "value": "colour area 3 weight"
+        },
+        {
+          "name": "a",
+          "value": "where colourising applies"
+        }
+      ],
       "operation": "",
       "inputOf": "l",
       "plan": "replace",
@@ -57,15 +89,29 @@
     {
       "name": "comp_z",
       "families": [
-        "comp"
+        {
+          "str": "comp"
+        }
       ],
       "property": "DiffuseMap",
-      "channels": {
-        "r": "colour area 1 weight",
-        "g": "colour area 2 weight",
-        "b": "colour area 3 weight",
-        "a": "where colourising applies"
-      },
+      "channels": [
+        {
+          "name": "r",
+          "value": "colour area 1 weight"
+        },
+        {
+          "name": "g",
+          "value": "colour area 2 weight"
+        },
+        {
+          "name": "b",
+          "value": "colour area 3 weight"
+        },
+        {
+          "name": "a",
+          "value": "where colourising applies"
+        }
+      ],
       "operation": "",
       "inputOf": "",
       "plan": "replace",
@@ -76,12 +122,17 @@
     {
       "name": "n",
       "families": [
-        "comp"
+        {
+          "str": "comp"
+        }
       ],
       "property": "NormalMap",
-      "channels": {
-        "rgb": "normal (or two-channel: R = X, A = Y, Z rebuilt)"
-      },
+      "channels": [
+        {
+          "name": "rgb",
+          "value": "normal (or two-channel: R = X, A = Y, Z rebuilt)"
+        }
+      ],
       "operation": "Simple",
       "inputOf": "",
       "plan": "replace",
@@ -92,13 +143,20 @@
     {
       "name": "s",
       "families": [
-        "comp",
-        "colorize"
+        {
+          "str": "comp"
+        },
+        {
+          "str": "colorize"
+        }
       ],
       "property": "SpecularMap",
-      "channels": {
-        "rgba": "specular (LA at base, RGBA in some variations)"
-      },
+      "channels": [
+        {
+          "name": "rgba",
+          "value": "specular (LA at base, RGBA in some variations)"
+        }
+      ],
       "operation": "Simple",
       "inputOf": "",
       "plan": "replace",
@@ -109,12 +167,17 @@
     {
       "name": "tn",
       "families": [
-        "comp"
+        {
+          "str": "comp"
+        }
       ],
       "property": "NormalMap",
-      "channels": {
-        "rg": "signed XY perturbation, (2 * value - 1) * strength / 2 (two-channel: A gives Y)"
-      },
+      "channels": [
+        {
+          "name": "rg",
+          "value": "signed XY perturbation, (2 * value - 1) * strength / 2 (two-channel: A gives Y)"
+        }
+      ],
       "operation": "Twist",
       "inputOf": "",
       "plan": "add",
@@ -124,13 +187,21 @@
     {
       "name": "mn",
       "families": [
-        "comp"
+        {
+          "str": "comp"
+        }
       ],
       "property": "NormalMap",
-      "channels": {
-        "rg": "normal XY, Z rebuilt",
-        "b": "coverage"
-      },
+      "channels": [
+        {
+          "name": "rg",
+          "value": "normal XY, Z rebuilt"
+        },
+        {
+          "name": "b",
+          "value": "coverage"
+        }
+      ],
       "operation": "MaskedNormal",
       "inputOf": "",
       "plan": "replace",
@@ -140,13 +211,21 @@
     {
       "name": "m",
       "families": [
-        "comp"
+        {
+          "str": "comp"
+        }
       ],
       "property": "CutMaskMap",
-      "channels": {
-        "rgb": "black",
-        "a": "where the body is cut"
-      },
+      "channels": [
+        {
+          "name": "rgb",
+          "value": "black"
+        },
+        {
+          "name": "a",
+          "value": "where the body is cut"
+        }
+      ],
       "operation": "Simple",
       "inputOf": "",
       "plan": "replace",
@@ -156,74 +235,154 @@
     }
   ],
   "textureRegions": [
-    "head",
-    "body",
-    "hair",
-    "acc"
+    {
+      "str": "head"
+    },
+    {
+      "str": "body"
+    },
+    {
+      "str": "hair"
+    },
+    {
+      "str": "acc"
+    }
   ],
-  "textureAtlas": {
-    "body": [
-      0,
-      0,
-      0.5,
-      1
-    ],
-    "head": [
-      0.5,
-      0,
-      1,
-      0.5
-    ],
-    "hair": [
-      0.5,
-      0.5,
-      0.75,
-      1
-    ],
-    "acc": [
-      0.75,
-      0.5,
-      1,
-      1
-    ]
-  },
+  "textureAtlas": [
+    {
+      "name": "body",
+      "value": [
+        0,
+        0,
+        0.5,
+        1
+      ]
+    },
+    {
+      "name": "head",
+      "value": [
+        0.5,
+        0,
+        1,
+        0.5
+      ]
+    },
+    {
+      "name": "hair",
+      "value": [
+        0.5,
+        0.5,
+        0.75,
+        1
+      ]
+    },
+    {
+      "name": "acc",
+      "value": [
+        0.75,
+        0.5,
+        1,
+        1
+      ]
+    }
+  ],
   "textureAtlasTolerance": 0.001,
-  "textureGarmentMaps": {
-    "detail": [
-      "colorize_body_l",
-      "comp_body_l",
-      "comp_body_d",
-      "_l",
-      "colorize_body_d",
-      "<part>_d"
-    ],
-    "zone": [
-      "colorize_body_z"
-    ],
-    "normal": [
-      "comp_body_n",
-      "<part>_n",
-      "_n",
-      "colorize_body_n",
-      "<part>_body_n",
-      "comp_body_mn",
-      "*_n"
-    ],
-    "twist": [
-      "comp_body_tn",
-      "_tn"
-    ],
-    "specular": [
-      "comp_body_s",
-      "<part>_s",
-      "_s",
-      "colorize_body_s",
-      "comb_body_s",
-      "<part>_body_s",
-      "*_s"
-    ],
-    "cutMask": [
-      "comp_body_m"
-    ]
-  }
+  "textureGarmentMaps": [
+    {
+      "name": "detail",
+      "value": "colorize_body_l"
+    },
+    {
+      "name": "detail",
+      "value": "comp_body_l"
+    },
+    {
+      "name": "detail",
+      "value": "comp_body_d"
+    },
+    {
+      "name": "detail",
+      "value": "_l"
+    },
+    {
+      "name": "detail",
+      "value": "colorize_body_d"
+    },
+    {
+      "name": "detail",
+      "value": "<part>_d"
+    },
+    {
+      "name": "zone",
+      "value": "colorize_body_z"
+    },
+    {
+      "name": "normal",
+      "value": "comp_body_n"
+    },
+    {
+      "name": "normal",
+      "value": "<part>_n"
+    },
+    {
+      "name": "normal",
+      "value": "_n"
+    },
+    {
+      "name": "normal",
+      "value": "colorize_body_n"
+    },
+    {
+      "name": "normal",
+      "value": "<part>_body_n"
+    },
+    {
+      "name": "normal",
+      "value": "comp_body_mn"
+    },
+    {
+      "name": "normal",
+      "value": "*_n"
+    },
+    {
+      "name": "twist",
+      "value": "comp_body_tn"
+    },
+    {
+      "name": "twist",
+      "value": "_tn"
+    },
+    {
+      "name": "specular",
+      "value": "comp_body_s"
+    },
+    {
+      "name": "specular",
+      "value": "<part>_s"
+    },
+    {
+      "name": "specular",
+      "value": "_s"
+    },
+    {
+      "name": "specular",
+      "value": "colorize_body_s"
+    },
+    {
+      "name": "specular",
+      "value": "comb_body_s"
+    },
+    {
+      "name": "specular",
+      "value": "<part>_body_s"
+    },
+    {
+      "name": "specular",
+      "value": "*_s"
+    },
+    {
+      "name": "cutMask",
+      "value": "comp_body_m"
+    }
+  ]
 }

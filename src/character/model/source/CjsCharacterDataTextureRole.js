@@ -1,4 +1,6 @@
 import { meta, type } from "#schema";
+import "./CjsCharacterDataString.js";
+import "./CjsCharacterDataNamedValue.js";
 
 /**
  * One paper doll texture role: what a map whose name ends in a suffix is (`CjsCharacterTextureRoles.lookup`). The
@@ -18,7 +20,7 @@ export class CjsCharacterDataTextureRole
 
     /** The name prefixes it is sourced for (`comp`, `colorize`). */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("string")
+    @type.list("CjsCharacterDataString")
     families = [];
 
     /** The effect texture parameter the composed map feeds (`DiffuseMap`). */
@@ -26,10 +28,10 @@ export class CjsCharacterDataTextureRole
     @type.string
     property = "";
 
-    /** What each of the file's channels holds, by channel (`rgb`, `a`). */
+    /** What each of the file's channels holds, by channel `name` (`rgb`, `a`). */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map("string")
-    channels = new Map();
+    @type.list("CjsCharacterDataNamedValue")
+    channels = [];
 
     /** The `CjsPaperDollCompositor` method that draws it; empty for an input of another role's operation. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

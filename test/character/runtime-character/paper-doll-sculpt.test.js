@@ -93,10 +93,10 @@ test("a sex's default morphs sit under sculpts, a 0 stays 0, and clearing return
 {
     const { archetype } = new CjsPaperDollDefinition();
     archetype.Configure([ Foundation() ], { option: "archetype", sex: "male" });
-    assert.equal(archetype.GetSculpt("LeftEyeMissingShape"), .05);
+    assert.equal(archetype.GetSculpt("LeftEyeMissingShape"), Math.fround(.05), "a float32, as the library stores it");
     assert.deepEqual(archetype.GetSculptEdits(), {});
     assert.equal(archetype.Resolve().sculpt.LeftEyeMissingShape, undefined);
-    assert.equal(archetype.Resolve().defaultMorphs.LeftEyeMissingShape, .05);
+    assert.equal(archetype.Resolve().defaultMorphs.LeftEyeMissingShape, Math.fround(.05));
 
     archetype.SetSculpt("LeftEyeMissingShape", 0);
     assert.equal(archetype.GetSculpt("LeftEyeMissingShape"), 0);
@@ -104,14 +104,14 @@ test("a sex's default morphs sit under sculpts, a 0 stays 0, and clearing return
     assert.equal(archetype.GetDefaultMorphs().LeftEyeMissingShape, undefined);
 
     archetype.ClearSculpts();
-    assert.equal(archetype.GetSculpt("LeftEyeMissingShape"), .05);
+    assert.equal(archetype.GetSculpt("LeftEyeMissingShape"), Math.fround(.05), "a float32, as the library stores it");
 });
 
 test("defaults follow the sex, no sex has none, and an unknown sex throws", () =>
 {
     const { archetype } = new CjsPaperDollDefinition();
     archetype.Configure([ Foundation() ], { option: "archetype", sex: "female" });
-    assert.deepEqual(archetype.GetSculpts(), { BothEyeMissingShape: 0.2 });
+    assert.deepEqual(archetype.GetSculpts(), { BothEyeMissingShape: Math.fround(0.2) });
     archetype.Configure([ Foundation() ], { option: "archetype" });
     assert.deepEqual(archetype.GetSculpts(), {});
     assert.throws(() => archetype.Configure([ Foundation() ], { option: "archetype", sex: "other" }), /Unknown character sex other/);

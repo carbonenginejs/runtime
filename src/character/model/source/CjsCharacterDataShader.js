@@ -1,4 +1,5 @@
 import { meta, type } from "#schema";
+import "./CjsCharacterDataString.js";
 import "./CjsCharacterDataParameter.js";
 import "./CjsCharacterDataTexture.js";
 import "./CjsCharacterDataShaderRule.js";
@@ -23,11 +24,11 @@ export class CjsCharacterDataShader
 
     /**
      * Every parameter the shader takes. Kept for Carbon's shape: Carbon filters the hull's parameters by it
-     * (EveSOF.cpp:820-827), which the paper doll has none of, so nothing reads it. Carbon holds
-     * `EveSOFDataGenericString` records (EveSOFData.h:2241); plain strings here.
+     * (EveSOF.cpp:820-827), which the paper doll has none of, so nothing reads it. Each is one string record, as
+     * Carbon holds `EveSOFDataGenericString` records (EveSOFData.h:2241).
      */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("string")
+    @type.list("CjsCharacterDataString")
     parameters = [];
 
     /** The textures an area starts from, each filling only a slot the area leaves empty. */

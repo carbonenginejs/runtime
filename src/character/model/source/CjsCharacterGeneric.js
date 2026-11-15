@@ -3,6 +3,9 @@ import "./CjsCharacterDataCategory.js";
 import "./CjsCharacterDataShader.js";
 import "./CjsCharacterDataSex.js";
 import "./CjsCharacterDataTextureRole.js";
+import "./CjsCharacterDataString.js";
+import "./CjsCharacterDataNamedValue.js";
+import "./CjsCharacterDataParameter.js";
 
 // Discovery: src/character/discovery/animationdata.yaml
 // Discovery: src/character/discovery/{animation_animinfo,animation_movementstates,animationoffsets,basefemalebindpose,basemalebindpose,basename,blendshapes,face,facetweaksettings,modifiernames,scultpinglimits,trif}.yaml
@@ -127,22 +130,22 @@ export class CjsCharacterGeneric
 
     /** The regions a texture file name can carry (`head`, `body`, `hair`, `acc`); one set with `textureRoles`. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.list("string")
+    @type.list("CjsCharacterDataString")
     textureRegions = [];
 
-    /** The character atlas's regions, as an area's `TransformUV0` places them, [u0, v0, u1, v1] by region. */
+    /** The character atlas's regions, as an area's `TransformUV0` places them: each region `name` and its [u0, v0, u1, v1]. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map({ kind: "list", itemType: "float64" })
-    textureAtlas = new Map();
+    @type.list("CjsCharacterDataParameter")
+    textureAtlas = [];
 
     /** How far an authored rect may lie outside an atlas region and still be placed in it. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float64
     textureAtlasTolerance = 0;
 
-    /** The garment map names, by the map they give (`detail`, `normal`), each searched in order. */
+    /** The garment map names: each map they give (`name`: `detail`, `normal`) with one name per entry, searched in order. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map({ kind: "list", itemType: "string" })
-    textureGarmentMaps = new Map();
+    @type.list("CjsCharacterDataNamedValue")
+    textureGarmentMaps = [];
 
 }

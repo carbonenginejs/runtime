@@ -2,9 +2,10 @@ import { meta, type } from "#schema";
 import { vec4 } from "#math/vec4";
 
 /**
- * One shader parameter's value, by name: a generic area shader's default parameter, or one a rule sets
- * (`CjsCharacterDataShader`). A float parameter keeps its value in every component, as Carbon's `AddParameterFloat`
- * stores it (`Tr2Effect.AddParameterFloat`).
+ * One named four-component value: a generic area shader's default parameter, or one a rule sets
+ * (`CjsCharacterDataShader`), or one of the character atlas's regions (`CjsCharacterGeneric.textureAtlas`). A float
+ * parameter keeps its value in every component, as Carbon's `AddParameterFloat` stores it
+ * (`Tr2Effect.AddParameterFloat`).
  *
  * Modelled on: EveSOFDataParameter (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:16-34)
  */

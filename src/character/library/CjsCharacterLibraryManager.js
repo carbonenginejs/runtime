@@ -485,7 +485,8 @@ export class CjsCharacterLibraryManager
         if (facts === undefined) throw new Error("Unknown character sex " + sex);
         return {
             root: facts.root, skeleton: facts.skeleton, genericHead: facts.genericHead, body: facts.body,
-            bodyFallbacks: Object.fromEntries(facts.bodyFallbacks), defaultMorphs: Object.fromEntries(facts.defaultMorphs),
+            bodyFallbacks: Object.fromEntries(facts.bodyFallbacks.map(entry => [ entry.name, entry.value ])),
+            defaultMorphs: Object.fromEntries(facts.defaultMorphs.map(entry => [ entry.name, entry.value ])),
             eyeWetReference: facts.eyeWetReference, eyeWetMesh: facts.eyeWetMesh
         };
     }
@@ -1295,9 +1296,9 @@ export class CjsCharacterLibraryManager
                 defaultTextures: Object.fromEntries(shader.defaultTextures.map(texture => [ texture.name, texture.resFilePath ])),
                 defaultParameters: parameters(shader.defaultParameters),
                 rules: shader.rules.map(rule => ({
-                    categories: [ ...rule.categories ],
-                    batches: known(shader.shader, "batch", rule.batches, Object.keys(TriBatchType)),
-                    regions: known(shader.shader, "region", rule.regions, regions),
+                    categories: rule.categories.map(entry => entry.str),
+                    batches: known(shader.shader, "batch", rule.batches.map(entry => entry.str), Object.keys(TriBatchType)),
+                    regions: known(shader.shader, "region", rule.regions.map(entry => entry.str), regions),
                     parameters: parameters(rule.parameters)
                 }))
             });
@@ -1437,20 +1438,23 @@ export class CjsCharacterLibraryManager
             const installed = this._library.generic;
             const generic = installed.textureRoles.length ? installed
                 : CjsGraph.from(CjsCharacterGeneric, CjsCharacterLibraryManager._shippedValues(textureRoleDefaults));
-            if (!generic.textureRegions.length || !generic.textureAtlas.size || !generic.textureGarmentMaps.size || !(generic.textureAtlasTolerance > 0))
+            if (!generic.textureRegions.length || !generic.textureAtlas.length || !generic.textureGarmentMaps.length || !(generic.textureAtlasTolerance > 0))
                 throw new Error("An installed library's texture roles need their regions, atlas, atlas tolerance and garment names too");
 
             this._textureRoles = {
-                regions: [ ...generic.textureRegions ],
-                atlas: Object.fromEntries(Array.from(generic.textureAtlas, ([ region, rect ]) => [ region, Array.from(rect) ])),
+                regions: generic.textureRegions.map(entry => entry.str),
+                atlas: Object.fromEntries(generic.textureAtlas.map(entry => [ entry.name, Array.from(entry.value) ])),
                 atlasTolerance: generic.textureAtlasTolerance,
                 table: Object.fromEntries(generic.textureRoles.map(role => [ role.name, {
-                    families: [ ...role.families ], property: role.property, channels: Object.fromEntries(role.channels),
+                    families: role.families.map(entry => entry.str), property: role.property,
+                    channels: Object.fromEntries(role.channels.map(entry => [ entry.name, entry.value ])),
                     operation: role.operation, inputOf: role.inputOf, plan: role.plan, covered: role.covered,
                     source: role.source, derived: role.derived
                 } ])),
-                garment: Object.fromEntries(Array.from(generic.textureGarmentMaps, ([ key, names ]) => [ key, [ ...names ] ]))
+                garment: {}
             };
+            // One garment name per entry, in order, grouped by the map it gives.
+            for (const entry of generic.textureGarmentMaps) (this._textureRoles.garment[entry.name] ??= []).push(entry.value);
             this._textureRolesGeneration = this._installGeneration;
         }
         return this._textureRoles;

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsCharacterDataSex, CjsCharacterLibrary, CjsCharacterLibraryManager, CjsCharacterObjectBuilder } from "../../../npm/dist/character/index.js";
+import { CjsCharacterDataNamedValue, CjsCharacterDataSex, CjsCharacterLibrary, CjsCharacterLibraryManager, CjsCharacterObjectBuilder } from "../../../npm/dist/character/index.js";
 import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
 import "../../support/frameLoop.js";
@@ -117,12 +117,12 @@ test("options come from the index alone, one per .type, per underwear folder, or
     await assert.rejects(library.FetchOptionMaps({ sex: "female", category: "bottominner", id: "long01" }), /No maps rule for the paper doll category bottominner/);
     assert.throws(() => library.GetSexFacts("other"), /Unknown character sex/);
     assert.deepEqual(library.GetSexFacts("male"), { root: "res:/graphics/character/male/paperdoll/", skeleton: "res:/graphics/character/male/skeleton/masterskeletonmale.gr2",
-        defaultMorphs: { LeftEyeMissingShape: 0.05, RightEyeMissingShape: 0.05 }, genericHead: "head/head_generic",
+        defaultMorphs: { LeftEyeMissingShape: Math.fround(0.05), RightEyeMissingShape: Math.fround(0.05) }, genericHead: "head/head_generic",
         body: "topinner/torso_nude", bodyFallbacks: { "body.NormalMap": "head/head_generic", "body.SpecularMap": "head/head_generic" },
         eyeWetReference: "res:/graphics/character/unique/characterselect/deteismaleclothing/unique.black", eyeWetMesh: "EyeWet_GeoShape" });
     assert.equal(library.GetSexFacts("female").body, "basenude");
     library.GetSexFacts("male").defaultMorphs.LeftEyeMissingShape = 1;
-    assert.equal(library.GetSexFacts("male").defaultMorphs.LeftEyeMissingShape, 0.05, "the caller's own copy");
+    assert.equal(library.GetSexFacts("male").defaultMorphs.LeftEyeMissingShape, Math.fround(0.05), "the caller's own copy");
 });
 
 test("an option's part: its type's tuple, the variation folder before the part folder, and its metadata decoded", async t =>
@@ -275,7 +275,7 @@ test("the sex facts: the shipped defaults, each replaced whole by an installed g
     const installed = new CjsCharacterLibrary(), male = new CjsCharacterDataSex();
     male.name = "male";
     male.root = "res:/custom/male/";
-    male.bodyFallbacks.set("body.NormalMap", "custom/normal");
+    male.bodyFallbacks.push(Object.assign(new CjsCharacterDataNamedValue(), { name: "body.NormalMap", value: "custom/normal" }));
     male.eyeWetMesh = "Custom_GeoShape";
     const library = new CjsCharacterLibraryManager(installed);
     assert.equal(library.GetSexFacts("male").root, "res:/graphics/character/male/paperdoll/", "nothing installed: the default");

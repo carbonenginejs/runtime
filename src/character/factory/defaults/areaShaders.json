@@ -18,12 +18,18 @@
       "rules": [
         {
           "categories": [
-            "hair"
+            {
+              "str": "hair"
+            }
           ],
           "batches": [],
           "regions": [
-            "hair",
-            "body"
+            {
+              "str": "hair"
+            },
+            {
+              "str": "body"
+            }
           ],
           "parameters": [
             {
@@ -56,12 +62,18 @@
       "rules": [
         {
           "categories": [
-            "hair"
+            {
+              "str": "hair"
+            }
           ],
           "batches": [],
           "regions": [
-            "hair",
-            "body"
+            {
+              "str": "hair"
+            },
+            {
+              "str": "body"
+            }
           ],
           "parameters": [
             {
@@ -94,12 +106,18 @@
       "rules": [
         {
           "categories": [
-            "hair"
+            {
+              "str": "hair"
+            }
           ],
           "batches": [],
           "regions": [
-            "hair",
-            "body"
+            {
+              "str": "hair"
+            },
+            {
+              "str": "body"
+            }
           ],
           "parameters": [
             {
@@ -115,18 +133,38 @@
         },
         {
           "categories": [
-            "topinner",
-            "bottominner",
-            "hands",
-            "feet",
-            "dependants/sleevesupper",
-            "dependants/sleeveslower",
-            "dependants/collar",
-            "dependants/hood"
+            {
+              "str": "topinner"
+            },
+            {
+              "str": "bottominner"
+            },
+            {
+              "str": "hands"
+            },
+            {
+              "str": "feet"
+            },
+            {
+              "str": "dependants/sleevesupper"
+            },
+            {
+              "str": "dependants/sleeveslower"
+            },
+            {
+              "str": "dependants/collar"
+            },
+            {
+              "str": "dependants/hood"
+            }
           ],
           "batches": [
-            "TRIBATCHTYPE_DECAL",
-            "TRIBATCHTYPE_TRANSPARENT"
+            {
+              "str": "TRIBATCHTYPE_DECAL"
+            },
+            {
+              "str": "TRIBATCHTYPE_TRANSPARENT"
+            }
           ],
           "regions": [],
           "parameters": [
@@ -158,11 +196,15 @@
       "rules": [
         {
           "categories": [
-            "hair"
+            {
+              "str": "hair"
+            }
           ],
           "batches": [],
           "regions": [
-            "acc"
+            {
+              "str": "acc"
+            }
           ],
           "parameters": [
             {
