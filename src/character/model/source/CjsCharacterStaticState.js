@@ -24,7 +24,7 @@ export class CjsCharacterStaticState
     /** Authored 3-component numeric tuple. Kept at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.vec3d
-    heading = new Float64Array(3);
+    heading = new Float64Array(3); // alloc: field default, one per record
 
     /** Authored numeric value, retained at JavaScript number precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

@@ -11,7 +11,7 @@ import { CjsCharacterPdpType } from "../formats/characterPdpType.js";
 import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsCharacterTextureRoles } from "./CjsCharacterTextureRoles.js";
-import genericDefaults from "../factory/defaults/generic.js";
+import { genericDefaults } from "../factory/defaults/generic.js";
 import partCategoryDefaults from "../factory/defaults/partCategories.json" with { type: "json" };
 import defaultFemalePaperDoll from "../factory/defaults/defaultFemalePaperDoll.json" with { type: "json" };
 import defaultMalePaperDoll from "../factory/defaults/defaultMalePaperDoll.json" with { type: "json" };
@@ -517,7 +517,7 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * Materializes a part join from loaded kind records, retaining nested relative names.
+     * Materializes a part join from loaded kind records: copies of the part's types, colour variations and projections.
      * @param {string} name Canonical part folder.
      * @returns {Promise<CjsCharacterPart>} Stored join.
      */
@@ -537,15 +537,11 @@ export class CjsCharacterLibraryManager
             part.dependantModifiers = part.metadata.dependantModifiers.map(copy);
             part.occludesModifiers = part.metadata.occludesModifiers.map(copy);
         }
+        // Each record is the part's own copy, identified by its library ID (`_pdpID`, its file).
         for (const kind of ["types", "colorVariations", "projectedDecals"])
         {
             const paths = this._sourceBuilder ? this._sourceBuilder.ListSourceNames(kind) : this._library.ListKindNames(kind);
-            for (const path of paths.filter(value => value.startsWith(name + "/")))
-            {
-                const local = path.slice(name.length + 1).replace(/^types\//u, "").replace(/\.[^/.]+$/u, "");
-                if (part[kind].has(local)) throw new Error(`Duplicate ${kind} name in ${name}: ${local}`);
-                part[kind].set(local, await this.GetKindRecord(kind, path));
-            }
+            for (const path of paths.filter(value => value.startsWith(name + "/"))) part[kind].push(await this.GetKindRecord(kind, path));
         }
         if (generation !== this._installGeneration) throw new Error("Character library was replaced during a part join.");
         return this._library.AddKind("parts", name, part);
@@ -1669,8 +1665,7 @@ export class CjsCharacterLibraryManager
     /**
      * A caller's own copy of a library answer: a record rebuilt field by field over its declared fields (its `_pdpID`
      * and `_pdpType` among them), a typed array, array, Map or plain object copied item by item, any other value as it
-     * is. Records are not copied through their values: those do not rebuild the records a Map holds
-     * (`CjsCharacterPart.colorVariations`). Every answer is one, so changing it never changes the library: that is an explicit library call.
+     * is. Every answer is one, so changing it never changes the library: that is an explicit library call.
      * Measured at about 15 µs per call over a character's queries (build 3670638).
      * @param {*} value The answer.
      * @returns {*} The copy.

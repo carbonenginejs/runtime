@@ -24,7 +24,7 @@ export class CjsCharacterPost extends CjsCharacterRecord
     /** Authored 4-component numeric tuple. Kept at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.vec4d
-    lut_influence = new Float64Array(4);
+    lut_influence = new Float64Array(4); // alloc: field default, one per record
 
     /** Authored resource reference; resolution never replaces this string. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

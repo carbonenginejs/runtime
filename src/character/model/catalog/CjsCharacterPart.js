@@ -17,20 +17,20 @@ export class CjsCharacterPart extends CjsCharacterRecord
     @type.object.ref("CjsAvatarPartMetaData")
     metadata = null;
 
-    /** Types by local name. */
+    /** The part's types, each identified by its library ID (`_pdpID`, its file). */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map("CjsCharacterType")
-    types = new Map();
+    @type.list("CjsCharacterType")
+    types = [];
 
-    /** Colour variations by local name. */
+    /** The part's colour variations, each identified by its library ID (`_pdpID`, its file). */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map("CjsCharacterColorVariation")
-    colorVariations = new Map();
+    @type.list("CjsCharacterColorVariation")
+    colorVariations = [];
 
-    /** Projections by local name. */
+    /** The part's projections, each identified by its library ID (`_pdpID`, its file). */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map("CjsProjectedDecal")
-    projectedDecals = new Map();
+    @type.list("CjsProjectedDecal")
+    projectedDecals = [];
 
     /** Parsed dependencies beside the raw metadata strings. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

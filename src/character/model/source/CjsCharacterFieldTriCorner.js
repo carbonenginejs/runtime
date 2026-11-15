@@ -21,6 +21,6 @@ export class CjsCharacterFieldTriCorner
     /** The vertex's position in the field's plane, at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.vec2d
-    position = new Float64Array(2);
+    position = new Float64Array(2); // alloc: field default, one per record
 
 }

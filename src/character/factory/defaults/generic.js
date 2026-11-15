@@ -6,7 +6,7 @@
  * Ours (no Carbon counterpart), modelled on Carbon's one SOF data file (`EveSOFDataMgr::LoadData`,
  * EveSOFDataMgr.cpp:592-611): the client's paper doll is Python.
  */
-export default {
+export const genericDefaults = {
     // How the parts library finds each paper doll category's options, maps, palettes and colour
     // areas, by its path below the sex's paper doll root. Ours: the client's paper doll is Python. Derived: the
     // content does not state these rules. Each was found from the content (build 3670638) and from the sources that

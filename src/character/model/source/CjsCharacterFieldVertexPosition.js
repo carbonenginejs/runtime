@@ -19,6 +19,6 @@ export class CjsCharacterFieldVertexPosition
     /** Its point, at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.vec3d
-    position = new Float64Array(3);
+    position = new Float64Array(3); // alloc: field default, one per record
 
 }

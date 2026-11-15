@@ -7,8 +7,8 @@ import { DictReader } from "../../blue/formats/graph/DictReader.js";
 import "../model/index.js";
 
 /**
- * The character library's items, by kind: each kind a list of its records (`CjsCharacterLibraryConfiguration.kinds`)
- * beside the names they were stored under (`sourceNames`). Its data (`GetData`, `SetData`) is the items collected by
+ * The character library's items, by kind: each kind a list of its records (`CjsCharacterLibraryConfiguration.kinds`),
+ * each identified by its library ID (`_pdpID`, the name it was stored under). Its data (`GetData`, `SetData`) is the items collected by
  * kind, and that is the library's whole format: a prebuilt or cached library reads into the
  * same record classes the readers make, through Blue's dict reader and writer.
  */
@@ -16,18 +16,13 @@ import "../model/index.js";
 export class CjsCharacterLibrary
 {
 
-    /** Runtime indexes rebuilt from the paired sourceNames and kind lists. */
+    /** Runtime indexes of each kind's records by library ID, rebuilt from the kind lists. */
     _kindIndexes = new Map();
 
     /** Shared original source documents. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.object.ref("CjsCharacterGeneric")
     generic = new CjsCharacterGeneric();
-
-    /** Names aligned with each kind list. Mutate both through AddKind/RemoveKind. */
-    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
-    @type.map({ kind: "list", itemType: "string" })
-    sourceNames = new Map();
 
     /** Flat parts holdings. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
@@ -183,7 +178,7 @@ export class CjsCharacterLibrary
 
     /**
      * Reads the library's data (`GetData`'s document, checked by `validateData`) into this library through Blue's
-     * dict reader. An item written without a library ID gets its name, as `AddKind` gives one.
+     * dict reader. Every item carries its library ID (`validateData`).
      * @param {object} data The library's data.
      * @returns {CjsCharacterLibrary} This library.
      * @throws {TypeError} For data `validateData` refuses.
@@ -192,18 +187,12 @@ export class CjsCharacterLibrary
     {
         new DictReader({ liveLists: true }).ReadInto(this, CjsCharacterLibrary.validateData(data), null);
         this._kindIndexes.clear();
-        for (const kind of Object.keys(CjsCharacterLibraryConfiguration.kinds))
-        {
-            const records = this.GetKind(kind), names = this.sourceNames.get(kind) ?? [];
-            for (let i = 0; i < records.length; i++)
-                if (records[i]._pdpID === "" && names[i]) records[i]._pdpID = names[i];
-        }
         return this;
     }
 
     /**
-     * Checks complete library data: this format and version, known kinds, each kind's records paired with unique
-     * names, and every record's fields against its class.
+     * Checks complete library data: this format and version, each kind's records with nonempty, unique library IDs,
+     * and every record's fields against its class.
      * @param {object} value The data.
      * @returns {object} The data.
      * @throws {TypeError} For anything else; earlier formats are not read.
@@ -214,14 +203,11 @@ export class CjsCharacterLibrary
         if (value.schema !== "carbonenginejs.characterLibrary" || value.schemaVersion !== 2)
             throw new TypeError("Character library must use carbonenginejs.characterLibrary schema version 2");
         RequirePlainObject(value.generic, "Character generic holdings");
-        RequirePlainObject(value.sourceNames, "Character source names");
-        for (const key of Object.keys(value.sourceNames))
-        {
-            if (!Object.hasOwn(CjsCharacterLibraryConfiguration.kinds, key)) throw new TypeError(`Unknown character kind ${key}`);
-        }
         for (const [ kind, declaration ] of Object.entries(CjsCharacterLibraryConfiguration.kinds))
         {
-            ValidateKindNames(kind, declaration.generic ? value.generic[kind] : value[kind], value.sourceNames[kind] ?? []);
+            const records = (declaration.generic ? value.generic[kind] : value[kind]) ?? [];
+            if (!Array.isArray(records)) throw new TypeError(`Character ${kind} records must be a list.`);
+            ValidateKindIDs(kind, records.map(record => IsPlainObject(record) ? record._pdpID : undefined));
         }
         ValidateModelValue(value, CjsCharacterLibrary, "Character library");
         return value;
@@ -239,12 +225,13 @@ export class CjsCharacterLibrary
     }
 
     /**
-     * Pairs a typed record with its canonical source identity, and gives it its library ID (`_pdpID`) where it has
-     * none: today the identity itself (opaque to every reader of it).
+     * Stores a typed record under its canonical source identity, which becomes its library ID (`_pdpID`; opaque to
+     * every reader of it).
      * @param {string} kind Configured kind.
      * @param {string} name Library identity.
-     * @param {object} record Registered typed record.
+     * @param {object} record Registered typed record, without a library ID or with this one.
      * @returns {object} The stored record.
+     * @throws {TypeError} For a record of another class, an empty or stored name, or a record another ID names.
      */
     AddKind(kind, name, record)
     {
@@ -254,17 +241,15 @@ export class CjsCharacterLibrary
         if (!CjsSchema.cast(record, Constructor)) throw new TypeError(`Invalid record for ${kind}`);
         if (typeof name !== "string" || !name.trim()) throw new TypeError("Character source name must be nonempty.");
         if (this.GetKindRecord(kind, name)) throw new TypeError(`Duplicate ${kind} name ${name}`);
-        if (record._pdpID === "") record._pdpID = name;
-        const names = this.sourceNames.get(kind) ?? [];
+        if (record._pdpID !== "" && record._pdpID !== name) throw new TypeError(`A ${kind} record with library ID ${record._pdpID} cannot be stored as ${name}`);
+        record._pdpID = name;
         records.push(record);
-        names.push(name);
-        this.sourceNames.set(kind, names);
         this._kindIndexes.get(kind).set(name, record);
         return record;
     }
 
     /**
-     * Removes a paired flat record and name, leaving its referenced data untouched.
+     * Removes a flat record by its library ID, leaving its referenced data untouched.
      * @param {string} kind Configured kind.
      * @param {string} name Stored identity.
      * @returns {boolean} Whether a record was removed.
@@ -272,11 +257,9 @@ export class CjsCharacterLibrary
     RemoveKind(kind, name)
     {
         const records = this.GetKind(kind);
-        const names = this.sourceNames.get(kind) ?? [];
-        const index = names.indexOf(name);
+        const index = records.findIndex(record => record._pdpID === name);
         if (index < 0) return false;
         records.splice(index, 1);
-        names.splice(index, 1);
         this._kindIndexes.delete(kind);
         return true;
     }
@@ -292,9 +275,9 @@ export class CjsCharacterLibrary
         const records = this.GetKind(kind);
         if (!this._kindIndexes.has(kind))
         {
-            const names = this.sourceNames.get(kind) ?? [];
-            ValidateKindNames(kind, records, names);
-            this._kindIndexes.set(kind, new Map(names.map((key, index) => [key, records[index]])));
+            const ids = records.map(record => record._pdpID);
+            ValidateKindIDs(kind, ids);
+            this._kindIndexes.set(kind, new Map(ids.map((id, index) => [ id, records[index] ])));
         }
         return this._kindIndexes.get(kind).get(name) ?? null;
     }
@@ -306,10 +289,9 @@ export class CjsCharacterLibrary
      */
     ListKindNames(kind)
     {
-        const records = this.GetKind(kind);
-        const names = this.sourceNames.get(kind) ?? [];
-        ValidateKindNames(kind, records, names);
-        return names.slice();
+        const ids = this.GetKind(kind).map(record => record._pdpID);
+        ValidateKindIDs(kind, ids);
+        return ids;
     }
 
 }
@@ -426,16 +408,14 @@ function IsPlainObject(value)
 }
 
 /**
- * Checks the paired library-owned name index without modifying raw records.
+ * Checks a kind's library IDs: each record's, nonempty and unique.
  * @param {string} kind Configured kind.
- * @param {Array<object>} records Stored records.
- * @param {Array<string>} names Paired names.
+ * @param {Array<*>} ids The records' library IDs, in order.
  * @returns {void}
+ * @throws {TypeError} For a missing, empty or repeated ID.
  */
-function ValidateKindNames(kind, records, names)
+function ValidateKindIDs(kind, ids)
 {
-    if (!Array.isArray(records) || !Array.isArray(names) || records.length !== names.length)
-        throw new TypeError(`Character ${kind} records and source names must have equal lengths.`);
-    if (names.some(name => typeof name !== "string" || !name.trim()) || new Set(names).size !== names.length)
-        throw new TypeError(`Character ${kind} source names must be nonempty and unique.`);
+    if (ids.some(id => typeof id !== "string" || !id.trim()) || new Set(ids).size !== ids.length)
+        throw new TypeError(`Character ${kind} records must carry nonempty, unique library IDs.`);
 }

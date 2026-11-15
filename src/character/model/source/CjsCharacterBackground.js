@@ -22,7 +22,7 @@ export class CjsCharacterBackground extends CjsCharacterRecord
     /** Authored two-component offset tuple. Kept at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.vec2d
-    offset = new Float64Array(2);
+    offset = new Float64Array(2); // alloc: field default, one per record
 
     /** Authored resource reference; resolution never replaces this string. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

@@ -19,6 +19,6 @@ export class CjsCharacterFieldTriangle
     /** Its three vertex indices (`CjsCharacterField.VertPositions`). */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.int32Array(3)
-    vertices = new Int32Array(3);
+    vertices = new Int32Array(3); // alloc: field default, one per record
 
 }

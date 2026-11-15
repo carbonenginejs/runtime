@@ -40,15 +40,15 @@ import { CjsCharacterLibrary, CjsCharacterLibraryBuilder, CjsCharacterLibraryMan
 
 const builder = new CjsCharacterLibraryBuilder({ paths, resMan });
 const library = await builder.Build({ lazy: false });  // every record; { lazy: true } indexes only
-const values = library.GetValues();                       // the format: every item's values, by kind
-const manager = new CjsCharacterLibraryManager(CjsCharacterLibrary.from(values));
+const data = library.GetData();                           // the format: every item's values, by kind
+const manager = new CjsCharacterLibraryManager(new CjsCharacterLibrary().SetData(data));
 ```
 
 The builder reads through the `paths` (`Filter`, `FileExists`) and `resMan` (`LoadObject`, with the character object
 builders registered by the manager's `Initialize`) it is given: Blue's in a browser, an exact build's file access in
-tools-core. The values format is version 2 (2026-11-16: keyed collections are lists of named records, as values
-hold no maps); earlier formats are not read. Item lists are paired with
-their names in `sourceNames`; change them with `AddKind`/`RemoveKind`.
+tools-core. The data format is version 2 (2026-11-16: keyed collections are lists of named records, as values
+hold no maps); earlier formats are not read. Each item carries its library ID, the name it was stored under;
+change a kind's items with `AddKind`/`RemoveKind`.
 
 ## Resource and graphics boundary
 

@@ -29,7 +29,7 @@ export class CjsCharacterField
     /** Authored 3-component numeric tuple. Kept at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.vec3d
-    MarkerPosition = new Float64Array(3);
+    MarkerPosition = new Float64Array(3); // alloc: field default, one per record
 
     /** Its triangles, each with its key in the file and three vertex indices. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

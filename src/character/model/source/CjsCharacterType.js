@@ -45,6 +45,6 @@ export class CjsCharacterType extends CjsCharacterRecord
      */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.int32Array
-    bloodlineIDs = new Int32Array(0);
+    bloodlineIDs = new Int32Array(0); // alloc: field default, one per record
 
 }

@@ -20,6 +20,6 @@ export class CjsCharacterAnimationOffset
     /** The offset, at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.vec3d
-    value = new Float64Array(3);
+    value = new Float64Array(3); // alloc: field default, one per record
 
 }

@@ -13,7 +13,7 @@ export class CjsCharacterKeymap
     /** Three authored integer input components (each -1, 0 or 1). */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.int32Array(3)
-    input = new Int32Array(3);
+    input = new Int32Array(3); // alloc: field default, one per record
 
     /** Authored state name, resolved separately. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)

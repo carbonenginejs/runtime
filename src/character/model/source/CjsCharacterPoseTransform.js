@@ -20,7 +20,7 @@ export class CjsCharacterPoseTransform
     /** Authored 3-component numeric tuple. Kept at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.vec3d
-    orientation = new Float64Array(3);
+    orientation = new Float64Array(3); // alloc: field default, one per record
 
     /**
      * Authored three-component rotation; not a quaternion. Kept at the authored double
@@ -28,11 +28,11 @@ export class CjsCharacterPoseTransform
      */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.vec3d
-    rotation = new Float64Array(3);
+    rotation = new Float64Array(3); // alloc: field default, one per record
 
     /** Authored 3-component numeric tuple. Kept at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.vec3d
-    translation = new Float64Array(3);
+    translation = new Float64Array(3); // alloc: field default, one per record
 
 }

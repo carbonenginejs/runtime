@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { CjsCharacterDataParameter, CjsCharacterDataShader, CjsCharacterGeneric, CjsCharacterLibraryManager, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
 import { CjsGraph } from "../../../npm/dist/global/model/graph/CjsGraph.js";
 import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
-import genericDefaults from "../../../npm/dist/character/factory/defaults/generic.js";
+import { genericDefaults } from "../../../npm/dist/character/factory/defaults/generic.js";
 import { CjsCharacterTextureRoles } from "../../../npm/dist/character/library/CjsCharacterTextureRoles.js";
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
 import { Tr2Effect } from "../../../npm/dist/trinity/index.js";

@@ -17,11 +17,11 @@ export class CjsCharacterPosition extends CjsCharacterRecord
     /** The placement's rotation quaternion, at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.vec4d
-    rotation = new Float64Array(4);
+    rotation = new Float64Array(4); // alloc: field default, one per record
 
     /** The placement's translation, at the authored double precision. */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.vec3d
-    translation = new Float64Array(3);
+    translation = new Float64Array(3); // alloc: field default, one per record
 
 }

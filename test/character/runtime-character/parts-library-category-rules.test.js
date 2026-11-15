@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { CjsCharacterDataCategory, CjsCharacterGeneric, CjsCharacterLibrary, CjsCharacterLibraryManager } from "../../../npm/dist/character/index.js";
 import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { CjsGraph } from "../../../npm/dist/global/model/graph/CjsGraph.js";
-import genericDefaults from "../../../npm/dist/character/factory/defaults/generic.js";
+import { genericDefaults } from "../../../npm/dist/character/factory/defaults/generic.js";
 import { CjsCharacterTextureRoles } from "../../../npm/dist/character/library/CjsCharacterTextureRoles.js";
 import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
