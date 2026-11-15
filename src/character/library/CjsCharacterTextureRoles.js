@@ -67,18 +67,26 @@ export class CjsCharacterTextureRoles
      */
     static atlas = roles.atlas;
 
+    /** How far an authored rect may lie outside an atlas region and still be placed in it (`placeInRegion`). */
+    static atlasTolerance = roles.atlasTolerance;
+
     /**
-     * The atlas region a `TransformUV0` lies in (`atlas`), `identity` for the whole image, or null for neither.
+     * Where an area's authored `TransformUV0` places it: `identity` with the identity for the whole image; else the
+     * atlas region it lies in (`atlas`), with the rect relative to that region, so an area samples its region's own
+     * composed map (the identity when it fills the region); else null. Rects authored as floats match within
+     * `atlasTolerance`. Moved from Graphene's `atlasRegions.js` (`PlaceInRegion`), with the whole image added.
      * @param {ArrayLike<number>} transform The area's `TransformUV0`, [u0, v0, u1, v1].
-     * @returns {?string} The region.
+     * @returns {?{ region: string, transform: number[] }} The placement.
      */
-    static uvRegion(transform)
+    static placeInRegion(transform)
     {
-        const near = (a, b) => Math.abs(a - b) < 1e-4;
-        if (near(transform[0], 0) && near(transform[1], 0) && near(transform[2], 1) && near(transform[3], 1)) return "identity";
-        for (const [ name, [ u0, v0, u1, v1 ] ] of Object.entries(CjsCharacterTextureRoles.atlas))
+        const tolerance = CjsCharacterTextureRoles.atlasTolerance, near = (a, b) => Math.abs(a - b) < tolerance;
+        if (near(transform[0], 0) && near(transform[1], 0) && near(transform[2], 1) && near(transform[3], 1)) return { region: "identity", transform: [ 0, 0, 1, 1 ] };
+        for (const [ region, [ u0, v0, u1, v1 ] ] of Object.entries(CjsCharacterTextureRoles.atlas))
         {
-            if (transform[0] > u0 - 1e-4 && transform[1] > v0 - 1e-4 && transform[2] < u1 + 1e-4 && transform[3] < v1 + 1e-4) return name;
+            if (transform[0] < u0 - tolerance || transform[1] < v0 - tolerance || transform[2] > u1 + tolerance || transform[3] > v1 + tolerance) continue;
+            const width = u1 - u0, height = v1 - v0;
+            return { region, transform: [ (transform[0] - u0) / width, (transform[1] - v0) / height, (transform[2] - u0) / width, (transform[3] - v0) / height ] };
         }
         return null;
     }

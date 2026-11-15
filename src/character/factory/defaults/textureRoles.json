@@ -1,5 +1,5 @@
 {
-  "description": "The paper doll texture roles the parts library reads every map name by (CjsCharacterTextureRoles): the regions a file name can carry and where each sits in the character atlas (a TransformUV0 rect, [u0, v0, u1, v1]); the role of each suffix (`table`: the property it draws into, what its channels hold, the composition operation or the role it is an input of, replace or add, whether it is drawn through the option's diffuse coverage, its sources, and the facts no source states, `derived`; a key `<family>_<suffix>` is a role for that family alone); and the garment map names (`garment`), searched folder first, then size tier, then name, `<part>` the part folder's name and `*` any name. Ours: Carbon ships no paper doll, and the client's is Python. Only the library loads this file.",
+  "description": "The paper doll texture roles the parts library reads every map name by (CjsCharacterTextureRoles): the regions a file name can carry and where each sits in the character atlas (a TransformUV0 rect, [u0, v0, u1, v1]); the role of each suffix (`table`: the property it draws into, what its channels hold, the composition operation or the role it is an input of, replace or add, whether it is drawn through the option's diffuse coverage, its sources, and the facts no source states, `derived`; a key `<family>_<suffix>` is a role for that family alone); and the garment map names (`garment`), searched folder first, then size tier, then name, `<part>` the part folder's name and `*` any name. Ours: Carbon ships no paper doll, and the client's is Python. Only the library loads this file. atlasTolerance: how far an authored TransformUV0 rect may lie outside an atlas region and still be placed in it; rects are authored as floats (moved from Graphene atlasRegions.js).",
   "regions": [
     "head",
     "body",
@@ -32,6 +32,7 @@
       1
     ]
   },
+  "atlasTolerance": 0.001,
   "table": {
     "d": {
       "families": [

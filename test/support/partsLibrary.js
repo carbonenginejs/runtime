@@ -18,8 +18,9 @@ export const COLOR = (value = 0.5) => `colors: [!!python/tuple [${value},${value
  * @param {import("node:test").TestContext} t The test, whose end restores the services.
  * @param {string} root The paper doll root the files sit under (`res:/graphics/character/<sex>/paperdoll/`).
  * @param {string[]} files Every file of the build, as full `res:` paths.
- * @param {{ text?: Object<string, string>, overrides?: Object<string, function> }} [options] File texts by path (a
- *   `.type` and a `.color` have defaults; any other read file needs one), and library methods to replace.
+ * @param {{ text?: Object<string, string|Uint8Array>, overrides?: Object<string, function> }} [options] File texts by
+ *   path, or bytes for a binary file (a `.type` and a `.color` have defaults; any other read file needs one), and
+ *   library methods to replace.
  * @returns {{ library: CjsCharacterLibraryManager, paths: BluePaths, reads: string[] }}
  */
 export function installPartsLibrary(t, root, files, { text = {}, overrides = {} } = {})
@@ -43,7 +44,8 @@ export function installPartsLibrary(t, root, files, { text = {}, overrides = {} 
     const resMan = new BlueResMan({ source: { Read(path)
     {
         reads.push(path);
-        return new TextEncoder().encode(contentOf(path));
+        const content = contentOf(path);
+        return typeof content === "string" ? new TextEncoder().encode(content) : content;
     } } });
     const library = new CjsCharacterLibraryManager();
     Object.assign(library, overrides);

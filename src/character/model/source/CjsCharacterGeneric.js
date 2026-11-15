@@ -1,5 +1,6 @@
 import { meta, type } from "#schema";
 import "./CjsCharacterDataCategory.js";
+import "./CjsCharacterDataShader.js";
 
 // Discovery: src/character/discovery/animationdata.yaml
 // Discovery: src/character/discovery/{animation_animinfo,animation_movementstates,animationoffsets,basefemalebindpose,basemalebindpose,basename,blendshapes,face,facetweaksettings,modifiernames,scultpinglimits,trif}.yaml
@@ -80,5 +81,13 @@ export class CjsCharacterGeneric
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.map("CjsCharacterDataCategory")
     categories = new Map();
+
+    /**
+     * Area shaders' generic data, each overriding the shipped default for the same shader
+     * (`factory/defaults/areaShaders.json`). Empty: the defaults are in force.
+     */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.list("CjsCharacterDataShader")
+    areaShaders = [];
 
 }

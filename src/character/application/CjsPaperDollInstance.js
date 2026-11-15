@@ -376,6 +376,26 @@ export class CjsPaperDollInstance
         }
     }
 
+    /**
+     * Sets one area's effect to the values the library resolved for it (`CjsCharacterLibraryManager.FetchModelAreas`,
+     * an area's `setup`): each texture through `SetResourceTexture2D`, each parameter through `SetParameter__Vector4`.
+     * The library has resolved and merged them, leaving out what the area already holds; this sets them.
+     *
+     * Modelled on: the per-area half of EveSOF::FillMeshAreaVector (EveSOF.cpp:816-883), which adds the generic
+     * shader's textures and parameters to an effect it has just created.
+     * @adapted a parameter is set as a dynamic Vector4 that replaces the authored one: Carbon adds a constant parameter
+     *   (`AddParameterVector4`, Tr2Effect.cpp:484-497, checking only constants, :1611-1623) beside an authored dynamic one,
+     *   and a paper doll area's `.black` authors its `TransformUV0`, which must take the area's placement.
+     * @param {object} effect The area's `Tr2Effect`.
+     * @param {import("../library/CjsCharacterLibraryManager.js").CjsCharacterAreaValues} setup The area's setup.
+     * @returns {void}
+     */
+    static applyAreaSetup(effect, setup)
+    {
+        for (const [ name, path ] of Object.entries(setup.textures)) effect.SetResourceTexture2D(name, path);
+        for (const [ name, value ] of Object.entries(setup.parameters)) effect.SetParameter__Vector4(name, value);
+    }
+
     static scratch = { vec3_0: vec3.create(), vec4_0: vec4.create() };
 
     /** Each garment mesh's share of vertices on a carrier mesh, by garment mesh then carrier mesh (`meshCopyShare`). */

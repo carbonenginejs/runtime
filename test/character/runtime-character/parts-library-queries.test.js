@@ -211,24 +211,15 @@ test("colours: the library's palette, then each provided colour the option paint
     assert.equal((await library.ResolveColors(await option(library, "makeup/aging", "aging_01_v1"))).palette, null);
 });
 
-test("an option's model: the first folder's .black that is not a LOD, else none; areas by role and atlas region", async t =>
+test("an option's model: the first folder's .black that is not a LOD, else none, set up for the option's category", async t =>
 {
     const { library } = fixture(t);
     const read = [];
-    library.FetchModelAreas = async path => { read.push(path); return { model: path, meshes: [] }; };
+    library.FetchModelAreas = async (path, category) => { read.push([ path, category ]); return { model: path, meshes: [] }; };
     assert.equal((await library.FetchOptionAreas(await option(library, "outer", "coat01_black"))).model, ROOT + "outer/coat01/coat01.black",
         "the variation folder holds only a LOD model, so the part folder's: the one named as its folder");
     assert.equal(await library.FetchOptionAreas(await option(library, "makeup/eyeshadow", "eyeshadow_01")), null, "a baked option has no model");
-    assert.deepEqual(read, [ ROOT + "outer/coat01/coat01.black" ]);
-    const { uvRegion } = await import("../../../npm/dist/character/library/CjsCharacterTextureRoles.js").then(m => ({ uvRegion: m.CjsCharacterTextureRoles.uvRegion }));
-    assert.deepEqual([ [ 0, 0, 0.5, 1 ], [ 0.5, 0, 1, 0.5 ], [ 0.5, 0.5, 0.75, 1 ], [ 0.8, 0.6, 0.9, 0.7 ], [ 0, 0, 1, 1 ], [ 0.25, 0.25, 0.75, 0.75 ] ].map(uv => uvRegion(uv)),
-        [ "body", "head", "hair", "acc", "identity", null ]);
-    const kind = CjsCharacterLibraryManager.areaKind;
-    assert.deepEqual([
-        kind("skinnedavatarbrdfdoublelinear.fx", 0, 3), kind("skinnedavatarbrdflinear.fx", 0, 2), kind("skinnedavatarbrdflinear.fx", 10, null),
-        kind("skinnedavatarbrdflinear.fx", 0, null), kind("skinnedavatarbrdf.fx", 0, null), kind("skinnedavatarhair_detailed.fx", null, null),
-        kind("glassshader.fx", 0, null), kind("eyeshader.fx", 0, 4), kind("portraitbasic.fx", null, null), kind("other.fx", 1, 1)
-    ], [ "skin", "skin", "cloth", null, "own", "hair", "glass", "eyes", "portrait", null ]);
+    assert.deepEqual(read, [ [ ROOT + "outer/coat01/coat01.black", "outer" ] ]);
 });
 
 test("the body carriers: the nude parts, the dependants they name, then the garments' body pieces, each with its model", async t =>

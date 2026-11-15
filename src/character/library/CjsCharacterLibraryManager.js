@@ -18,6 +18,7 @@ import categoryDefaults from "../factory/defaults/categories.json" with { type: 
 import defaultFemalePaperDoll from "../factory/defaults/defaultFemalePaperDoll.json" with { type: "json" };
 import defaultMalePaperDoll from "../factory/defaults/defaultMalePaperDoll.json" with { type: "json" };
 import sexDefaults from "../factory/defaults/sexes.json" with { type: "json" };
+import areaShaderDefaults from "../factory/defaults/areaShaders.json" with { type: "json" };
 import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCorrections.js";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { PaperDollPaletteKind } from "./characterPalettes.js";
@@ -27,6 +28,33 @@ import { TriBatchType } from "#consts/graphics";
 
 /** The default paper doll of each sex (`defaultPaperDoll`). */
 const defaultPaperDolls = { female: defaultFemalePaperDoll, male: defaultMalePaperDoll };
+
+/**
+ * An area's shader values by name: textures as `res:` paths, parameters as four floats (a float parameter reads x).
+ * @typedef {{ textures: Object<string, string>, parameters: Object<string, number[]> }} CjsCharacterAreaValues
+ */
+
+/**
+ * One area of a model as `FetchModelAreas` answers it.
+ * @typedef {{ batchType: number, name: string, index: number, count: number, shader: string, effect: string,
+ *   region: ?string, setup: CjsCharacterAreaValues }} CjsCharacterModelArea
+ */
+
+/**
+ * One mesh of a model as `FetchModelAreas` answers it.
+ * @typedef {{ name: string, meshIndex: number, geometry: string, areas: CjsCharacterModelArea[] }} CjsCharacterModelMesh
+ */
+
+/**
+ * One area shader rule compiled for lookup: the lists it picks areas by (empty for any) and the parameters it sets.
+ * @typedef {{ categories: string[], batches: string[], regions: string[], parameters: Object<string, number[]> }} CjsCharacterAreaShaderRule
+ */
+
+/**
+ * The area shaders' generic data compiled for lookup (`_AreaShaders`), by shader file name.
+ * @typedef {{ defaultTextures: Object<string, string>, defaultParameters: Object<string, number[]>,
+ *   rules: CjsCharacterAreaShaderRule[] }} CjsCharacterAreaShaderData
+ */
 
 /** Installs, loads, and queries one combined hydrated character library. */
 export class CjsCharacterLibraryManager
@@ -46,6 +74,14 @@ export class CjsCharacterLibraryManager
     _categories = null;
 
     _categoriesGeneration = -1;
+
+    /** The area shaders' generic data in force (`_AreaShaders`), and the install generation it was built for. */
+    _areaShaders = null;
+
+    _areaShadersGeneration = -1;
+
+    /** Each `TriBatchType` value's name, which area shader rules name batches by (`_ResolveAreaValues`). */
+    static _batchNames = Object.fromEntries(Object.entries(TriBatchType).map(([ name, value ]) => [ value, name ]));
 
     /** The indexed paper doll files, sorted, for one install generation (`_PaperDollFiles`). */
     _paperDollFiles = null;
@@ -914,22 +950,27 @@ export class CjsCharacterLibraryManager
      * `BlackReader` builds the objects with `SetDoInitialize(false)`, so nothing loads or binds). Per mesh: its name,
      * its `meshIndex` (Carbon's `Tr2MeshBase` binds a mesh to its geometry by this index, `Tr2MeshBase.cpp:154`, and an
      * area by its index, :283; that is the Incarna-era engine, and whether today's client binds the same way is not
-     * established) and its geometry; per area: its batch type (`TriBatchType`, the list `Tr2MeshBase.GetAreas` gives it
-     * from), name, index, count, shader file, effect name, the x of its
-     * `MaterialLibraryID` and `Material2LibraryID` (null where the effect does not set it), its UV region
-     * (`CjsCharacterTextureRoles.uvRegion` of its `TransformUV0`) and its kind (`areaKind`). A model without meshes (a
-     * beard's bare effect, a `Tr2Effect`) answers none.
+     * established) and its geometry; per area, in the order `Tr2MeshBase.GetAreas` lists them by batch type: its batch
+     * type (`TriBatchType`), name, index, count, shader file, effect name, the atlas region its `TransformUV0` places it
+     * in (`CjsCharacterTextureRoles.placeInRegion`; null for none) and its setup for a part of the given category: the
+     * values `_ResolveAreaValues` resolves from what the area authors, less those the authored effect already holds, so
+     * setting them makes the effect the resolved one. An area without an effect answers an empty shader, effect and
+     * setup. A model without meshes (a beard's bare effect, a `Tr2Effect`) answers none.
      *
      * Ours, as `FetchOptions`.
      *
      * @param {string} path The `.black`'s `res:` path.
-     * @returns {Promise<{ model: string, meshes: Array<{ name: string, meshIndex: number, geometry: string, areas: object[] }> }>}
+     * @param {string} category The category of the part the model belongs to (`topinner`, `hair`).
+     * @returns {Promise<{ model: string, meshes: CjsCharacterModelMesh[] }>}
      *   The areas, the caller's own copy.
-     * @throws {Error} For a model that is neither a `Tr2SkinnedModel` nor a `Tr2Effect`.
+     * @throws {Error} For a model that is neither a `Tr2SkinnedModel` nor a `Tr2Effect`, an area whose shader has no
+     *   generic data (`_ResolveAreaValues`), or one whose resolved value would change a parameter it authors as other
+     *   than a Vector4, or a default would set one it authors as neither a Vector4 nor a float (none in the shipped
+     *   content).
      */
-    FetchModelAreas(path)
+    FetchModelAreas(path, category)
     {
-        return this._Query("model|" + path, async () =>
+        return this._Query("model|" + category + "|" + path, async () =>
         {
             const read = await blue.resMan.ReadResource(path);
             const reader = new BlackReader();
@@ -948,17 +989,42 @@ export class CjsCharacterLibraryManager
                 {
                     for (const area of mesh.GetAreas(batchType))
                     {
-                        const effect = area.effect, parameter = name => effect ? effect.parameters.find(value => value.name === name) ?? null : null;
-                        const x = name => { const value = parameter(name); return value ? value.value[0] : null; };
-                        const uv = parameter("TransformUV0");
-                        const shader = effect ? effect.effectFilePath.slice(effect.effectFilePath.lastIndexOf("/") + 1).toLowerCase() : "";
-                        const materialLibraryID = x("MaterialLibraryID"), material2LibraryID = x("Material2LibraryID");
-                        areas.push({
-                            batchType, name: area.name, index: area.index, count: area.count, shader, effect: effect ? effect.name : "",
-                            materialLibraryID, material2LibraryID,
-                            uv: uv ? CjsCharacterTextureRoles.uvRegion(uv.value) : null,
-                            kind: CjsCharacterLibraryManager.areaKind(shader, materialLibraryID, material2LibraryID)
-                        });
+                        const effect = area.effect;
+                        const record = { batchType, name: area.name, index: area.index, count: area.count, shader: "", effect: "", region: null, setup: { textures: {}, parameters: {} } };
+                        // An area without an effect has nothing to set.
+                        if (!effect) { areas.push(record); continue; }
+                        record.shader = effect.effectFilePath.slice(effect.effectFilePath.lastIndexOf("/") + 1).toLowerCase();
+                        record.effect = effect.name;
+
+                        // What the area authors: its textures' paths, its Vector4 parameters, and its float parameters in
+                        // the Vector4 form Carbon gives a float (`AddParameterFloat`).
+                        const authored = { textures: {}, parameters: {} }, floats = new Set(), others = new Set();
+                        for (const resource of effect.resources)
+                        {
+                            if (CjsSchema.getClassName(resource.constructor) === "TriTextureParameter") authored.textures[resource.name] = resource.resourcePath;
+                        }
+                        for (const parameter of effect.parameters)
+                        {
+                            const className = CjsSchema.getClassName(parameter.constructor);
+                            if (className === "Tr2Vector4Parameter") authored.parameters[parameter.name] = Array.from(parameter.value);
+                            else if (className === "Tr2FloatParameter") { const x = parameter.GetValue(); authored.parameters[parameter.name] = [ x, x, x, x ]; floats.add(parameter.name); }
+                            else others.add(parameter.name);
+                        }
+
+                        // The resolved values the authored effect does not already hold, compared at float precision.
+                        const resolved = this._ResolveAreaValues(record.shader, category, batchType, authored);
+                        const holds = (name, value) => floats.has(name) ? authored.parameters[name][0] === Math.fround(value[0])
+                            : authored.parameters[name] !== undefined && authored.parameters[name].every((component, index) => component === Math.fround(value[index]));
+                        record.region = resolved.region;
+                        record.setup.textures = Object.fromEntries(Object.entries(resolved.textures).filter(([ name, value ]) => authored.textures[name] !== value));
+                        record.setup.parameters = Object.fromEntries(Object.entries(resolved.parameters).filter(([ name, value ]) => !holds(name, value)));
+
+                        // The setup sets Vector4s; one that would change a parameter authored in another form is an error.
+                        for (const name of Object.keys(record.setup.parameters))
+                        {
+                            if (floats.has(name) || others.has(name)) throw new Error("Area " + area.name + " of " + path + " authors " + name + " as other than a Vector4");
+                        }
+                        areas.push(record);
                     }
                 }
                 meshes.push({ name: mesh.name, meshIndex: mesh.meshIndex, geometry: mesh.geometryResPath, areas });
@@ -968,8 +1034,8 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * An option's model and its areas (`FetchModelAreas`): the `.black` (not a `_lodN` one) directly in the option's
-     * first folder that has one (its variation's, then its part's), or none. Of two in a folder, the one named as the
+     * An option's model and its areas (`FetchModelAreas`, set up for the option's category): the `.black` (not a
+     * `_lodN` one) directly in the option's first folder that has one (its variation's, then its part's), or none. Of two in a folder, the one named as the
      * folder. Derived: four folders ship two (build 3670638): female `hair_dreadlocks_01` and `hair_long_01` and male
      * `dependants/ragdoll/ragdollthicktop` (each with a `_nosim` model), and male `outer/jacketcm01_r` (its own and
      * `jacketcm01.black`).
@@ -977,7 +1043,8 @@ export class CjsCharacterLibraryManager
      * Ours, as `FetchOptions`.
      *
      * @param {object} option An option from `FetchOptions`.
-     * @returns {Promise<?{ model: string, meshes: object[] }>} The areas, or null for an option without a model.
+     * @returns {Promise<?{ model: string, meshes: CjsCharacterModelMesh[] }>} The areas, or null for an option without a
+     *   model.
      */
     async FetchOptionAreas(option)
     {
@@ -986,31 +1053,9 @@ export class CjsCharacterLibraryManager
         {
             const models = this._PaperDollFiles(folder).filter(path => path.endsWith(".black") && path.lastIndexOf("/") === folder.length - 1 && !/_lod\d+\.black$/u.test(path));
             const named = folder + folder.slice(0, -1).split("/").at(-1) + ".black";
-            if (models.length) return this.FetchModelAreas(models.includes(named) ? named : models[0]);
+            if (models.length) return this.FetchModelAreas(models.includes(named) ? named : models[0], option.category);
         }
         return null;
-    }
-
-    /**
-     * An area's kind from its shader and material ids. Derived (the content does not name kinds): the roles every
-     * character area takes in build 3670638, found from the shaders and the ids they set: `skin` (a body shader with a
-     * second material id), `cloth` (a body shader with a first id only), `hair`, `glass`, `eyes`, `own` (the full
-     * shader, which samples its own textures), `portrait`; null for anything else.
-     * @param {string} shader The effect's shader file name, lowercase.
-     * @param {?number} materialLibraryID The x of `MaterialLibraryID`, or null where unset.
-     * @param {?number} material2LibraryID The x of `Material2LibraryID`, or null where unset.
-     * @returns {?string} The kind.
-     */
-    static areaKind(shader, materialLibraryID, material2LibraryID)
-    {
-        if (shader === "eyeshader.fx") return "eyes";
-        if (shader === "glassshader.fx") return "glass";
-        if (shader === "portraitbasic.fx") return "portrait";
-        if (shader === "skinnedavatarbrdf.fx") return "own";
-        if (shader.startsWith("skinnedavatarhair")) return "hair";
-        if (shader !== "skinnedavatarbrdflinear.fx" && shader !== "skinnedavatarbrdfdoublelinear.fx") return null;
-        if (material2LibraryID !== null && material2LibraryID > 0) return "skin";
-        return materialLibraryID !== null && materialLibraryID > 0 ? "cloth" : null;
     }
 
     /**
@@ -1151,6 +1196,86 @@ export class CjsCharacterLibraryManager
         const root = CjsCharacterLibraryManager.sexFacts(option.sex).root, source = own ? own.alternativeTextureSourcePath : "";
         const folders = [ ...facts.folders, ...(source ? [ root + source.toLowerCase().replace(/\/?$/u, "/") ] : []), option.folder ];
         return [ ...new Set(folders) ].filter(folder => this._PaperDollFiles(folder).length);
+    }
+
+    /**
+     * The area shaders' generic data in force, by shader file name: the shipped defaults
+     * (`factory/defaults/areaShaders.json`), each replaced by the installed library's generic shader of the same name.
+     * Built once per install, as Carbon compiles its generic data once (`EveSOFDataMgr::GenerateGenericData`,
+     * EveSOFDataMgr.cpp:1892-2103).
+     * @returns {Map<string, CjsCharacterAreaShaderData>}
+     *   The data; not to be changed.
+     */
+    _AreaShaders()
+    {
+        if (this._areaShaders === null || this._areaShadersGeneration !== this._installGeneration)
+        {
+            const parameters = list => Object.fromEntries(list.map(parameter => [ parameter.name, Array.from(parameter.value) ]));
+            // A rule's batch and region names must be ones the areas carry, or the rule would silently pick nothing.
+            const regions = [ "identity", ...Object.keys(CjsCharacterTextureRoles.atlas) ];
+            const known = (shader, kind, names, valid) =>
+            {
+                for (const name of names) if (!valid.includes(name)) throw new Error("Area shader " + shader + " has a rule with an unknown " + kind + " " + name);
+                return [ ...names ];
+            };
+            const compile = shader => ({
+                defaultTextures: Object.fromEntries(shader.defaultTextures.map(texture => [ texture.name, texture.resFilePath ])),
+                defaultParameters: parameters(shader.defaultParameters),
+                rules: shader.rules.map(rule => ({
+                    categories: [ ...rule.categories ],
+                    batches: known(shader.shader, "batch", rule.batches, Object.keys(TriBatchType)),
+                    regions: known(shader.shader, "region", rule.regions, regions),
+                    parameters: parameters(rule.parameters)
+                }))
+            });
+            const shaders = new Map(areaShaderDefaults.shaders.map(shader => [ shader.shader, compile(shader) ]));
+            for (const shader of this._library.generic.areaShaders) shaders.set(shader.shader, compile(shader));
+            this._areaShaders = shaders;
+            this._areaShadersGeneration = this._installGeneration;
+        }
+        return this._areaShaders;
+    }
+
+    /**
+     * One area's values, in the order Carbon resolves a generic shader for an area (`EveSOFDNA::GetGenericAreaShaderData`,
+     * EveSOFDNA.cpp:613-621, applied at EveSOF.cpp:816-883: the hull's values, which the generic defaults do not
+     * replace; ccpwgl's `EveSOFDataGenericShader.Assign` has the same order): the shader's default textures and
+     * parameters (`_AreaShaders`), the values provided for the area over them, `TransformUV0` as the provided rect's
+     * placement in its region (`CjsCharacterTextureRoles.placeInRegion`; ours), then each rule whose lists all hold the
+     * area's part category, batch and region (ours, `CjsCharacterDataShaderRule`). A parameter nobody gives keeps the
+     * compiled shader's own default (Tr2Effect.cpp:1818-1857). The values provided are an authored area's
+     * (`FetchModelAreas`) or a new part's, so both resolve the same way.
+     * @adapted an empty texture path is not provided, so the default fills it: Carbon's `AddResourceTexture2D` keeps an
+     *   empty one (Tr2Effect.cpp:424-439), and the content leaves `FresnelLookupMap` empty on most areas; and the provided
+     *   parameters are not filtered by the shader's `parameters` (EveSOF.cpp:818-826), which the paper doll leaves empty;
+     *   and a shader without generic data throws, failing the whole model, where Carbon logs it and stops building that
+     *   batch type's areas, keeping those already built (EveSOF.cpp:785-790).
+     * @param {string} shader The area's shader file name, lowercase.
+     * @param {string} category The category of the part the area belongs to.
+     * @param {number} batchType The area's `TriBatchType`.
+     * @param {CjsCharacterAreaValues} provided The values given for the area.
+     * @returns {CjsCharacterAreaValues & { region: ?string }} The area's region (null outside every one) and its values;
+     *   the caller's own.
+     * @throws {Error} For a shader without generic data.
+     */
+    _ResolveAreaValues(shader, category, batchType, provided)
+    {
+        const data = this._AreaShaders().get(shader);
+        if (data === undefined) throw new Error("No generic area shader data for " + shader);
+        const given = Object.entries(provided.textures).filter(([ , path ]) => path);
+        const textures = { ...data.defaultTextures, ...Object.fromEntries(given) };
+        const parameters = CjsCharacterLibraryManager.copy({ ...data.defaultParameters, ...provided.parameters });
+
+        const placement = provided.parameters.TransformUV0 ? CjsCharacterTextureRoles.placeInRegion(provided.parameters.TransformUV0) : null;
+        if (placement !== null) parameters.TransformUV0 = placement.transform;
+
+        const batch = CjsCharacterLibraryManager._batchNames[batchType], region = placement ? placement.region : null;
+        const holds = (list, value) => list.length === 0 || list.includes(value);
+        for (const rule of data.rules)
+        {
+            if (holds(rule.categories, category) && holds(rule.batches, batch) && holds(rule.regions, region)) Object.assign(parameters, CjsCharacterLibraryManager.copy(rule.parameters));
+        }
+        return { region, textures, parameters };
     }
 
     /**
