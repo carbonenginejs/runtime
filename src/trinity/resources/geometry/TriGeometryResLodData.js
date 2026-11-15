@@ -83,7 +83,7 @@ CjsSchema.decorateField(TriGeometryResLodData, "maxScreenSize", type.float32);
 CjsSchema.decorateField(TriGeometryResLodData, "vertexCount", type.uint32);
 CjsSchema.decorateField(TriGeometryResLodData, "primitiveCount", type.uint32);
 CjsSchema.decorateField(TriGeometryResLodData, "uvDensities", type.float32.array());
-CjsSchema.decorateField(TriGeometryResLodData, "areas", type.array("TriGeometryResAreaData"));
+CjsSchema.decorateField(TriGeometryResLodData, "areas", type.object.embed.array("TriGeometryResAreaData"));
 CjsSchema.decorateField(TriGeometryResLodData, "allocationsValid", type.boolean);
 CjsSchema.decorateField(TriGeometryResLodData, "vertexAllocation", type.object.embed("Tr2SuballocatedBufferAllocation"));
 CjsSchema.decorateField(TriGeometryResLodData, "indexAllocation", type.object.embed("Tr2SuballocatedBufferAllocation"));

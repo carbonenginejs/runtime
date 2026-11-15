@@ -52,7 +52,7 @@ export class FollowASpline extends IRoot
 {
 
   /** Flattened CPU tunnel references used by the behavior system. */
-  @type.array("SplineTunnel")
+  @type.object.weak.array("SplineTunnel")
   privateTunnels = [];
 
   @type.boolean

@@ -18,19 +18,19 @@ export class Tr2MaterialStageInput
   sharedBufferKey = null;
 
   /** m_shaderParameters (Tr2EffectParamVector) */
-  @type.array("Tr2EffectParam")
+  @type.object.embed.array("Tr2EffectParam")
   shaderParameters = [];
 
   /** m_shaderParametersWithNotification (Tr2EffectParamVector) */
-  @type.array("Tr2EffectParam")
+  @type.object.embed.array("Tr2EffectParam")
   shaderParametersWithNotification = [];
 
   /** m_textures (Tr2EffectParamVector) */
-  @type.array("Tr2EffectParam")
+  @type.object.embed.array("Tr2EffectParam")
   textures = [];
 
   /** m_uavs (Tr2EffectParamVector) */
-  @type.array("Tr2EffectParam")
+  @type.object.embed.array("Tr2EffectParam")
   uavs = [];
 
   /** m_constantBuffer (Tr2ConstantBufferAL, Shader/Tr2Material.h:98), by value; invalid until the first apply creates it. */

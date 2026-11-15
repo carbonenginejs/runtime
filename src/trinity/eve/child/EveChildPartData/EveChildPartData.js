@@ -35,7 +35,7 @@ export class EveChildPartData extends EveSpaceObjectChild
   race = "";
 
   @meta.mapAttribute(meta.PERSIST)
-  @type.array("EveChildPartData::PartData")
+  @type.object.embed.array("EveChildPartData::PartData")
   parts = [];
 
   /** Returns the first monotonically available positive Carbon part tag. */

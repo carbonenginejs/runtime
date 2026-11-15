@@ -109,7 +109,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   hazes = new BlueList(EveHazeSetItem, { className: "EveHazeSetItem" });
 
   @meta.mapAttribute(meta.PERSIST)
-  @type.array("EveHazeSetLight")
+  @type.object.embed.array("EveHazeSetLight")
   lights = [];
 
   _rebuildRevision = 0;

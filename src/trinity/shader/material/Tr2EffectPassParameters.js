@@ -12,11 +12,11 @@ export class Tr2EffectPassParameters
 {
 
   /** m_stageInput (Tr2MaterialStageInput) */
-  @type.array({ kind: "rawStruct", className: "Tr2MaterialStageInput" })
+  @type.object.embed.array("Tr2MaterialStageInput", 6)
   stageInput = Array.from({ length: 6 }, () => new Tr2MaterialStageInput());
 
   /** m_reroutedParameters (std::vector<ITriReroutable*>) */
-  @type.array("ITriReroutable")
+  @type.object.weak.array("ITriReroutable")
   reroutedParameters = [];
 
   // TWO DIFFERENT OBJECTS USED TO SHARE THIS NAME, and the field held the
@@ -43,7 +43,7 @@ export class Tr2EffectPassParameters
   resourceSet = new Tr2ResourceSetAL();
 
   /** m_usedResources (std::vector<ITr2EffectValuePtr>) */
-  @type.array("ITr2EffectValue")
+  @type.object.ref.array("ITr2EffectValue")
   usedResources = [];
 
   /** m_usedTextures (Tr2BindlessResourcesAL) */

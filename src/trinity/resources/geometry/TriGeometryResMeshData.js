@@ -49,7 +49,7 @@ CjsSchema.decorateField(TriGeometryResMeshData, "bytesPerVertex", type.uint32);
 CjsSchema.decorateField(TriGeometryResMeshData, "minBounds", type.vec3);
 CjsSchema.decorateField(TriGeometryResMeshData, "maxBounds", type.vec3);
 CjsSchema.decorateField(TriGeometryResMeshData, "boundingSphere", type.vec4);
-CjsSchema.decorateField(TriGeometryResMeshData, "jointBindings", type.array("TriJointBinding"));
+CjsSchema.decorateField(TriGeometryResMeshData, "jointBindings", type.object.embed.array("TriJointBinding"));
 CjsSchema.decorateField(TriGeometryResMeshData, "audioGeometry", type.object.embed("AudioGeometryResData"));
 CjsSchema.decorateField(TriGeometryResMeshData, "decals", type.array("MeshDecalData"));
 CjsSchema.decorateField(TriGeometryResMeshData, "lodMask", type.uint32);

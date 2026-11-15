@@ -80,7 +80,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   name = "";
 
   @meta.mapAttribute(meta.PERSIST)
-  @type.array("EveSpriteLight")
+  @type.object.embed.array("EveSpriteLight")
   lights = [];
 
   _rebuildRevision = 0;

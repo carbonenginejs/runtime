@@ -58,15 +58,15 @@ export class Tr2Material extends IRoot
   shader = null;
 
   /** m_parametersForPasses (Tr2EffectTechniqueParametersVector) */
-  @type.array("Tr2EffectTechniqueInputs")
+  @type.object.embed.array("Tr2EffectTechniqueInputs")
   parametersForPasses = [];
 
   /** m_parametersForLibraries (Tr2EffectTechniqueParametersVector) */
-  @type.array("Tr2EffectTechniqueInputs")
+  @type.object.embed.array("Tr2EffectTechniqueInputs")
   parametersForLibraries = [];
 
   /** m_lodTextureParameters (std::vector<ITriEffectTextureParameterPtr>) */
-  @type.array("ITriEffectTextureParameter")
+  @type.object.ref.array("ITriEffectTextureParameter")
   lodTextureParameters = [];
 
   /** m_resourceSetHash (mutable uint32_t) */

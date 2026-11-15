@@ -56,7 +56,7 @@ export class EveSOFDataArea extends IRoot
    * m_materials: one area material per AreaType, or null.
    * @type {Array<EveSOFDataAreaMaterial|null>}
    */
-  @type.array({ kind: "rootRef", className: "EveSOFDataAreaMaterial" })
+  @type.object.ref.array("EveSOFDataAreaMaterial", AreaType.TYPE_MAX)
   materials = new Array(AreaType.TYPE_MAX).fill(null);
 }
 

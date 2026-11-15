@@ -10,7 +10,7 @@ export class DecalMeshCache
 {
 
   /** buffers (std::vector<MeshBuffers>) */
-  @type.array("DecalMeshCache::MeshBuffers")
+  @type.object.embed.array("DecalMeshCache::MeshBuffers")
   buffers = [];
 
   static MeshBuffers = DecalMeshCacheMeshBuffers;

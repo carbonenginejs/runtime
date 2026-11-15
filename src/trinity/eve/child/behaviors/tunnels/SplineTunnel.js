@@ -17,7 +17,7 @@ export class SplineTunnel
   tunnelGroupType = 0;
 
   /** splinePoints (std::vector<SplineTunnelPoint>) */
-  @type.array("SplineTunnelPoint")
+  @type.object.embed.array("SplineTunnelPoint")
   splinePoints = [];
 
   /** cylWidth (float) */

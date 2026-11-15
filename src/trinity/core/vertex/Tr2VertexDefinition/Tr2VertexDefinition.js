@@ -321,7 +321,7 @@ export class Tr2VertexDefinition
   }
 }
 
-CjsSchema.decorateField(Tr2VertexDefinition, "items", type.array(Tr2VertexDefinitionItem));
+CjsSchema.decorateField(Tr2VertexDefinition, "items", type.object.embed.array(Tr2VertexDefinitionItem));
 CjsSchema.decorateField(Tr2VertexDefinition, "nextOffset", type.uint32.array(4));
 // States: empty is Tr2VertexDefinition.h:145-148. Add, Find and Find__UsageIndex are adapted against Tr2VertexDefinition.cpp:64-94: usage
 // accepts a name as well as the code, and Add advances the offset ledger for any stream where Carbon skips streams past OFFSET_COUNT.

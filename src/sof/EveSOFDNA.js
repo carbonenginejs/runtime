@@ -60,7 +60,7 @@ export class EveSOFDNA extends IRoot
   @type.object.ref.weak("EveSOFDataMgr")
   dataMgr = null;
 
-  @type.array("EveSOFDataMgr::HullData")
+  @type.object.weak.array("EveSOFDataMgr::HullData")
   hullDatas = [];
 
   @type.object.weak("EveSOFDataMgr::FactionData")
@@ -75,7 +75,7 @@ export class EveSOFDNA extends IRoot
   @type.object.weak("EveSOFDataMgr::PatternData")
   patternData = null;
 
-  @type.array("EveSOFDataMgr::LayoutData")
+  @type.object.weak.array("EveSOFDataMgr::LayoutData")
   layoutData = [];
 
   @type.array("EveSOFDataMgr::HullData")

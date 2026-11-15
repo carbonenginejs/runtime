@@ -74,7 +74,7 @@ export class EveTrailsSet
    * and building a trail set from values reads it back.
    */
   @meta.mapAttribute(meta.PERSISTONLY)
-  @type.array("EveTrailsSet::SingleTrailData")
+  @type.object.embed.array("EveTrailsSet::SingleTrailData")
   trailData = [];
 
   /** m_trailVertexDecl: the trail mesh's elements plus the instance float4. */

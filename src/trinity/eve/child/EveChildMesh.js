@@ -183,7 +183,7 @@ export class EveChildMesh extends EveChildTransform
   // Carbon sets these two programmatically from SOF (EveSOF.cpp:3971-3972);
   // CarbonEngineJS delivers built objects as documents, so both persist.
   @meta.mapAttribute(meta.PERSIST)
-  @type.array("EveLocatorSets")
+  @type.object.ref.array("EveLocatorSets")
   ownedLocatorSets = [];
 
   @meta.mapAttribute(meta.PERSIST)

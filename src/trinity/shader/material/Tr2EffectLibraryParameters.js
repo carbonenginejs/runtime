@@ -31,11 +31,11 @@ export class Tr2EffectLibraryParameters
   globalResourceSet = new Tr2ResourceSetAL();
 
   /** m_reroutedParameters (std::vector<ITriReroutable*>) */
-  @type.array("ITriReroutable")
+  @type.object.weak.array("ITriReroutable")
   reroutedParameters = [];
 
   /** m_usedResources (std::vector<ITr2EffectValuePtr>) */
-  @type.array("ITr2EffectValue")
+  @type.object.ref.array("ITr2EffectValue")
   usedResources = [];
 
   /** m_usedTextures (Tr2BindlessResourcesAL) */

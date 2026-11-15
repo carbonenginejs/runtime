@@ -33,7 +33,7 @@ export class EveInstancedMeshManagerInstanceBuffer
   _buffer = null;
 
   /** regions (std::vector<Region>, private). */
-  @type.array("EveInstancedMeshManager::InstanceBuffer::Region")
+  @type.object.embed.array("EveInstancedMeshManager::InstanceBuffer::Region")
   _regions = [];
 
   /** retiredBuffers (std::vector<std::unique_ptr<Tr2BufferAL>>, private): replaced buffers kept alive until the next trim. */

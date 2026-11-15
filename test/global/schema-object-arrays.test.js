@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { transformSync } from "@babel/core";
+import decoratorsPlugin from "@babel/plugin-proposal-decorators";
 
 import { blue } from "../../src/blue/index.js";
 import { CjsBlueGraph } from "../../src/blue/formats/graph/index.js";
@@ -11,7 +13,7 @@ import { VARTYPE } from "../../src/global/consts/blue.js";
 import { exposure as be } from "#be";
 
 // A ported std::vector of objects says how it holds each item, as the C++ element type does:
-// `std::vector<X>` is `type.object.embed("X").array()`, a vector of counted pointers `ref`, of raw pointers `weak`.
+// `std::vector<X>` is `type.object.embed.array("X")`, a vector of counted pointers `ref`, of raw pointers `weak`.
 
 CjsBlueGraph.register(blue.classes);
 
@@ -32,11 +34,11 @@ class ObjectArrayOwner
   fixed = [];
 }
 CjsSchema.define(ObjectArrayOwner, { name: "ObjectArrayOwner", fields: {
-  embedded: [ type.object.embed("ObjectArrayItem").array(), CjsSchema.meta.mapAttribute(be.PERSIST) ],
-  counted: [ type.object.ref("ObjectArrayItem").array(), CjsSchema.meta.mapAttribute(be.PERSIST) ],
-  uncounted: [ type.object.ref.weak("ObjectArrayItem").array(), CjsSchema.meta.mapAttribute(be.PERSIST) ],
-  raw: [ type.object.weak("ObjectArrayItem").array(), CjsSchema.meta.mapAttribute(be.PERSIST) ],
-  fixed: [ type.object.embed("ObjectArrayItem").array(3), CjsSchema.meta.mapAttribute(be.PERSIST) ]
+  embedded: [ type.object.embed.array("ObjectArrayItem"), CjsSchema.meta.mapAttribute(be.PERSIST) ],
+  counted: [ type.object.ref.array("ObjectArrayItem"), CjsSchema.meta.mapAttribute(be.PERSIST) ],
+  uncounted: [ type.object.ref.weak.array("ObjectArrayItem"), CjsSchema.meta.mapAttribute(be.PERSIST) ],
+  raw: [ type.object.weak.array("ObjectArrayItem"), CjsSchema.meta.mapAttribute(be.PERSIST) ],
+  fixed: [ type.object.embed.array("ObjectArrayItem", 3), CjsSchema.meta.mapAttribute(be.PERSIST) ]
 } });
 
 const declared = name => CjsSchema.getSchema(ObjectArrayOwner).members.find(member => member.name === name).type;
@@ -51,11 +53,28 @@ test("an object type's array declares an array whose item is that object type", 
   assert.deepEqual(declared("fixed"), { kind: "array", itemType: { kind: "root", className: "ObjectArrayItem" }, length: 3 });
 });
 
-test("an object type's array is a factory: used bare it throws, and a count is a positive integer", () =>
+test("an object type's array is a call: used bare it throws, and a count is a positive integer", () =>
 {
   class Bare { items = []; }
-  assert.throws(() => CjsSchema.decorateField(Bare, "items", type.object.embed("ObjectArrayItem").array), /array\(\) or \.array\(length\)/);
-  assert.throws(() => type.object.ref("ObjectArrayItem").array(0), /positive integer/);
+  assert.throws(() => CjsSchema.decorateField(Bare, "items", type.object.embed.array), /array\(className\)/);
+  assert.throws(() => type.object.ref.array("ObjectArrayItem", 0), /positive integer/);
+});
+
+test("an object type's array is written as a decorator, its one call last", async () =>
+{
+  // A decorator may end in only one call, so the class goes to `array`.
+  const schemaUrl = new URL("../../src/blue/schema/index.js", import.meta.url).href;
+  const source = `import { CjsSchema, type } from ${JSON.stringify(schemaUrl)};
+export class Decorated
+{
+  @type.object.embed.array("ObjectArrayItem", 2)
+  items = [];
+}
+CjsSchema.define(Decorated, { name: "ObjectArrayDecorated" });`;
+  const code = transformSync(source, { configFile: false, babelrc: false, plugins: [ [ decoratorsPlugin, { version: "2023-11" } ] ] }).code;
+  const { Decorated } = await import(`data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+  assert.deepEqual(CjsSchema.getSchema(Decorated).members.find(member => member.name === "items").type,
+    { kind: "array", itemType: { kind: "root", className: "ObjectArrayItem" }, length: 2 });
 });
 
 test("the graph holds each item as its object type does", () =>

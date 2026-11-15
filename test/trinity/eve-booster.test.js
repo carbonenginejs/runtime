@@ -93,8 +93,9 @@ test("EveBoosterSet2 builds Carbon booster, glow, trail, light, and bounds CPU d
   boosters.Add(mat4.fromTranslation(mat4.create(), [-10, 0, 0]), [0, 1, 1, 1], false, 0, 0, 1);
   transform[12] = 999;
 
-  assert.equal(CjsSchema.getField(EveBoosterSet2, "_singleBoosters")?.type.itemType, "EveBoosterSet2::SingleBoosterData");
-  assert.equal(CjsSchema.getField(EveTrailsSet, "trailData")?.type.itemType, "EveTrailsSet::SingleTrailData");
+  // Carbon: std::vector<SingleBoosterData> m_singleBoosters (EveBoosterSet2.h:284), held by value.
+  assert.deepEqual(CjsSchema.getField(EveBoosterSet2, "_singleBoosters")?.type.itemType, { kind: "root", className: "EveBoosterSet2::SingleBoosterData" });
+  assert.deepEqual(CjsSchema.getField(EveTrailsSet, "trailData")?.type.itemType, { kind: "root", className: "EveTrailsSet::SingleTrailData" });
   assert.equal(boosters._singleBoosters[0] instanceof EveBoosterSet2SingleBoosterData, true);
   assert.equal(trails.trailData[0] instanceof EveTrailsSetSingleTrailData, true);
 

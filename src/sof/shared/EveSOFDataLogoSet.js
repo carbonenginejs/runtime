@@ -43,7 +43,7 @@ export class EveSOFDataLogoSet extends IRoot
    * m_logos: one logo per LogoType, or null.
    * @type {Array<EveSOFDataLogo|null>}
    */
-  @type.array({ kind: "rootRef", className: "EveSOFDataLogo" })
+  @type.object.ref.array("EveSOFDataLogo", LogoType.TYPE_MAX)
   logos = new Array(LogoType.TYPE_MAX).fill(null);
 
   /**

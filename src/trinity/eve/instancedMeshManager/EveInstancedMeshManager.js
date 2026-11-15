@@ -280,7 +280,7 @@ export class EveInstancedMeshManager
   _perObjectData = [];
 
   /** m_sphereGroups (std::vector<SphereGroup>, h:287). */
-  @type.array("EveInstancedMeshManager::SphereGroup")
+  @type.object.embed.array("EveInstancedMeshManager::SphereGroup")
   _sphereGroups = [];
 
   /** m_perObjectDataBuffer (Tr2GpuStructuredBufferPtr, h:288): created on the first frame with per-object data. */

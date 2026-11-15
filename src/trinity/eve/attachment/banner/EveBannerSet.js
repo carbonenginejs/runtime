@@ -98,7 +98,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   key = 0;
 
   @meta.mapAttribute(meta.PERSIST)
-  @type.array("EveBannerLight")
+  @type.object.embed.array("EveBannerLight")
   lights = [];
 
   // SOF-authored primary banner texture parameter; persisted so the values

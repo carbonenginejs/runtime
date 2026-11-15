@@ -117,7 +117,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   intensity = 1;
 
   @meta.mapAttribute(meta.PERSIST)
-  @type.array("EveSpotlightLight")
+  @type.object.embed.array("EveSpotlightLight")
   lights = [];
 
   _rebuildRevision = 0;

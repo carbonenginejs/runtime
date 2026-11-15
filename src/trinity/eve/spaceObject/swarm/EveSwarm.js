@@ -82,7 +82,7 @@ export class EveSwarm extends EveShip2
 {
 
   /** CPU SwarmVehicle state; live draw resources remain renderer-owned. */
-  @type.array("SwarmVehicle")
+  @type.object.embed.array("SwarmVehicle")
   vehicles = [];
 
   @type.list("EveSwarmRenderable")
