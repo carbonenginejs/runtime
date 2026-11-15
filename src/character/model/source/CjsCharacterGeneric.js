@@ -81,7 +81,7 @@ export class CjsCharacterGeneric
 
     /**
      * Paper doll category rules, one per category path `name`, each overriding the shipped default of that name
-     * (`factory/defaults/categories.json`). Empty: the defaults are in force.
+     * (`factory/defaults/generic.js`). Empty: the defaults are in force.
      */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterDataCategory")
@@ -89,7 +89,7 @@ export class CjsCharacterGeneric
 
     /**
      * Area shaders' generic data, each overriding the shipped default for the same shader
-     * (`factory/defaults/areaShaders.json`). Empty: the defaults are in force.
+     * (`factory/defaults/generic.js`). Empty: the defaults are in force.
      */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterDataShader")
@@ -97,7 +97,7 @@ export class CjsCharacterGeneric
 
     /**
      * Each character sex's resource facts, one per sex `name`, each replacing the shipped default of that sex
-     * (`factory/defaults/sexes.json`). Empty: the defaults are in force.
+     * (`factory/defaults/generic.js`). Empty: the defaults are in force.
      */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterDataSex")
@@ -105,7 +105,7 @@ export class CjsCharacterGeneric
 
     /**
      * The name rule that gives an archetype's bloodline from the head that depends on it, replacing the shipped
-     * default (`factory/defaults/bloodlines.json`, which says what each rule does). Empty: the default is in force.
+     * default (`factory/defaults/generic.js`, which says what each rule does). Empty: the default is in force.
      */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
@@ -113,7 +113,7 @@ export class CjsCharacterGeneric
 
     /**
      * The name rule that gives the morph target an archetype drives, replacing the shipped default
-     * (`factory/defaults/bloodlines.json`). Empty: the default is in force.
+     * (`factory/defaults/generic.js`). Empty: the default is in force.
      */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.string
@@ -122,7 +122,7 @@ export class CjsCharacterGeneric
     /**
      * The paper doll texture tables (`CjsCharacterTextureRoles`): the five members below are one set. An installed
      * library that holds texture roles (`textureRoles` not empty) replaces the shipped set whole
-     * (`factory/defaults/textureRoles.json`, which says what each value means). Empty: the defaults are in force.
+     * (`factory/defaults/generic.js`, which says what each value means). Empty: the defaults are in force.
      */
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.list("CjsCharacterDataTextureRole")

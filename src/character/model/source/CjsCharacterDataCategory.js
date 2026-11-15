@@ -3,7 +3,7 @@ import { meta, type } from "#schema";
 /**
  * One paper doll category's rules: how the parts library finds its options, maps, palettes and colour areas. The
  * generic holds these in a list keyed by `name`, the category path (`CjsCharacterGeneric.categories`); the shipped
- * defaults are `factory/defaults/categories.json`, which also says what each value means. An empty rule is no rule.
+ * defaults are `factory/defaults/generic.js`, which also says what each value means. An empty rule is no rule.
  *
  * Modelled on: EveSOFDataGenericHullCategory (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:2317-2334)
  * Carbon's holds only a category name (`name`, Carbon's `m_categoryName`) and a reflection mode, so every other field

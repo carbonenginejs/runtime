@@ -5,7 +5,7 @@ import "./CjsCharacterDataNamedValue.js";
 /**
  * One paper doll texture role: what a map whose name ends in a suffix is (`CjsCharacterTextureRoles.lookup`). The
  * generic holds these in a list keyed by `name` (`CjsCharacterGeneric.textureRoles`); the shipped defaults are
- * `factory/defaults/textureRoles.json`, which says what each value means and cites each entry's sources.
+ * `factory/defaults/generic.js`, which says what each value means and cites each entry's sources.
  *
  * Ours (no Carbon counterpart): Carbon ships no paper doll, and the client's is Python.
  */

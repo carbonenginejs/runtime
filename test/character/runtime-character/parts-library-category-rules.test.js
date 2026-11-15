@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { CjsCharacterDataCategory, CjsCharacterGeneric, CjsCharacterLibrary, CjsCharacterLibraryManager } from "../../../npm/dist/character/index.js";
 import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
 import { CjsGraph } from "../../../npm/dist/global/model/graph/CjsGraph.js";
-import categoryFile from "../../../npm/dist/character/factory/defaults/categories.json.js";
+import genericDefaults from "../../../npm/dist/character/factory/defaults/generic.js";
 import { CjsCharacterTextureRoles } from "../../../npm/dist/character/library/CjsCharacterTextureRoles.js";
 import { BluePaths, BlueResMan, BlueResFileSystemRemote, RemoteFileCache } from "../../../npm/dist/blue/index.js";
 import { installBlueServices } from "../../../npm/dist/blue/blue.js";
@@ -210,12 +210,10 @@ test("beards: maps from the variation folder else the style's, every style's def
     assert.deepEqual(await library.FetchColorAreas(fiveoc), [], "a baked style paints no colour areas");
 });
 
-test("the shipped categories are records built from categories.json, every field carried", () =>
+test("the shipped categories are records built from the shipped generic, every field carried", () =>
 {
-    const { description, ...values } = categoryFile;
-    const shipped = CjsGraph.from(CjsCharacterGeneric, values).categories;
+    const shipped = CjsGraph.from(CjsCharacterGeneric, genericDefaults).categories;
     assert.equal(CjsSchema.getClassName(shipped[0].constructor), "CjsCharacterDataCategory", "the file is in the generic's own shape");
-    assert.equal(typeof description, "string");
     const rules = new CjsCharacterLibraryManager().GetCategoryRules();
     assert.equal(rules.size, 45);
     assert.deepEqual(rules.get("makeup/eyelashes"), { options: "type", maps: "composed", palettes: "own", areas: "zone",

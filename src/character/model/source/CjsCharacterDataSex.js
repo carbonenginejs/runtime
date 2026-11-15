@@ -4,7 +4,7 @@ import "./CjsCharacterDataParameterFloat.js";
 
 /**
  * One character sex's resource facts. The generic holds these in a list keyed by `name` (`CjsCharacterGeneric.sexes`),
- * as Carbon's generic holds its named items in vectors; the shipped defaults are `factory/defaults/sexes.json`, which
+ * as Carbon's generic holds its named items in vectors; the shipped defaults are `factory/defaults/generic.js`, which
  * also says what each value means.
  *
  * Ours (no Carbon counterpart): Carbon's generic has no per-sex section, and the client's paper doll is Python.

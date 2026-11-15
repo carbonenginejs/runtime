@@ -1,5 +1,5 @@
 // The generic head's eye-wet effect is borrowed from a baked character-select model (a workaround the library holds as
-// data: sexes.json eyeWetReference, eyeWetMesh); the library names the two areas, and fails when either is missing.
+// data: the generic's sexes, eyeWetReference and eyeWetMesh); the library names the two areas, and fails when either is missing.
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsCharacterLibraryManager } from "../../../npm/dist/character/index.js";

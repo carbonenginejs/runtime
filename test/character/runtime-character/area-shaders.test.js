@@ -1,4 +1,4 @@
-// Character area shaders are library data with a default (factory/defaults/areaShaders.json), in the shape of Carbon's
+// Character area shaders are library data with a default (factory/defaults/generic.js), in the shape of Carbon's
 // EveSOFDataGenericShader. The library resolves an area's values: its shader's defaults, the values provided for the
 // area over them (an authored area's, or a new part's), its placement in its atlas region, and the rules that pick it.
 // For an authored area it answers what the effect does not already hold; the paper doll sets that
@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { CjsCharacterDataParameter, CjsCharacterDataShader, CjsCharacterGeneric, CjsCharacterLibraryManager, CjsPaperDollInstance } from "../../../npm/dist/character/index.js";
 import { CjsGraph } from "../../../npm/dist/global/model/graph/CjsGraph.js";
 import { CjsSchema } from "../../../npm/dist/blue/schema/index.js";
-import areaShaderFile from "../../../npm/dist/character/factory/defaults/areaShaders.json.js";
+import genericDefaults from "../../../npm/dist/character/factory/defaults/generic.js";
 import { CjsCharacterTextureRoles } from "../../../npm/dist/character/library/CjsCharacterTextureRoles.js";
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
 import { Tr2Effect } from "../../../npm/dist/trinity/index.js";
@@ -190,9 +190,7 @@ test("applying a setup sets each texture and each parameter as a Vector4, over t
 
 test("the shipped area shaders are in the generic's own shape, built into records by the graph", () =>
 {
-    const { description, ...values } = areaShaderFile;
-    const shipped = CjsGraph.from(CjsCharacterGeneric, values).areaShaders;
-    assert.equal(typeof description, "string");
+    const shipped = CjsGraph.from(CjsCharacterGeneric, genericDefaults).areaShaders;
     assert.deepEqual(shipped.map(shader => CjsSchema.getClassName(shader.constructor)), shipped.map(() => "CjsCharacterDataShader"));
     assert.ok(shipped.some(shader => shader.shader === "skinnedavatarbrdf.fx"), "the generic head's shader is shipped");
 });

@@ -7,7 +7,7 @@ import "./CjsCharacterDataShaderRule.js";
 /**
  * One area shader's generic data: the parameters it takes, the textures and parameters every area drawn with it
  * starts from, and the rules that set more on some of its areas. The generic holds these in `areaShaders`; the
- * shipped defaults are `factory/defaults/areaShaders.json`.
+ * shipped defaults are `factory/defaults/generic.js`.
  *
  * Modelled on: EveSOFDataGenericShader (trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h:2224-2247)
  * Carbon's `m_transparencyTextureName` and `m_doGenerateDepthArea` serve the SOF's depth areas, which the paper doll

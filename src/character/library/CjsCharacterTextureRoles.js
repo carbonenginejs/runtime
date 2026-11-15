@@ -3,7 +3,7 @@ import { meta } from "#schema";
 /**
  * The paper doll texture tables in force, as `CjsCharacterLibraryManager.GetTextureRoles` answers them (the generic's
  * `textureRoles`, `textureRegions`, `textureAtlas`, `textureAtlasTolerance` and `textureGarmentMaps`; the shipped
- * `factory/defaults/textureRoles.json` says what each value means):
+ * `factory/defaults/generic.js` says what each value means):
  * - `regions`: the regions a file name can carry;
  * - `atlas`: the character atlas's regions as an area's `TransformUV0` places them, [u0, v0, u1, v1] by region;
  * - `atlasTolerance`: how far an authored rect may lie outside a region and still be placed in it;
@@ -45,7 +45,7 @@ const TEXTURE_TIERS = [ [ "4k", "_4k" ], [ "2k", "" ], [ "512", "_512" ], [ "256
  *
  * The parts library's one texture-role reader (character-structure-and-plugins.md, "One role per manager": the parts
  * library is the only code that parses content paths). The tables are the library's data, the generic's texture
- * members over the shipped `factory/defaults/textureRoles.json`: a caller passes the set in force
+ * members over the shipped `factory/defaults/generic.js`: a caller passes the set in force
  * (`CjsCharacterLibraryManager.GetTextureRoles`). The map size tiers and the `characterTextureQuality` setting live
  * here.
  *

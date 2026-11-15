@@ -14,15 +14,11 @@ import { CjsCharacterTextureRoles } from "./CjsCharacterTextureRoles.js";
 import morphCorrectionDefaults from "../factory/defaults/morphCorrections.json" with { type: "json" };
 import bodyCarrierDefaults from "../factory/defaults/bodyCarriers.json" with { type: "json" };
 import meshDependantDefaults from "../factory/defaults/meshDependants.json" with { type: "json" };
-import categoryDefaults from "../factory/defaults/categories.json" with { type: "json" };
+import genericDefaults from "../factory/defaults/generic.js";
 import partCategoryDefaults from "../factory/defaults/partCategories.json" with { type: "json" };
 import defaultFemalePaperDoll from "../factory/defaults/defaultFemalePaperDoll.json" with { type: "json" };
 import defaultMalePaperDoll from "../factory/defaults/defaultMalePaperDoll.json" with { type: "json" };
 import { LOADOBJECT_INIT_FLAG } from "#consts/blue";
-import sexDefaults from "../factory/defaults/sexes.json" with { type: "json" };
-import bloodlineDefaults from "../factory/defaults/bloodlines.json" with { type: "json" };
-import textureRoleDefaults from "../factory/defaults/textureRoles.json" with { type: "json" };
-import areaShaderDefaults from "../factory/defaults/areaShaders.json" with { type: "json" };
 import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCorrections.js";
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { PaperDollPaletteKind } from "./characterPalettes.js";
@@ -62,7 +58,7 @@ const defaultPaperDolls = { female: defaultFemalePaperDoll, male: defaultMalePap
  */
 
 /**
- * One paper doll category's rules in force (`factory/defaults/categories.json` says what each value means).
+ * One paper doll category's rules in force (`factory/defaults/generic.js` says what each value means).
  * @typedef {{ options: (""|"type"|"folder"|"self"), maps: (""|"name"|"composed"|"variation"|"accessory"|"catalog"|"garment"),
  *   palettes: (""|"own"|"shared"|"variant"|"folders"|"styles"), areas: (""|"zone"|"detail"|"count"|"stated"|"none"),
  *   defaultColors: number[][], requiresModel: boolean, skipPatternedPalettes: boolean }} CjsCharacterCategoryRule
@@ -129,6 +125,9 @@ export class CjsCharacterLibraryManager
     _sexes = null;
 
     _sexesGeneration = -1;
+
+    /** The shipped generic (`_ShippedGeneric`), built once. */
+    _shippedGeneric = null;
 
     /**
      * Reads one flat kind through its lazy Blue loader when present.
@@ -1062,7 +1061,7 @@ export class CjsCharacterLibraryManager
      * @returns {Promise<{ head: CjsCharacterEyeWetArea, reference: CjsCharacterEyeWetArea }>} The two areas, the
      *   caller's own copy.
      * @throws {Error} For a reference that is not a `Tr2IntSkinnedObject`, a model without exactly one area the borrow
-     *   names, or a reference mesh whose name is not unique. `sexes.json` must give every sex its `eyeWetReference`
+     *   names, or a reference mesh whose name is not unique. The generic's sexes must give every sex its `eyeWetReference`
      *   and `eyeWetMesh`.
      */
     FetchEyeWet(sex)
@@ -1268,7 +1267,7 @@ export class CjsCharacterLibraryManager
 
     /**
      * The area shaders' generic data in force, by shader file name: the shipped defaults
-     * (`factory/defaults/areaShaders.json`, in the generic's own shape, built into `CjsCharacterDataShader` objects by
+     * (`factory/defaults/generic.js`, in the generic's own shape, built into `CjsCharacterDataShader` objects by
      * the graph), each replaced by the installed library's generic shader of the same name, through one compiler.
      * Built once per install, as Carbon compiles its generic data once (`EveSOFDataMgr::GenerateGenericData`,
      * EveSOFDataMgr.cpp:1892-2103).
@@ -1297,7 +1296,7 @@ export class CjsCharacterLibraryManager
                     parameters: parameters(rule.parameters)
                 }))
             });
-            const shipped = CjsGraph.from(CjsCharacterGeneric, CjsCharacterLibraryManager._shippedValues(areaShaderDefaults));
+            const shipped = this._ShippedGeneric();
             const shaders = new Map();
             for (const shader of [ ...shipped.areaShaders, ...this._library.generic.areaShaders ]) shaders.set(shader.shader, compile(shader));
             this._areaShaders = shaders;
@@ -1350,7 +1349,7 @@ export class CjsCharacterLibraryManager
 
     /**
      * The paper doll category rules in force, by category path below the sex's paper doll root (`_Categories`): the
-     * shipped defaults (`factory/defaults/categories.json`, which says what each value means) with the installed
+     * shipped defaults (`factory/defaults/generic.js`, which says what each value means) with the installed
      * library's generic categories over them. An empty rule is no rule.
      *
      * Ours, as `FetchOptions`.
@@ -1362,7 +1361,7 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * The paper doll category rules in force, by category path: the shipped defaults (`factory/defaults/categories.json`,
+     * The paper doll category rules in force, by category path: the shipped defaults (`factory/defaults/generic.js`,
      * in the generic's own shape, built into `CjsCharacterDataCategory` objects by the graph), each replaced by the
      * installed library's generic category of the same name. Built once per install. A category that lists no
      * `defaultColors` has none; one that lists no `requiresModel` or `skipPatternedPalettes` has them off (the record's
@@ -1373,7 +1372,7 @@ export class CjsCharacterLibraryManager
     {
         if (this._categories === null || this._categoriesGeneration !== this._installGeneration)
         {
-            const shipped = CjsGraph.from(CjsCharacterGeneric, CjsCharacterLibraryManager._shippedValues(categoryDefaults));
+            const shipped = this._ShippedGeneric();
             const rules = new Map();
             for (const category of [ ...shipped.categories, ...this._library.generic.categories ])
             {
@@ -1406,7 +1405,7 @@ export class CjsCharacterLibraryManager
 
     /**
      * The paper doll texture tables in force (`CjsCharacterTextureRoles` reads every map name by them): the installed
-     * library's generic texture members when it holds texture roles, else the shipped `factory/defaults/textureRoles.json`,
+     * library's generic texture members when it holds texture roles, else the shipped `factory/defaults/generic.js`,
      * whole (`_TextureRoles`).
      *
      * Ours (no Carbon counterpart): the client's paper doll is Python.
@@ -1432,7 +1431,7 @@ export class CjsCharacterLibraryManager
         {
             const installed = this._library.generic;
             const generic = installed.textureRoles.length ? installed
-                : CjsGraph.from(CjsCharacterGeneric, CjsCharacterLibraryManager._shippedValues(textureRoleDefaults));
+                : this._ShippedGeneric();
             if (!generic.textureRegions.length || !generic.textureAtlas.length || !generic.textureGarmentMaps.length || !(generic.textureAtlasTolerance > 0))
                 throw new Error("An installed library's texture roles need their regions, atlas, atlas tolerance and garment names too");
 
@@ -1457,7 +1456,7 @@ export class CjsCharacterLibraryManager
 
     /**
      * The bloodline name rules in force, built once per install as `_Sexes` is: the shipped defaults
-     * (`factory/defaults/bloodlines.json`, in the generic's own shape, built by the graph), each value the installed
+     * (`factory/defaults/generic.js`, in the generic's own shape, built by the graph), each value the installed
      * library's generic sets (`CjsCharacterGeneric.bloodlineRule`, `bloodlineMorphTargetRule`, not empty) replacing
      * its default.
      * @returns {CjsCharacterBloodlineRules} The rule names; not to be changed.
@@ -1466,7 +1465,7 @@ export class CjsCharacterLibraryManager
     {
         if (this._bloodlines === null || this._bloodlinesGeneration !== this._installGeneration)
         {
-            const shipped = CjsGraph.from(CjsCharacterGeneric, CjsCharacterLibraryManager._shippedValues(bloodlineDefaults));
+            const shipped = this._ShippedGeneric();
             const installed = this._library.generic;
             this._bloodlines = {
                 bloodlineRule: installed.bloodlineRule || shipped.bloodlineRule,
@@ -1479,7 +1478,7 @@ export class CjsCharacterLibraryManager
 
     /**
      * The sex facts in force, by sex, built once per install as `_Categories` is: the shipped defaults
-     * (`factory/defaults/sexes.json`, in the generic's own shape, built into `CjsCharacterDataSex` objects by the
+     * (`factory/defaults/generic.js`, in the generic's own shape, built into `CjsCharacterDataSex` objects by the
      * graph), each replaced whole by the installed library's generic sex of the same name. The installed library is
      * not changed.
      * @returns {Map<string, CjsCharacterDataSex>} The facts; not to be changed.
@@ -1488,7 +1487,7 @@ export class CjsCharacterLibraryManager
     {
         if (this._sexes === null || this._sexesGeneration !== this._installGeneration)
         {
-            const shipped = CjsGraph.from(CjsCharacterGeneric, CjsCharacterLibraryManager._shippedValues(sexDefaults));
+            const shipped = this._ShippedGeneric();
             const sexes = new Map(shipped.sexes.map(entry => [ entry.name, entry ]));
             for (const entry of this._library.generic.sexes) sexes.set(entry.name, entry);
             this._sexes = sexes;
@@ -1537,14 +1536,14 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * A shipped defaults file's values for the generic: every key but its `description`, so a key the generic does not
-     * declare fails the graph's build.
-     * @param {object} file The imported defaults file.
-     * @returns {object} Its values.
+     * The shipped generic (`factory/defaults/generic.js`, in the generic's own values shape), built with the graph once,
+     * so a member the generic does not declare fails the build. Every lookup in force lays the installed generic over it.
+     * @returns {CjsCharacterGeneric} The shipped generic; not to be changed.
      */
-    static _shippedValues(file)
+    _ShippedGeneric()
     {
-        return Object.fromEntries(Object.entries(file).filter(([ key ]) => key !== "description"));
+        if (this._shippedGeneric === null) this._shippedGeneric = CjsGraph.from(CjsCharacterGeneric, genericDefaults);
+        return this._shippedGeneric;
     }
 
     /**
