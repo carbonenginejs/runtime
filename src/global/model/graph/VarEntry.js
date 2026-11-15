@@ -126,20 +126,6 @@ export class VarEntry
   keepsNulls = false;
 
   /**
-   * The Blue math wrapper class a wrapped member is read through, or null.
-   *
-   * @cjs Carbon's member is a real TriMatrix or TriVector read through its own ClassInfo (IRootReader.cpp:183).
-   */
-  wrapperClass = null;
-
-  /**
-   * A wrapped member's declared kind, which picks the wrapper's layout, or null.
-   *
-   * @cjs
-   */
-  wrapperKind = null;
-
-  /**
    * The classes an object member accepts, as declared: classes or registered names.
    *
    * @cjs Carbon's row has one mIID; ours may accept several.
@@ -233,14 +219,6 @@ export class VarEntry
    * @type {number}
    */
   flags = 0;
-
-  /**
-   * The GRAPH_WRAPPERS record a wrapped member is written through, or null.
-   *
-   * @cjs Carbon's member is a real TriMatrix or TriVector; ours is a math array written as one.
-   * @type {object|null}
-   */
-  wrapped = null;
 
   /**
    * Anything rare the member's definition carries, or null.

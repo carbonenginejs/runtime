@@ -26,7 +26,7 @@ import { IList } from "../../exposure/IList.js";
 import { InvalidAttributeException } from "../../format/InvalidAttributeException.js";
 import { IRootReaderException } from "../../format/IRootReaderException.js";
 import { BLACK_DESTINATION } from "../../../global/model/graph/VarEntry.js";
-import { getWrapperLayout } from "./blueMathWrappers.js";
+import { getWrapperLayout } from "../../../global/model/graph/blueMathWrappers.js";
 
 const MAX_SAFE_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
 
@@ -359,7 +359,7 @@ export class IRootReaderBase
 
             case BLACK_DESTINATION.WRAPPER:
                 this.ReadWrapper(value, entry);
-                this._ReplaceNonFiniteElements(value, getWrapperLayout(entry.wrapperClass, entry.wrapperKind).elements.length, entry.name);
+                this._ReplaceNonFiniteElements(value, getWrapperLayout(entry.iid).elements.length, entry.name);
                 break;
 
             default:

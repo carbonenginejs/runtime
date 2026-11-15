@@ -1,7 +1,7 @@
 import { EDITFLAGS } from "../../src/global/consts/blue.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsGraph, GRAPH_TYPES, GRAPH_WRAPPERS, VARTYPE, GraphMemberFlags, VarEntry } from "../../src/global/model/graph/index.js";
+import { CjsGraph, GRAPH_TYPES, VARTYPE, GraphMemberFlags, VarEntry } from "../../src/global/model/graph/index.js";
 
 /** A compiled member of a type, with its handler. */
 const member = (type, fields = {}) => CjsGraph.compileMember({ name: "value", type, ...fields });
@@ -76,18 +76,6 @@ test("a compiled member is Carbon's row: its VARTYPE is type, its type name is k
   assert.equal(row.key, "value");
   assert.equal(row.index, -1);
   assert.equal(member("float32", { index: 2, key: "stored" }).index, 2);
-});
-
-test("a wrapped member carries its wire class, elements in order, and defaults", () =>
-{
-  const { wrapped } = member("mat4", { wrapped: "TriMatrix" });
-
-  assert.equal(wrapped, GRAPH_WRAPPERS.TriMatrix);
-  assert.equal(wrapped.wireClass, "TriMatrix");
-  assert.equal(wrapped.elements.length, 16);
-  assert.equal(wrapped.elements[4], "_21");
-  assert.deepEqual(GRAPH_WRAPPERS.TriQuaternion.defaults, [ 0, 0, 0, 1 ]);
-  assert.throws(() => member("mat4", { wrapped: "TriNothing" }), /Unknown graph wrapper/);
 });
 
 test("an edge type is always a list, the declared class first, and empty is dynamic", () =>

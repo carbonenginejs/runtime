@@ -16,7 +16,7 @@ mutable instance storage.
 
 A compiled member is a `VarEntry` row, listed in every table and never copied. The graph sets `name`,
 `key` (a field), `index` (-1 for none), `role`, `kind` (the type name), `type` (the VARTYPE),
-`handler`, `direct`, `length`, `bits`, `signed`, `ctor`, `item`, `flags`, `wrapped`, `options`,
+`handler`, `direct`, `length`, `bits`, `signed`, `ctor`, `item`, `flags`, `options`,
 `edgeKind`, `edgeType`, `collection` and `owner`. `flags` is one integer: Carbon's `EDITFLAGS` from
 `global/consts`, and above `EDMASK` `GraphMemberFlags.BINARY` and `RUNTIMEONLY`, which are ours and which
 no value operation reads. A member takes a value through WRITE, PERSIST or RPERSIST, or when it has no

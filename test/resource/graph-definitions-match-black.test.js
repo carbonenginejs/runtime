@@ -27,7 +27,6 @@ function expected(entry)
 {
   return {
     vartype: entry.type,
-    wrapper: entry.wrapperClass,
     destination: DESTINATIONS[entry.destination] ?? null
   };
 }
@@ -35,7 +34,8 @@ function expected(entry)
 /** Where a reader would put a graph-declared member's value, from the row's own facts. */
 function destinationOf(member)
 {
-  if (member.wrapped !== null) return "wrapper";
+  // A value member with a class iid holds that class's elements: a Blue math wrapper.
+  if (member.edgeKind === null && member.iid !== null) return "wrapper";
   if (member.collection === "array" || member.collection === "set") return member.collection;
   if (member.edgeKind === null) return member.kind === "values" ? "list" : member.kind === "valuesMap" ? "dict" : null;
   if (member.collection === "map") return "dict";
@@ -59,7 +59,6 @@ function compiled(member)
 {
   return {
     vartype: member.type,
-    wrapper: member.wrapped === null ? null : member.wrapped.wireClass,
     destination: destinationOf(member)
   };
 }

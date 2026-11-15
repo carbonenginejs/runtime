@@ -12,7 +12,7 @@ import { IRootReader } from "../../format/IRootReader.js";
 import { IBlueObjectBuilder } from "../../interfaces/IBlueObjectBuilder.js";
 import { ICacheable } from "../../interfaces/ICacheable.js";
 import { IRootReaderBase } from "../black/IRootReaderBase.js";
-import { getWrapperLayout } from "../black/blueMathWrappers.js";
+import { getWrapperLayout } from "../../../global/model/graph/blueMathWrappers.js";
 import { InvalidAttributeException } from "../../format/InvalidAttributeException.js";
 import { ClassInfo } from "../../../global/model/graph/ClassInfo.js";
 import { IRootReaderException } from "../../format/IRootReaderException.js";
@@ -1027,7 +1027,7 @@ export class YamlReader extends IRootReaderBase
 
   ReadWrapper(value, entry)
   {
-    this.ReadFloatArray(value, getWrapperLayout(entry.wrapperClass, entry.wrapperKind).elements.length);
+    this.ReadFloatArray(value, getWrapperLayout(entry.iid).elements.length);
   }
 
   /**

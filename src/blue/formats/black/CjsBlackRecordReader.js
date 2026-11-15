@@ -15,7 +15,7 @@ import { cast } from "../../compose/interface.js";
 import { BeClasses } from "../../exposure/classes/registry.js";
 import { ClassInfo } from "../../../global/model/graph/ClassInfo.js";
 import { BLACK_DESTINATION } from "../../../global/model/graph/VarEntry.js";
-import { getWrapperLayout } from "./blueMathWrappers.js";
+import { getWrapperLayout } from "../../../global/model/graph/blueMathWrappers.js";
 import { IRootReaderBase } from "./IRootReaderBase.js";
 
 /** The record field that names the class. */
@@ -260,7 +260,7 @@ export class CjsBlackRecordReader extends BlackReader
 
             case BLACK_DESTINATION.WRAPPER:
             {
-                const value = getWrapperLayout(entry.wrapperClass, entry.wrapperKind).defaults.slice();
+                const value = getWrapperLayout(entry.iid).defaults.slice();
                 this._ReadWrapperElements(value, entry);
                 this._ReplaceNonFiniteElements(value, value.length, entry.name);
                 holder[key] = value;

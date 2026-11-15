@@ -89,21 +89,6 @@ export const GRAPH_TYPES = {
 /** The bag key that holds an object's metadata, as Carbon's readers name it (DictReader.cpp:185). */
 export const GRAPH_METADATA_KEY = "__bluemetadata__";
 
-/**
- * The embedded classes a math member is wrapped in on the wire: persisted element names in
- * order, and their defaults. A member names one in its `wrapped`.
- * @cjs Modelled on: TriMatrix, TriVector, TriQuaternion and TriColor's persisted members.
- */
-export const GRAPH_WRAPPERS = {
-  TriMatrix: {
-    wireClass: "TriMatrix",
-    elements: [ "_11", "_12", "_13", "_14", "_21", "_22", "_23", "_24", "_31", "_32", "_33", "_34", "_41", "_42", "_43", "_44" ],
-    defaults: [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 ]
-  },
-  TriVector: { wireClass: "TriVector", elements: [ "x", "y", "z" ], defaults: [ 0, 0, 0 ] },
-  TriQuaternion: { wireClass: "TriQuaternion", elements: [ "x", "y", "z", "w" ], defaults: [ 0, 0, 0, 1 ] },
-  TriColor: { wireClass: "TriColor", elements: [ "r", "g", "b", "a" ], defaults: [ 0, 0, 0, 0 ] }
-};
 
 /**
  * A compiled member's own bits, above Be::EDMASK, in the integer that holds its Be::EDITFLAGS.

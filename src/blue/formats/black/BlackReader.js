@@ -22,7 +22,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 import { cast } from "../../compose/interface.js";
 import { BeClasses } from "../../exposure/classes/registry.js";
 import { ClassInfo } from "../../../global/model/graph/ClassInfo.js";
-import { getWrapperLayout } from "./blueMathWrappers.js";
+import { getWrapperLayout } from "../../../global/model/graph/blueMathWrappers.js";
 import { IRootReaderBase } from "./IRootReaderBase.js";
 
 /** The file's magic value (BlackReader.cpp:53). */
@@ -799,7 +799,7 @@ export class BlackReader extends IRootReaderBase
      */
     ReadWrapper(value, entry)
     {
-        const elements = getWrapperLayout(entry.wrapperClass, entry.wrapperKind).elements;
+        const elements = getWrapperLayout(entry.iid).elements;
         if (!ArrayBuffer.isView(value) || value.length !== elements.length)
         {
             throw new IRootReaderException(`Member does not hold ${elements.length} floats`);
@@ -818,15 +818,15 @@ export class BlackReader extends IRootReaderBase
      */
     _ReadWrapperElements(value, entry)
     {
-        const elements = getWrapperLayout(entry.wrapperClass, entry.wrapperKind).elements;
+        const elements = getWrapperLayout(entry.iid).elements;
 
         const dataSize = this.ReadValue__UInt32();
         const streamEnd = this._curData + dataSize;
 
         const typeName = this.ReadString();
-        if (typeName !== entry.wrapperClass)
+        if (typeName !== entry.iid)
         {
-            throw new IRootReaderException(`Member declares ${entry.wrapperClass} but holds ${typeName}`);
+            throw new IRootReaderException(`Member declares ${entry.iid} but holds ${typeName}`);
         }
 
         while (this._curData < streamEnd)

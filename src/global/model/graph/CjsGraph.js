@@ -3,7 +3,7 @@ import { ClassInfo } from "./ClassInfo.js";
 import { VarEntry } from "./VarEntry.js";
 import { CjsGraphClassUIInfo } from "./CjsGraphClassUIInfo.js";
 import { CjsGraphState } from "./CjsGraphState.js";
-import { GRAPH_METADATA_KEY, GRAPH_TYPES, GRAPH_WRAPPERS, GraphMemberFlags, GraphOperation, VARTYPE } from "./graphTypes.js";
+import { GRAPH_METADATA_KEY, GRAPH_TYPES, GraphMemberFlags, GraphOperation, VARTYPE } from "./graphTypes.js";
 import { getGraphHandler } from "./types/index.js";
 
 /**
@@ -85,8 +85,8 @@ export class CjsGraph
    * Definition shape: { name, members: [{ name, key?, type?, edge?, flags? }], interfaces? }.
    * A member's type is a GRAPH_TYPES name; one with no type describes and walks, and refuses
    * every value operation. flags holds its Be::EDITFLAGS and GraphMemberFlags, READWRITE | PERSIST
-   * by default. wrapped names a GRAPH_WRAPPERS class, item the type of a values list, length a
-   * length of its own, and options anything rare.
+   * by default. item names the type of a values list, length a length of its own, and options
+   * anything rare.
    * edge is { kind, type?, collection?, map? }: type is a class, a name or a list of them, the
    * first being the declared one, and collection is true or "list", "array", "set" or "map".
    * interfaces names classes an instance also counts as without inheriting from them.
@@ -296,8 +296,6 @@ export class CjsGraph
     if (!entry) throw new TypeError(`Unknown graph type: ${member.type}`);
 
     const edge = member.edge ? this._compileEdge(member.edge) : null;
-    const wrapped = member.wrapped === undefined ? null : GRAPH_WRAPPERS[member.wrapped];
-    if (wrapped === undefined) throw new TypeError(`Unknown graph wrapper: ${member.wrapped}`);
 
     let row = member.row;
     if (row === undefined)
@@ -306,20 +304,19 @@ export class CjsGraph
       row.name = member.name;
       row.key = member.key ?? member.name;
       row.index = member.index ?? -1;
-      row.type = (flags & GraphMemberFlags.BINARY) !== 0 ? VARTYPE.BINARYBLOCK : wrapped === null ? entry.storage : VARTYPE.IROOT;
+      row.type = (flags & GraphMemberFlags.BINARY) !== 0 ? VARTYPE.BINARYBLOCK : entry.storage;
       row.signed = entry.signed === true;
     }
     row.role = member.role ?? "attribute";
     row.kind = member.type ?? "invalid";
     row.handler = getGraphHandler(entry.handler);
     row.direct = entry.direct === true;
-    row.length = wrapped === null ? member.length ?? entry.length ?? 0 : wrapped.elements.length;
+    row.length = member.length ?? entry.length ?? 0;
     row.bits = entry.bits ?? 0;
     row.ctor = entry.ctor ?? null;
     row.check = entry.check ?? null;
     row.item = this._compileItem(member);
     row.flags = flags;
-    row.wrapped = wrapped;
     row.options = member.options ?? null;
     row.edgeKind = edge === null ? null : edge.kind;
     row.edgeType = edge === null ? this._noTypes : edge.types;

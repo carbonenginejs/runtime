@@ -10,7 +10,7 @@ import { IListNotify } from "../../npm/dist/blue/exposure/IListNotify.js";
 import { BlueList } from "../../npm/dist/blue/exposure/BlueList.js";
 import { ClassInfo } from "../../npm/dist/global/model/graph/ClassInfo.js";
 import { BlackReader } from "../../npm/dist/blue/formats/black/BlackReader.js";
-import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
+import { BLUELISTEVENT, VARTYPE } from "../../npm/dist/global/consts/blue.js";
 import { Fixture, concat, floats, i32, u16, u32 } from "../support/blackFixture.js";
 import { blackBuilder, readBlack } from "../support/blackReader.js";
 
@@ -157,8 +157,11 @@ test("a wrapped TriMatrix member fills the instance's own mat4 from the matrix's
   CjsSchema.define(Owner, { name: "BlackReadsMatrixOwner", members });
   CjsSchema.define(NullOwner, { name: "BlackReadsMatrixNullOwner", members });
   const entry = ClassInfo.exposeToBlue(Owner).entries.get("transform");
-  assert.equal(entry.wrapperClass, "TriMatrix");
-  assert.equal(entry.wrapperKind, "mat4");
+  assert.equal(entry.type, VARTYPE.IROOT);
+  assert.equal(entry.iid, "TriMatrix");
+  assert.equal(entry.length, 16);
+  class WrongOwner { transform = new Float32Array(3); }
+  assert.throws(() => CjsSchema.define(WrongOwner, { name: "BlackReadsMatrixWrongOwner", members: [ { ...member("transform", "vec3"), type: { kind: "vec3", wrapped: "TriMatrix" } } ] }), /TriMatrix does not hold vec3/);
   const file = kind =>
   {
     const f = new Fixture();

@@ -214,7 +214,6 @@ export class CjsBlueGraph
     return {
       ...this._getFlags(field),
       type: Object.hasOwn(GRAPH_TYPES, name) && (edge || (name !== "map" && name !== "list")) ? name : undefined,
-      wrapped: field.type?.wrapped,
       options: kind === "path" || kind === "wpath" ? { accepts: field.type.accepts ?? [] } : undefined,
       edge: edge ? {
         kind: edge,

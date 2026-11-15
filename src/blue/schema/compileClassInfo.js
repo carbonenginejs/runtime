@@ -18,6 +18,7 @@ import { getRegisteredConstructor, registerClass } from "../exposure/classes/reg
 import { ClassInfo } from "../../global/model/graph/ClassInfo.js";
 import { BLACK_DESTINATION, VarEntry } from "../../global/model/graph/VarEntry.js";
 import { GRAPH_TYPES } from "../../global/model/graph/graphTypes.js";
+import { getWrapperLayout } from "../../global/model/graph/blueMathWrappers.js";
 import { blueEnums } from "../enums/CjsBlueEnumRegistry.js";
 
 /** The schema, from `installClassInfoCompile`. @type {typeof import("./CjsSchema.js").CjsSchema} */
@@ -89,14 +90,14 @@ const CONTAINERS = Object.freeze({
  * so reading it gives Carbon's "Invalid attribute type".
  *
  * @param {object|string|Function|undefined} declared The member's declared type.
- * @returns {{type: number, signed: boolean, length: number, destination: number, wrapperClass: (string|null), structClass: (string|Function|null)}} The member type.
+ * @returns {{type: number, signed: boolean, length: number, destination: number, iid: (string|null), structClass: (string|Function|null)}} The member type.
  */
 export function declaredMemberType(declared)
 {
   let type = declared;
   if (typeof type === "function") type = { kind: "rootRef", className: type };
   if (typeof type === "string") type = { kind: type };
-  const result = { type: VARTYPE.INVALID, signed: false, length: 0, destination: BLACK_DESTINATION.OBJECT, wrapperClass: null, structClass: null };
+  const result = { type: VARTYPE.INVALID, signed: false, length: 0, destination: BLACK_DESTINATION.OBJECT, iid: null, structClass: null };
   if (!type || type.runtimeOnly === true) return result;
 
   // type.binary is Carbon's BINARYBLOCK, whatever value the member holds.
@@ -110,7 +111,9 @@ export function declaredMemberType(declared)
   {
     result.type = VARTYPE.IROOT;
     result.destination = BLACK_DESTINATION.WRAPPER;
-    result.wrapperClass = type.wrapped;
+    // Carbon's member is a P-class of the wrapper, whose IID is the wrapper's (GetBlueIID, BlueTypeTraits.h:392-411).
+    if (!getWrapperLayout(type.wrapped).types.includes(type.kind)) throw new TypeError(`${type.wrapped} does not hold ${type.kind}.`);
+    result.iid = type.wrapped;
     // The count of the value the member holds, which the graph writes too.
     result.length = Object.hasOwn(GRAPH_TYPES, type.kind) ? GRAPH_TYPES[type.kind].length ?? 0 : 0;
     return result;
@@ -233,11 +236,9 @@ function varEntryOf(Constructor, member, entry)
   entry.length = declared.length;
   entry.destination = declared.destination;
   entry.keepsNulls = type?.kind === "array";
-  entry.wrapperClass = declared.wrapperClass;
-  entry.wrapperKind = declared.wrapperClass ? type.kind : null;
   entry.accepts = declared.type === VARTYPE.INVALID ? [] : type?.accepts ?? (type?.className ? [ type.className ] : []);
   entry.structClass = declared.structClass;
-  entry.iid = typeof reference === "function" ? Schema.getClassName(reference) : reference || null;
+  entry.iid = declared.iid ?? (typeof reference === "function" ? Schema.getClassName(reference) : reference || null);
   entry.description = member.jessica && member.jessica.description ? member.jessica.description : "";
   // Blue's stamp comes only from Carbon's exposure (`be`, which names its macro); ours (`meta.mapAttribute`, no macro) is
   // in the table but not Blue's.
