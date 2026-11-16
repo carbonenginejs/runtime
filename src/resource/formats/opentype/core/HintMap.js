@@ -394,25 +394,44 @@ export class HintMap
         return negative ? -q : q;
     }
 
-    /** cf2_fixedRound: to the nearest whole pixel, halves up. @param {number} x 16.16. @returns {number} 16.16. */
+    /**
+     * cf2_fixedRound: to the nearest whole pixel, halves up.
+     *
+     * @param {number} x A 16.16 fixed-point value.
+     * @returns {number} The rounded value, in 16.16.
+     */
     static round(x)
     {
         return Math.floor((x + 0x8000) / ONE) * ONE;
     }
 
-    /** cf2_fixedFraction: the part above the floor, in [0, 1). @param {number} x 16.16. @returns {number} 16.16. */
+    /**
+     * cf2_fixedFraction: the part above the floor, in [0, 1).
+     *
+     * @param {number} x A 16.16 fixed-point value.
+     * @returns {number} The fraction, in 16.16.
+     */
     static fraction(x)
     {
         return x - Math.floor(x / ONE) * ONE;
     }
 
-    /** A charstring coordinate in 16.16; the interpreter's values are exact multiples of 1/65536. @param {number} v Font units. @returns {number} 16.16. */
+    /**
+     * A charstring coordinate in 16.16; the interpreter's values are exact multiples of 1/65536.
+     *
+     * @param {number} v A coordinate in font units.
+     * @returns {number} The coordinate in 16.16.
+     */
     static toFixed(v)
     {
         return Math.round(v * ONE);
     }
 
-    /** @returns {HintEdge} An invalid edge (cf2_hint_initZero). */
+    /**
+     * cf2_hint_initZero: an invalid edge.
+     *
+     * @returns {HintEdge} An edge with no flags, coordinates or scale.
+     */
     static zeroEdge()
     {
         return { flags: 0, csCoord: 0, dsCoord: 0, scale: 0, index: 0 };
