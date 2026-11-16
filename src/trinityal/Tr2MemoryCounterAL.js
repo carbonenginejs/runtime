@@ -28,20 +28,6 @@ import { isNumber } from "#utils/is";
 import { Tr2MsaaDesc } from "./Tr2HalHelperStructures/Tr2MsaaDesc.js";
 
 
-/** `Tr2MemoryCounterAL::MemoryType` (`Tr2MemoryCounterAL.h:10-16`). */
-const MemoryType = Object.freeze({
-  /** Counted nowhere: system memory is not a GPU estimate. */
-  SYSTEM_MEMORY: 0,
-
-  /** Counted in `gpuMemoryBufferEst`. */
-  BUFFER: 1,
-
-  /** Counted in `gpuMemoryTextureEst`. */
-  TEXTURE: 2,
-
-  /** Counted in `gpuMemoryOtherEst`. */
-  OTHER: 3
-});
 
 
 /**
@@ -62,11 +48,23 @@ export class Tr2MemoryCounterAL
   static className = "Tr2MemoryCounterAL";
 
   /**
-   * `Tr2MemoryCounterAL::MemoryType`.
+   * `Tr2MemoryCounterAL::MemoryType` (`Tr2MemoryCounterAL.h:10-16`).
    *
    * @implemented
    */
-  static MemoryType = MemoryType;
+  static MemoryType = Object.freeze({
+    /** Counted nowhere: system memory is not a GPU estimate. */
+    SYSTEM_MEMORY: 0,
+
+    /** Counted in `gpuMemoryBufferEst`. */
+    BUFFER: 1,
+
+    /** Counted in `gpuMemoryTextureEst`. */
+    TEXTURE: 2,
+
+    /** Counted in `gpuMemoryOtherEst`. */
+    OTHER: 3
+  });
 
   /**
    * gpuMemoryTotalEst: "Trinity/AL/gpuMemoryEst/total" (`Tr2MemoryCounterAL.cpp:6`).
@@ -101,7 +99,7 @@ export class Tr2MemoryCounterAL
    *
    * @implemented
    */
-  _memoryType = MemoryType.SYSTEM_MEMORY;
+  _memoryType = Tr2MemoryCounterAL.MemoryType.SYSTEM_MEMORY;
 
   /**
    * m_size
@@ -316,18 +314,18 @@ export class Tr2MemoryCounterAL
   {
     switch (this._memoryType)
     {
-      case MemoryType.SYSTEM_MEMORY:
+      case Tr2MemoryCounterAL.MemoryType.SYSTEM_MEMORY:
         return;
 
-      case MemoryType.BUFFER:
+      case Tr2MemoryCounterAL.MemoryType.BUFFER:
         Tr2MemoryCounterAL.gpuMemoryBufferEst += inc;
         break;
 
-      case MemoryType.TEXTURE:
+      case Tr2MemoryCounterAL.MemoryType.TEXTURE:
         Tr2MemoryCounterAL.gpuMemoryTextureEst += inc;
         break;
 
-      case MemoryType.OTHER:
+      case Tr2MemoryCounterAL.MemoryType.OTHER:
         Tr2MemoryCounterAL.gpuMemoryOtherEst += inc;
         break;
 
