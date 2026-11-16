@@ -35,6 +35,8 @@ import {
 /**
  * The dimensions, format and mip layout of a texture.
  *
+ * Carbon: ImageIO::BitmapDimensions (imageio/include/BitmapDimensions.h:19-83)
+ *
  * STATE IS PRIVATE, BEHIND THE ACCESSORS CARBON ALREADY HAS. Its members were
  * public here and are not in Carbon: `TriTextureRes` DERIVES from this type and
  * reaches its size through `Tr2BitmapDimensions::GetWidth()`
