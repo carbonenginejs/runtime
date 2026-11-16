@@ -19,6 +19,30 @@ const PDP_TYPES = new Set(Object.values(CjsCharacterPdpType));
  */
 export class CjsCharacterLibraryConfiguration
 {
+    /** @type {string[]} The `res:` roots the library indexes. */
+    roots = [];
+
+    /** @type {string[]} The patterns below the roots it never indexes. */
+    excludes = [];
+
+    /** @type {string[]} The `.black`/`.red` resource patterns it indexes by path, without their extension. */
+    blackPatterns = [];
+
+    /** @type {string[]} The `res:/staticdata/<name>.fsdbinary` files it indexes by path. */
+    staticNames = [];
+
+    /**
+     * Each source type's declaration, by name.
+     * @type {Object<string, { className: string, pdpType: number, envelope?: true, generic?: true, pathOnly?: true, derived?: true, slots?: string[] }>}
+     */
+    kinds = {};
+
+    /** @type {Array<{ match: string, kind: string }>} The path rows. */
+    rows = [];
+
+    /** @type {Object<string, Object<string, (string[]|object)>>} Each record class's list forms, by file key. */
+    sourceLists = {};
+
     /**
      * Reads a generic's source members, refusing what the library could not read with: a file shape that is no
      * `CjsCharacterPdpType` value (or is `NONE`), a file shape two source types name, a record class that is not
@@ -29,17 +53,11 @@ export class CjsCharacterLibraryConfiguration
      */
     constructor(generic)
     {
-        /** @type {string[]} The `res:` roots the library indexes. */
         this.roots = Array.from(generic.sourceRoots);
-        /** @type {string[]} The patterns below the roots it never indexes. */
         this.excludes = Array.from(generic.sourceExcludes);
-        /** @type {string[]} The `.black`/`.red` resource patterns it indexes by path, without their extension. */
         this.blackPatterns = Array.from(generic.sourceBlackPatterns);
-        /** @type {string[]} The `res:/staticdata/<name>.fsdbinary` files it indexes by path. */
         this.staticNames = Array.from(generic.sourceStaticNames);
 
-        /** @type {Object<string, { className: string, pdpType: number, envelope?: true, generic?: true, pathOnly?: true, derived?: true, slots?: string[] }>} */
-        this.kinds = {};
         for (const type of generic.sourceTypes)
         {
             if (Object.hasOwn(this.kinds, type.name)) throw new Error("Repeated character source type " + type.name);
@@ -53,15 +71,12 @@ export class CjsCharacterLibraryConfiguration
             this.kinds[type.name] = kind;
         }
 
-        /** @type {Array<{ match: string, kind: string }>} */
         this.rows = generic.sourceRows.map(row =>
         {
             if (!Object.hasOwn(this.kinds, row.sourceType)) throw new Error(`Character source row ${row.match} names an unknown source type ${row.sourceType}`);
             return { match: row.match, kind: row.sourceType };
         });
 
-        /** @type {Object<string, Object<string, (string[]|object)>>} */
-        this.sourceLists = {};
         for (const form of generic.sourceListForms)
         {
             if (!CjsSchema.getConstructor(form.className)) throw new Error(`Character list form ${form.className}.${form.key} names an unregistered class`);

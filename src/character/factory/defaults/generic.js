@@ -665,7 +665,7 @@ export const genericDefaults = {
     // sourceListForms (normalizeCharacterYamlValues): per record class and file key, a positional form (the key's list
     // fills these fields in order) or a records form (the key becomes a list of records: keyed, a mapping whose key
     // fills that field; value, the field a whole value fills; tuple / tupleByLength, the fields a tuple fills, rest the
-    // trailing items). Incarna is not the character library's (its former patterns: docs/research/incarna-content.md).
+    // trailing items). Incarna's interiors and shader descriptions are not the character library's.
     // In the generic's own shape. CjsCharacterLibraryConfiguration reads the shipped generic's; an installed library's
     // generic does not change the indexing yet. Edit freely: the library reads this as data.
     sourceRoots: [ "res:/graphics/character/", "res:/animation/", "res:/animation_gstate/", "res:/dx9/model/character/", "res:/dx9/scene/postprocess/", "res:/ui/texture/charactercreation/backdrops/", "res:/staticdata/" ],
