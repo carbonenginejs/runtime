@@ -15,26 +15,26 @@ npm install @carbonenginejs/runtime@alpha
 ## Quick start
 
 Each format is its own subpath, so importing one brings that reader and the shared code it needs, not the
-renderer or a GPU. Read a Granny mesh file (GR2) and project it into the shared mesh form:
+renderer or a GPU. Read a Granny mesh file (GR2):
 
 ```js
 import { readFile } from "node:fs/promises";
 import { CjsGr2Format } from "@carbonenginejs/runtime/resource/formats/gr2";
-import { CjsCmfFormat } from "@carbonenginejs/runtime/resource/formats/cmf";
 
 const bytes = new Uint8Array(await readFile("ship.gr2"));
 
-// The Granny graph as plain objects: { grannyFileFormatRevision, grannyFileSource, meshes, models, animations }
+// The file as plain objects: { grannyFileFormatRevision, grannyFileSource, meshes, models, animations }.
+// Each level of detail is its own mesh here, as the file stores it ("Hull LOD 320").
 const granny = CjsGr2Format.read(bytes);
-const shared = CjsCmfFormat.loadShared(granny);
 
-for (const mesh of shared.meshes)
+for (const mesh of granny.meshes)
 {
-  console.log(mesh.name, mesh.lods.length, mesh.areas.length);
+  console.log(mesh.name, mesh.vertex.position.length / 3, "vertices");
 }
 ```
 
-The other readers are the `./resource/formats/*` subpaths in `package.json`.
+The other readers are the `./resource/formats/*` subpaths in `package.json`, and `./blue/formats/*` for EVE's
+object files (`.black`, `.red`); [the format map](docs/resource/formats/README.md) lists them all.
 
 ## Documentation
 
