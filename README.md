@@ -2,6 +2,44 @@
 
 **Coming Soon™.** Pre-alpha, published under the `alpha` tag; the API will change without notice.
 
+JavaScript ports of CarbonEngine, the engine behind EVE Online, with readers for the files it uses. The format
+readers are the part to build on today; the object graph, the renderer and the character layer are a port in
+progress.
+
+## Install
+
+```sh
+npm install @carbonenginejs/runtime@alpha
+```
+
+## Quick start
+
+Each format is its own subpath, so importing one brings that reader and the shared code it needs, not the
+renderer or a GPU. Read a Granny mesh file (GR2) and project it into the shared mesh form:
+
+```js
+import { readFile } from "node:fs/promises";
+import { CjsGr2Format } from "@carbonenginejs/runtime/resource/formats/gr2";
+import { CjsCmfFormat } from "@carbonenginejs/runtime/resource/formats/cmf";
+
+const bytes = new Uint8Array(await readFile("ship.gr2"));
+
+// The Granny graph as plain objects: { grannyFileFormatRevision, grannyFileSource, meshes, models, animations }
+const granny = CjsGr2Format.read(bytes);
+const shared = CjsCmfFormat.loadShared(granny);
+
+for (const mesh of shared.meshes)
+{
+  console.log(mesh.name, mesh.lods.length, mesh.areas.length);
+}
+```
+
+The other readers are the `./resource/formats/*` subpaths in `package.json`.
+
+## Documentation
+
+Start with the [package documentation](docs/README.md) and the [runtime architecture](docs/architecture.md).
+
 ## EVE content and CCP's terms
 
 **The code is MIT. EVE's content is not.** This package contains no game files.
