@@ -27,9 +27,6 @@ import { CjsSchema } from "#schema";
 import { isNumber } from "#utils/is";
 import { Tr2MsaaDesc } from "./Tr2HalHelperStructures/Tr2MsaaDesc.js";
 
-
-
-
 /**
  * One resource's contribution to the estimated GPU memory totals.
  *
@@ -48,7 +45,7 @@ export class Tr2MemoryCounterAL
   static className = "Tr2MemoryCounterAL";
 
   /**
-   * `Tr2MemoryCounterAL::MemoryType` (`Tr2MemoryCounterAL.h:10-16`).
+   * `Tr2MemoryCounterAL::MemoryType` (`Tr2MemoryCounterAL.h:10-17`).
    *
    * @implemented
    */
