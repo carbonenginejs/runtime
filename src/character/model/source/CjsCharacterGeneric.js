@@ -10,6 +10,11 @@ import "./CjsCharacterDataMorphCorrection.js";
 import "./CjsCharacterDataMeshDependant.js";
 import "./CjsCharacterDataPartGroup.js";
 import "./CjsCharacterDataBodyCarrier.js";
+import "./CjsCharacterDataSourceType.js";
+import "./CjsCharacterDataSourceRow.js";
+import "./CjsCharacterDataListForm.js";
+import "./CjsCharacterDataListFormPositional.js";
+import "./CjsCharacterDataListFormRecords.js";
 
 // Discovery: src/character/discovery/animationdata.yaml
 // Discovery: src/character/discovery/{animation_animinfo,animation_movementstates,animationoffsets,basefemalebindpose,basemalebindpose,basename,blendshapes,face,facetweaksettings,modifiernames,scultpinglimits,trif}.yaml
@@ -234,5 +239,40 @@ export class CjsCharacterGeneric
     @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
     @type.float32
     backingCutoutAlpha = 0;
+
+    /** The `res:` roots the library indexes (`res:/graphics/character/`). */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string.array()
+    sourceRoots = [];
+
+    /** The `res:` patterns below the roots it never indexes (Python files, pickles, texture mip files). */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string.array()
+    sourceExcludes = [];
+
+    /** The library's source types: each its record class, file shape and layout. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.object.embed.array("CjsCharacterDataSourceType")
+    sourceTypes = [];
+
+    /** The path rules: which files are of which source type. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.object.embed.array("CjsCharacterDataSourceRow")
+    sourceRows = [];
+
+    /** The `res:` patterns (without extension) of the `.black`/`.red` resources it indexes by path. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string.array()
+    sourceBlackPatterns = [];
+
+    /** The `res:/staticdata/<name>.fsdbinary` files it indexes by path. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.string.array()
+    sourceStaticNames = [];
+
+    /** How the reader lays a record class's file keys onto its fields: one record per class and key, by form. */
+    @meta.mapAttribute(meta.READWRITE | meta.PERSIST)
+    @type.object.embed.array("CjsCharacterDataListForm")
+    sourceListForms = [];
 
 }
