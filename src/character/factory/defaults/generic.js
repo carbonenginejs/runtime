@@ -666,8 +666,8 @@ export const genericDefaults = {
     // fills these fields in order) or a records form (the key becomes a list of records: keyed, a mapping whose key
     // fills that field; value, the field a whole value fills; tuple / tupleByLength, the fields a tuple fills, rest the
     // trailing items). Incarna is not the character library's (its former patterns: docs/research/incarna-content.md).
-    // In the generic's own shape; a library's generic replaces each member whole. Not read yet: the library still uses
-    // CjsCharacterLibraryConfiguration's tables until it derives them from these (plan step 12, second commit).
+    // In the generic's own shape. CjsCharacterLibraryConfiguration reads the shipped generic's; an installed library's
+    // generic does not change the indexing yet. Edit freely: the library reads this as data.
     sourceRoots: [ "res:/graphics/character/", "res:/animation/", "res:/animation_gstate/", "res:/dx9/model/character/", "res:/dx9/scene/postprocess/", "res:/ui/texture/charactercreation/backdrops/", "res:/staticdata/" ],
     sourceExcludes: [ "**/*.py", "**/*.pickle", "**/*.apb", "**/*.16", "**/*.64", "**/*.128", "**/*.256", "**/*.512", "**/*.1024" ],
     sourceTypes: [
@@ -763,6 +763,9 @@ export const genericDefaults = {
         { match: "res:/graphics/character/**/*.tga", sourceType: "textures" },
         { match: "res:/ui/texture/charactercreation/backdrops/*.dds", sourceType: "textures" },
         { match: "res:/ui/texture/charactercreation/backdrops/*.png", sourceType: "textures" },
+        // The portrait post-process's textures (character_postprocess.black, portraitlut.black name them).
+        { match: "res:/dx9/scene/postprocess/lutdefault.dds", sourceType: "textures" },
+        { match: "res:/dx9/scene/postprocess/ncc_normal.dds", sourceType: "textures" },
     ],
     sourceBlackPatterns: [ "res:/graphics/character/**/*", "res:/animation_gstate/scenes/**/curvesets/*", "res:/animation_gstate/scenes/**/lights_client", "res:/dx9/model/character/corpse/corpse_rotation", "res:/dx9/scene/postprocess/character_postprocess", "res:/dx9/scene/postprocess/portraitlut" ],
     sourceStaticNames: [ "ancestries", "archetypes", "bloodlines", "character_avatarbehaviors", "character_colorlocations", "character_colornames", "character_modifierlocations", "character_portraitresources", "character_resources", "character_sculptinglocations", "npccharacters", "paperdolls", "races" ],

@@ -24,9 +24,9 @@ the record's values.
 
 ## Records
 
-A reader reads a file and creates its record class; there is no second, raw-shape record. The configuration
-(`CjsCharacterLibraryConfiguration.kinds`) names each kind's class and file shape; its `sourceLists` translate a file's
-tuples into named fields (a palette's `colors` into `color1`–`color3`). A `.type` reads into
+A reader reads a file and creates its record class; there is no second, raw-shape record. The indexing is generic data
+(the generic's `source*` members, shipped in `factory/defaults/generic.js`), which `CjsCharacterLibraryConfiguration`
+reads: its `kinds` name each kind's class and file shape, and its `sourceLists` translate a file's tuples into named fields (a palette's `colors` into `color1`–`color3`). A `.type` reads into
 `CjsCharacterType.partPath`, `variation`, `colorVariant`, `bloodlineIDs`; a camera or post is read in either of its
 two layouts, kept in `_pdpType`. Black, texture, clip, rig, state and static resources are stored as paths.
 

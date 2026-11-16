@@ -11,7 +11,6 @@ import { CjsCharacterPdpType } from "../formats/characterPdpType.js";
 import { CjsCharacterLibrary } from "./CjsCharacterLibrary.js";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsCharacterTextureRoles } from "./CjsCharacterTextureRoles.js";
-import { genericDefaults } from "../factory/defaults/generic.js";
 import partCategoryDefaults from "../factory/defaults/partCategories.json" with { type: "json" };
 import defaultFemalePaperDoll from "../factory/defaults/defaultFemalePaperDoll.json" with { type: "json" };
 import defaultMalePaperDoll from "../factory/defaults/defaultMalePaperDoll.json" with { type: "json" };
@@ -20,8 +19,6 @@ import { CjsCharacterMorphCorrections } from "../model/morph/CjsCharacterMorphCo
 import { CjsCharacterAppearanceResolver } from "../model/resolution/CjsCharacterAppearanceResolver.js";
 import { PaperDollPaletteKind } from "./characterPalettes.js";
 import { CjsSchema } from "#schema";
-import { CjsCharacterGeneric } from "../model/source/CjsCharacterGeneric.js";
-import { CjsGraph } from "../../global/model/graph/CjsGraph.js";
 import { TriBatchType } from "#consts/graphics";
 
 /** The default paper doll of each sex (`defaultPaperDoll`). */
@@ -142,9 +139,6 @@ export class CjsCharacterLibraryManager
     _meshDependants = null;
 
     _meshDependantsGeneration = -1;
-
-    /** The shipped generic (`_ShippedGeneric`), built once. */
-    _shippedGeneric = null;
 
     /**
      * Reads one flat kind through its lazy Blue loader when present.
@@ -1666,14 +1660,13 @@ export class CjsCharacterLibraryManager
     }
 
     /**
-     * The shipped generic (`factory/defaults/generic.js`, in the generic's own values shape), built with the graph once,
-     * so a member the generic does not declare fails the build. Every lookup in force lays the installed generic over it.
+     * The shipped generic (`CjsCharacterLibraryConfiguration.shippedGeneric`: `factory/defaults/generic.js`, built with
+     * the graph once). Every lookup in force lays the installed generic over it.
      * @returns {CjsCharacterGeneric} The shipped generic; not to be changed.
      */
     _ShippedGeneric()
     {
-        if (this._shippedGeneric === null) this._shippedGeneric = CjsGraph.from(CjsCharacterGeneric, genericDefaults);
-        return this._shippedGeneric;
+        return CjsCharacterLibraryConfiguration.shippedGeneric();
     }
 
     /**
